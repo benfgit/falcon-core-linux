@@ -106,7 +106,7 @@ inline RingBatch* SlotOut<DATATYPE>::next_batch( uint64_t n ) {
 }
 
 template <typename DATATYPE>
-void PortOut<DATATYPE>::Connect (int slot, StreamInConnector* downstream ) {
+void PortOut<DATATYPE>::Connect (int slot, ISlotIn* downstream ) {
     
     if (slot<0 || slot>=number_of_slots()) {
         throw std::out_of_range( "Error connecting to slot " + std::to_string(slot) + " (invalid slot number)" );
@@ -158,8 +158,10 @@ void PortOut<DATATYPE>::UnlockSlots() {
 template <typename DATATYPE>
 void PortOut<DATATYPE>::NewSlot(int n) {
     
+    SlotAddress address( this->address_, 0 );
     for( int k=0; k<n; k++ ) {
-        this->slots_.push_back( std::unique_ptr<SlotOut<DATATYPE>>( new SlotOut<DATATYPE>(this->datatype_) ) );
+        address.set_slot( this->slots_.size() );
+        this->slots_.push_back( std::unique_ptr<SlotOut<DATATYPE>>( new SlotOut<DATATYPE>(this, address, this->datatype_) ) );
     }
 }
 
@@ -371,7 +373,7 @@ void SlotIn<DATATYPE>::Unlock() {
 }
 
 template <typename DATATYPE>
-void PortIn<DATATYPE>::Connect( int slot, StreamOutConnector* upstream ) {
+void PortIn<DATATYPE>::Connect( int slot, ISlotOut* upstream ) {
     
     if (slot>=policy().min_slot_number() && slot == number_of_slots() && slot < policy().max_slot_number()) {
         // create new slot
@@ -413,8 +415,10 @@ bool PortIn<DATATYPE>::CheckCompatibility( IPortOut* upstream ) {
 template <typename DATATYPE>
 void PortIn<DATATYPE>::NewSlot( int n ) {
     
+    SlotAddress address(this->address_,0);
     for (int k=0; k<n; k++) {
-        slots_.push_back( std::move( std::unique_ptr<SlotIn<DATATYPE>>( new SlotIn<DATATYPE>(datatype_, policy().time_out(), policy().cache_enabled() ) ) ) );
+        address.set_slot( slots_.size() );
+        slots_.push_back( std::move( std::unique_ptr<SlotIn<DATATYPE>>( new SlotIn<DATATYPE>(this, address, datatype_, policy().time_out(), policy().cache_enabled() ) ) ) );
     }
 }
 

@@ -28,12 +28,17 @@
 #include <utility>
 
 #include "threadutilities.hpp"
+#include "connections.hpp"
 
 #include "runinfo.hpp"
 #include "yaml-cpp/yaml.h"
 
 // forward declaration
 class IProcessor;
+class IPortOut;
+class IPortIn;
+class ISlotOut;
+class ISlotIn;
 
 class ProcessorEngine final {
 public:
@@ -41,6 +46,17 @@ public:
     ~ProcessorEngine();
     
     const std::string name() const { return name_; }
+    
+    void PrepareConnectionIn( SlotAddress & in );
+    void PrepareConnectionOut( SlotAddress & out );
+    bool ConnectionCompatibilityCheck( const SlotAddress & address, ProcessorEngine * upstream, const SlotAddress & upstream_address );
+    void ConnectIn( const SlotAddress & address, ProcessorEngine * upstream, const SlotAddress & upstream_address);
+    void ConnectOut( const SlotAddress & address, ProcessorEngine * downstream, const SlotAddress & downstream_address);
+    
+    IPortOut* get_output_port( const SlotAddress & address );
+    IPortIn* get_input_port( const SlotAddress & address );
+    ISlotOut* get_output_slot( const SlotAddress & address );
+    ISlotIn* get_input_slot( const SlotAddress & address );
     
     void ThreadEntry(RunContext& runcontext);
     

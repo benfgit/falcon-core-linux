@@ -22,13 +22,16 @@
 
 #include "portpolicy.hpp"
 #include "idata.hpp"
+#include "streaminfo.hpp"
 #include "connections.hpp"
 
 #include "yaml-cpp/yaml.h"
 
-//forward declarations
-//class StreamInConnector;
-//class StreamOutConnector;
+class IPortOut;
+class ISlotOut;
+class IPortIn;
+class ISlotIn;
+class IProcessor;
 
 class ISlotOut {
 
@@ -40,7 +43,11 @@ friend class SlotIn;
 friend class IPortOut;
 
 public:
-	ISlotOut() : ring_batch_(1), buffer_size_(-1) {}
+	ISlotOut(IPortOut* parent, const SlotAddress & address) : ring_batch_(1), buffer_size_(-1), parent_(parent), address_(address) {}
+ 	
+    const SlotAddress& address() const { return address_; }
+    
+    IPortOut* parent() { return parent_; }
 	
     bool connected() const { return downstream_slots_.size()>0; }
     int nconnected() const { return downstream_slots_.size(); }
@@ -51,7 +58,7 @@ public:
     
 protected:
 	// called by IPortOut
-	void Connect( StreamInConnector* downstream );
+	void Connect( ISlotIn* downstream );
 
 	// called by SlotIn
     int64_t WaitFor( int64_t sequence ) const { return barrier_->WaitFor( sequence ); }
@@ -72,17 +79,25 @@ protected:
 	std::unique_ptr< RingBarrier > barrier_ = nullptr;
 	
     int buffer_size_;
+    
+    IPortOut* parent_; //observing pointer
+    
+    SlotAddress address_;
 };
 
 class IPortOut {
 
-friend class StreamOutConnector;
+friend class ProcessorEngine;
 friend class IProcessor;
 
 public:
-    IPortOut( std::string name, PortOutPolicy policy ) : name_(name), policy_(policy) {}
+    IPortOut( IProcessor* parent, const PortAddress & address, PortOutPolicy policy ) : parent_(parent), address_(address), policy_(policy) {}
+    
+    const PortAddress& address() const { return address_; }
     
     const PortOutPolicy& policy() const { return policy_; }
+    
+    IProcessor* parent() { return parent_; }
     
     virtual const AnyDataType& datatype() const = 0;
     
@@ -91,11 +106,11 @@ public:
 	
     YAML::Node ExportYAML() const;
     
-    std::string name() const { return name_; }
+    std::string name() const { return address_.port(); }
     
 protected:
     //called by StreamOutConnector
-    virtual void Connect( int slot, StreamInConnector* downstream ) = 0;
+    virtual void Connect( int slot, ISlotIn* downstream ) = 0;
     virtual int ReserveSlot( int slot ) = 0;
     
     virtual void CreateRingBuffers() = 0;
@@ -108,8 +123,13 @@ protected:
     void set_buffer_size( int sz ) {
         policy_.set_buffer_size( sz );
     }
+
+    IProcessor* parent_; // observing pointer
+    
+    PortAddress address_;
     
 private:
+
     std::string name_;
     PortOutPolicy policy_;
 };
@@ -124,7 +144,13 @@ friend class PortIn;
 friend class ISlotOut;
 
 public:
-    ISlotIn( int64_t time_out = -1, bool cache = false) : time_out_(time_out), cache_enabled_(cache) {}
+    ISlotIn( IPortIn* parent, const SlotAddress & address, int64_t time_out = -1, bool cache = false) : time_out_(time_out), cache_enabled_(cache), parent_(parent), address_(address) {}
+    
+    const SlotAddress& address() const { return address_; }
+    
+    IPortIn* parent() { return parent_; }
+    
+    void NegotiateUpstream();
     
     bool connected() const { return upstream_!=nullptr; };
     
@@ -132,18 +158,18 @@ public:
     
     const SlotAddress& upstream_address() { 
         
-        if (upstream_connector_ == nullptr) {
+        if (upstream_ == nullptr) {
             throw std::runtime_error( "Cannot get upstream address: slot is not connected." );
         }
-        return upstream_connector_->address();
+        return upstream_->address();
     }
 	
     const PortOutPolicy& upstream_policy() const { 
         
-        if (upstream_connector_ == nullptr) {
+        if (upstream_ == nullptr) {
             throw std::runtime_error( "Cannot get upstream policy: slot is not connected." );
         }
-        return upstream_connector_->port()->policy();
+        return upstream_->parent()->policy();
     }
     
 protected:
@@ -151,7 +177,7 @@ protected:
 	RingSequence* sequence() { return &sequence_; }
 	
 	//called by IPortIn
-    void Connect( StreamOutConnector* upstream );
+    void Connect( ISlotOut* upstream );
 	void PrepareProcessing();
 	
 protected:
@@ -164,22 +190,28 @@ protected:
 	IData* cache_ = nullptr;
 	
 	ISlotOut* upstream_ = nullptr; // access to upstream slot needs to go through base pointer (since we don't know the exact datatype)
-	StreamOutConnector* upstream_connector_ = nullptr;
     
 	RingSequence sequence_; // the input slot's read cursor into the buffer
 	
+    IPortIn* parent_; //observing pointer
+    
+    SlotAddress address_;
 	
 };
 
 class IPortIn {
 
-friend class StreamInConnector;
+friend class ProcessorEngine;
 friend class IProcessor;
     
 public:
-    IPortIn( std::string name, PortInPolicy policy ) : name_(name), policy_(policy) {}
+    IPortIn( IProcessor* parent, const PortAddress & address, PortInPolicy policy ) : parent_(parent), address_(address), policy_(policy) {}
+    
+    const PortAddress& address() const { return address_; }
     
     const PortInPolicy& policy() const { return policy_; }
+    
+    IProcessor* parent() { return parent_; }
     
     virtual const AnyDataType& datatype() const = 0;
     
@@ -189,11 +221,11 @@ public:
     
     YAML::Node ExportYAML() const;
     
-    std::string name() const { return name_; }
+    std::string name() const { return address_.port(); }
     
 protected:
     // called by StreamInConnector
-    virtual void Connect( int slot, StreamOutConnector* upstream ) = 0;
+    virtual void Connect( int slot, ISlotOut* upstream ) = 0;
     virtual int ReserveSlot( int slot ) = 0;
     virtual bool CheckCompatibility( IPortOut* upstream ) = 0;
     // called by ...
@@ -201,6 +233,10 @@ protected:
     
     virtual void UnlockSlots() = 0;
 	
+    IProcessor* parent_; // observing pointer
+    
+    PortAddress address_;
+
 private:
     std::string name_;
     PortInPolicy policy_;

@@ -41,6 +41,88 @@ ProcessorEngine::~ProcessorEngine() {
     processor_.reset();
 }
 
+void ProcessorEngine::PrepareConnectionIn( SlotAddress & address ) {
+    
+    if (address.processor()!=name()) {
+        throw std::runtime_error("Internal error: processor name does not match address.");
+    }
+    
+    // get default port if needed
+    if (address.port()=="") {
+        address.set_port( processor()->default_input_port() );
+    }
+    
+    // test if port exists
+    if (!processor()->has_input_port( address.port() ) ) {
+        throw std::out_of_range( "Unknown input port \"" + address.processor() + "." + address.port() + "\"." );
+    }
+    
+    // test if slot is valid and create new slot if needed
+    int slot = get_input_port( address )->ReserveSlot( address.slot() );
+    
+    // and update slot in address
+    if (slot<0) {
+        throw std::out_of_range( "Unable to reserve slot \"" + std::to_string(address.slot()) + "\" for input port \"" + address.processor() + "." + address.port() + "\"." );
+    }
+      
+    address.set_slot( slot );
+}
+
+void ProcessorEngine::PrepareConnectionOut( SlotAddress & address ) {
+    
+    if (address.processor()!=name()) {
+        throw std::runtime_error("Internal error: processor name does not match address.");
+    }
+    
+    // get default port if needed
+    if (address.port()=="") {
+        address.set_port( processor()->default_output_port() );
+    }
+    
+    // test if port exists
+    if (!processor()->has_output_port( address.port() ) ) {
+        throw std::out_of_range( "Unknown output port \"" + address.port() + "\" on processor \"" + address.processor() + "\"." );
+    }
+    
+    // test if slot is valid and create new one if necessary
+    int slot = get_output_port( address )->ReserveSlot( address.slot() );
+    
+    // and update slot in address
+    if (slot<0) {
+        throw std::out_of_range( "Unable to reserve slot \"" + std::to_string(address.slot()) + "\" for output port \"" + address.processor() + "." + address.port() + "\"." );
+    }
+    
+    address.set_slot( slot );
+}
+
+bool ProcessorEngine::ConnectionCompatibilityCheck( const SlotAddress & address, ProcessorEngine * upstream, const SlotAddress & upstream_address ) {
+    return get_input_port(address)->CheckCompatibility( upstream->get_output_port( upstream_address ) );
+}
+
+void ProcessorEngine::ConnectIn( const SlotAddress & address, ProcessorEngine * upstream, const SlotAddress & upstream_address) {
+    get_input_port( address )->Connect( address.slot(), upstream->get_output_slot(upstream_address) );
+}
+
+void ProcessorEngine::ConnectOut( const SlotAddress & address, ProcessorEngine * downstream, const SlotAddress & downstream_address) {
+    get_output_port( address )->Connect( address.slot(), downstream->get_input_slot(downstream_address) );
+}
+
+IPortOut* ProcessorEngine::get_output_port( const SlotAddress & address ) {
+    return processor()->output_port( address.port() );
+}
+
+IPortIn* ProcessorEngine::get_input_port( const SlotAddress & address ) {
+    return processor()->input_port( address.port() );
+}
+
+ISlotOut* ProcessorEngine::get_output_slot( const SlotAddress & address ) {
+    return processor()->output_port( address.port() )->slot( address.slot() );
+}
+
+ISlotIn* ProcessorEngine::get_input_slot( const SlotAddress & address ) {
+    return processor()->input_port( address.port() )->slot( address.slot() );
+}
+
 void ProcessorEngine::ThreadEntry( RunContext& runcontext ) {
     
     LOG(DEBUG) << "Entering thread for processor " << name_;

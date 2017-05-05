@@ -292,6 +292,44 @@ void ProcessorGraph::LinkSharedStates( const YAML::Node& node ) {
     }
 }
 
+void ProcessorGraph::CreateConnection( SlotAddress & out, SlotAddress & in ) {
+    
+    // get ProcessorEngine for output and input
+    ProcessorEngine *engine_out, *engine_in;
+    try {
+        engine_out = this->engines_.at( out.processor() ).second.get();
+    } catch (std::out_of_range& e) {
+        throw std::out_of_range( "Unknown processor \"" + out.processor() + "\"" );
+    }
+    
+    try {
+        engine_in = this->engines_.at( in.processor() ).second.get();
+    } catch (std::out_of_range& e) {
+        throw std::out_of_range( "Unknown processor \"" + in.processor() + "\"" );
+    }
+    
+    // let engine prepare connections ( get default port, check port, reserve slot, update address )
+    engine_out->PrepareConnectionOut( out );
+    engine_in->PrepareConnectionIn( in );
+    
+    // check compatibility
+    if (!engine_in->ConnectionCompatibilityCheck( in, engine_out, out ))
+    { throw std::runtime_error("Incompatible ports."); }
+    
+    // connect in to out, connect out to in
+    engine_in->ConnectIn( in, engine_out, out );
+    
+    try {
+        engine_out->ConnectOut( out, engine_in, in );
+    } catch (...) {
+        // internal error
+        //in_connector_->Disconnect();
+        throw std::runtime_error( "Internal error: cannot connect to output slot" );
+    }
+    
+}
+
+
 void ProcessorGraph::Build( const YAML::Node& node ) {
     
     if (state_!=GraphState::NOGRAPH) {
@@ -321,10 +359,10 @@ void ProcessorGraph::Build( const YAML::Node& node ) {
             LOG(INFO) << "Parsed all connection rules.";
             
             for ( auto &it : connections_ ) {
-                it->Connect( this->engines_ );
-                LOG(DEBUG) << "Established connection " << it->string();
+                CreateConnection( it.first, it.second );
+                LOG(DEBUG) << "Established connection " << it.first.string() << "=" << it.second.string();
             }
-            LOG(INFO) << "All connections have established.";
+            LOG(INFO) << "All connections have been established.";
         }
         
         if (node["states"] && node["states"].IsSequence()) {
@@ -649,7 +687,7 @@ std::string ProcessorGraph::ExportYAML() {
         }
         
         for (auto& it : this->connections_ ) {
-            node["connections"].push_back( it->string() );
+            node["connections"].push_back( it.first.string() + "=" + it.second.string() );
         }
         
         out << node;
