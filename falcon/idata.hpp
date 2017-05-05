@@ -32,7 +32,7 @@
 #include "g3log/src/g2log.hpp"
 #include "utilities/time.hpp"
 
-#include "serialize.hpp"
+#include "serialization.hpp"
 #include "yaml-cpp/yaml.h"
 
 const double IRREGULARSTREAM = std::numeric_limits<double>::min();

@@ -17,37 +17,10 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-#include "serialize.hpp"
+#include "serializer.hpp"
 #include "idata.hpp"
 
 namespace Serialization {
-
-std::string format_to_string( Format fmt ) {
-    std::string s;
-#define MATCH(p) case(Serialization::Format::p): s = #p; break;
-    switch(fmt){
-        MATCH(NONE)
-        MATCH(FULL);
-        MATCH(COMPACT);
-        MATCH(HEADERONLY);
-        MATCH(STREAMHEADER);
-    }
-#undef MATCH
-    return s;
-}
-
-Format string_to_format( std::string s ) {
-    
-    std::transform(s.begin(), s.end(), s.begin(), (int (*)(int))std::toupper);
-#define MATCH(p) if (s==#p) { return Serialization::Format::p;}
-    MATCH(NONE)
-    MATCH(FULL);
-    MATCH(COMPACT);
-    MATCH(HEADERONLY);
-    MATCH(STREAMHEADER);
-    throw std::runtime_error("Invalid Serialization::Format value.");
-#undef MATCH
-}
 
 Format Serializer::format() const {
 

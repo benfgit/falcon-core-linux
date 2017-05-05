@@ -17,8 +17,8 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-#ifndef SERIALIZE_H
-#define SERIALIZE_H
+#ifndef SERIALIZER_H
+#define SERIALIZER_H
 
 #include <algorithm>
 #include <cctype>
@@ -27,23 +27,12 @@
 
 #include "yaml-cpp/yaml.h"
 
+#include "serialization.hpp"
+
 // forward declaration
 class IData;
 
 namespace Serialization {
-
-static const uint8_t VERSION = 1;
-
-enum class Format { NONE=-1, FULL, COMPACT, HEADERONLY, STREAMHEADER };
-// NONE: no packet header, no data header, no data
-// FULL: packet header, data header and data
-// HEADERONLY: packet header, data header, no data
-// STREAMHEADER: packet header, no data header, no data
-// COMPACT: data only
-
-std::string format_to_string( Format fmt );
-
-Format string_to_format( std::string s );
 
 class Serializer {
 
@@ -89,4 +78,4 @@ Serializer* serializer_from_string( std::string s, Serialization::Format fmt = F
 
 } // namespace Serialization 
 
-#endif //serialize.hpp
+#endif //serializer.hpp
