@@ -23,7 +23,7 @@
 #include <string>
 
 #include "processorengine.hpp"
-#include "idata.hpp"
+#include "streaminfo.hpp"
 
 class IProcessor;
 class IPortIn;

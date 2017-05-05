@@ -121,14 +121,3 @@ void AnyDataType::Finalize() {
     
     finalized_ = true;
 }
-
-double IStreamInfo::stream_rate() const {
-    
-    return stream_rate_;
-}
-    
-void IStreamInfo::Finalize( double stream_rate ) {
-    
-    stream_rate_ = stream_rate;
-    finalized_ = true;
-}
