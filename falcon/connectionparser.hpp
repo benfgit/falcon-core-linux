@@ -30,7 +30,7 @@
 
 #define MATCH_NONE -1
 
-typedef std::vector<std::unique_ptr<StreamConnection>> StreamConnections;
+typedef std::vector<std::pair<SlotAddress,SlotAddress>> StreamConnections;
 
 enum NodePart { PROCESSOR = 0, PORT, SLOT };
 

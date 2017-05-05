@@ -18,12 +18,12 @@
 // ---------------------------------------------------------------------
 
 #include "istreamports.hpp"
+#include "iprocessor.hpp"
 
-void ISlotOut::Connect( StreamInConnector* downstream ) {
+void ISlotOut::Connect( ISlotIn* downstream ) {
     
-    ISlotIn* p = (ISlotIn*) downstream->slot();
-    if ( downstream_slots_.count( p )==0 ) {
-        downstream_slots_.insert( p );
+    if ( downstream_slots_.count( downstream )==0 ) {
+        downstream_slots_.insert( downstream );
     } else {
         throw std::runtime_error("Attempting to connect input slot twice.");
     }
@@ -50,14 +50,17 @@ void ISlotIn::ReleaseData() {
     }
 }
 
-void ISlotIn::Connect( StreamOutConnector* upstream ) {
+void ISlotIn::Connect( ISlotOut* upstream ) {
     
     if (connected()) {
         throw std::runtime_error( "Error connecting to slot (already connected)" );
     }
 
-    upstream_connector_ = upstream;
-    upstream_ = (ISlotOut*) upstream->slot();
+    upstream_ = upstream;
+}
+
+void ISlotIn::NegotiateUpstream() {
+    upstream_->parent()->parent()->NegotiateConnections();
 }
 
 void ISlotIn::PrepareProcessing() {

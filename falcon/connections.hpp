@@ -22,14 +22,6 @@
 
 #include <string>
 
-#include "processorengine.hpp"
-#include "streaminfo.hpp"
-
-class IProcessor;
-class IPortIn;
-class IPortOut;
-class ISlotIn;
-class ISlotOut;
 
 class PortAddress {
 public:
@@ -53,6 +45,8 @@ public:
     SlotAddress( std::string processor, std::string port, int slot ) :
     PortAddress( processor, port ), slot_(slot) {}
     
+    SlotAddress( const PortAddress & port, int slot ) : PortAddress(port), slot_(slot) {}
+    
     int slot() const { return slot_; }
     
     void set_slot( int slot ) { slot_ = slot; }
@@ -61,80 +55,6 @@ public:
     
 protected:
     int slot_;
-};
-
-//forward declaration
-class StreamInConnector;
-
-class StreamOutConnector {
-public:
-    StreamOutConnector( SlotAddress address, const ProcessorEngineMap& processors );
-    
-    IProcessor* processor();
-    IPortOut* port();
-    ISlotOut* slot();
-    
-    void Connect( StreamInConnector* downstream );
-    
-    const SlotAddress& address() const { return address_; }
-    
-    std::string string() const { return address_.string(); }
-    
-    IStreamInfo& streaminfo();
-    
-protected:
-    SlotAddress address_;
-    ProcessorEngine * processor_engine_=nullptr; //observing pointer (no ownership)
-};
-
-class StreamInConnector {
-public:
-    StreamInConnector( SlotAddress address, const ProcessorEngineMap& processors );
-
-    IProcessor* processor();
-    IPortIn* port();
-    ISlotIn* slot();
-    
-    void Connect( StreamOutConnector* upstream );
-    
-    bool CheckCompatibility( StreamOutConnector* upstream );
-    
-    const SlotAddress& address() const { return address_; }
-    
-    std::string string() const { return address_.string(); }
-    
-protected:
-    SlotAddress address_;
-    ProcessorEngine * processor_engine_=nullptr; //observing pointer (no ownership)
-};
-
-class StreamConnection {
-public:
-    StreamConnection( SlotAddress out, SlotAddress in ) :
-    out_(out), in_(in), connected_(false) {}
-    
-    bool connected() const { return connected_.load(); }
-    
-    void Connect( const ProcessorEngineMap& processors );
-    
-    std::string string() const {
-        std::string s;
-        if (connected()) {
-            s += out_connector_->string() + "=" + in_connector_->string();
-        } else {
-            s += out_.string() + "=" + in_.string();
-        }
-        return s;
-    }
-    
-protected:
-    SlotAddress out_;
-    SlotAddress in_;
-    
-    std::unique_ptr<StreamOutConnector> out_connector_;
-    std::unique_ptr<StreamInConnector> in_connector_;
-    
-    std::atomic<bool> connected_;
 };
 
 

@@ -22,6 +22,7 @@
 #include <list>
 
 #include "connectionparser.hpp"
+#include "utilities/string.hpp"
 
 ConnectionRule parseConnectionRule( std::string rulestring ) {
     
@@ -235,13 +236,11 @@ void expandConnectionRule( ConnectionRule rule, StreamConnections& connections )
 
     if (out_points.size()==1) {
         for (int i=0; i< (int)in_points.size(); i++) {
-            connections.push_back( std::unique_ptr<StreamConnection>(
-                new StreamConnection( out_points[0], in_points[i] ) ) );
+            connections.push_back( std::make_pair( out_points[0], in_points[i] ) );
         }
     } else {
         for (int i=0; i< (int)out_points.size(); i++) {
-            connections.push_back( std::unique_ptr<StreamConnection>(
-                new StreamConnection( out_points[i], in_points[i] ) ) );
+            connections.push_back( std::make_pair( out_points[i], in_points[i] ) );
         }
 
     }
@@ -284,6 +283,6 @@ void printConnectionRule( const ConnectionRule& rule ) {
 void printConnectionList( const StreamConnections& connections ) {
     
     for (auto &it : connections) {
-        std::cout << it->string() << std::endl;
+        std::cout << it.first.string() << "=" << it.second.string() << std::endl;
     }
 }

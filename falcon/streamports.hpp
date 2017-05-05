@@ -21,7 +21,7 @@
 #define STREAMPORTS_H
 
 #include "istreamports.hpp"
-#include "connections.hpp"
+
 #include <set>
 
 struct RingBufferStatus {
@@ -48,7 +48,7 @@ class SlotOut : public ISlotOut {
 friend class PortOut<DATATYPE>;
 
 public:
-    SlotOut( DATATYPE datatype ) : streaminfo_(datatype), ringbuffer_serial_number_(0) {}
+    SlotOut( PortOut<DATATYPE>* parent, const SlotAddress & address, DATATYPE datatype ) : ISlotOut(parent, address), streaminfo_(datatype), ringbuffer_serial_number_(0) {}
     
     // public interface
     typename DATATYPE::DATACLASS* ClaimData( bool clear );
@@ -91,7 +91,7 @@ protected:
 template <typename DATATYPE>
 class PortOut : public IPortOut {
 public:
-    PortOut( std::string name, DATATYPE datatype, PortOutPolicy policy ) : IPortOut(name, policy), datatype_(datatype) {
+    PortOut( IProcessor* parent, const PortAddress & address, DATATYPE datatype, PortOutPolicy policy ) : IPortOut(parent, address, policy), datatype_(datatype) {
         NewSlot( policy.min_slot_number() );
     }
     
@@ -108,7 +108,7 @@ public:
     
 protected:
     //called by StreamOutConnector
-    virtual void Connect (int slot, StreamInConnector* downstream ) override;
+    virtual void Connect (int slot, ISlotIn* downstream ) override;
     virtual int ReserveSlot( int slot ) override;
     
     //called by IPortOut
@@ -135,7 +135,7 @@ class SlotIn : public ISlotIn {
 friend class PortIn<DATATYPE>;
 
 public:
-    SlotIn( DATATYPE datatype, int64_t time_out = -1, bool cache = false ) : ISlotIn(time_out,cache), datatype_(datatype) {}
+    SlotIn( PortIn<DATATYPE>* parent, const SlotAddress & address, DATATYPE datatype, int64_t time_out = -1, bool cache = false ) : ISlotIn(parent,address,time_out,cache), datatype_(datatype) {}
 	
 	// methods called by processor implementation
     const typename DATATYPE::DATACLASS* GetDataPrototype() const;
@@ -148,7 +148,8 @@ public:
             throw std::runtime_error( "Input slot is not connected" );
         }
         
-        return (StreamInfo<DATATYPE>&) upstream_connector_->streaminfo();
+        NegotiateUpstream();
+        return (StreamInfo<DATATYPE>&) upstream_->streaminfo();
     }
     
     bool status_alive() const { return status_.alive; }
@@ -174,7 +175,7 @@ public:
 template <typename DATATYPE>
 class PortIn : public IPortIn {
 public:
-    PortIn( std::string name, DATATYPE datatype, PortInPolicy policy ) : IPortIn(name, policy), datatype_(datatype) {
+    PortIn( IProcessor* parent, const PortAddress & address, DATATYPE datatype, PortInPolicy policy ) : IPortIn(parent, address, policy), datatype_(datatype) {
         NewSlot( policy.min_slot_number() );
     }
     
@@ -195,7 +196,7 @@ public:
     
 protected:
     //called by StreamInConnector
-    virtual void Connect( int slot, StreamOutConnector* upstream );
+    virtual void Connect( int slot, ISlotOut* upstream );
     virtual int ReserveSlot( int slot );
     virtual bool CheckCompatibility( IPortOut* upstream );
     

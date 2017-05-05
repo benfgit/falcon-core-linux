@@ -54,7 +54,7 @@ class ProcessorEngine;
 
 class IProcessor {
 
-friend class StreamOutConnector;
+friend class ISlotIn;
 friend class ProcessorEngine;
     
 public:
@@ -75,7 +75,7 @@ public:
             throw std::runtime_error( "Output port name \"" + name + "\" is invalid or already exists." );
         }
         
-        output_ports_[name] = std::move( std::unique_ptr<IPortOut>( (IPortOut*) new PortOut<DATATYPE>( name, datatype, policy ) ) );
+        output_ports_[name] = std::move( std::unique_ptr<IPortOut>( (IPortOut*) new PortOut<DATATYPE>( this, PortAddress(this->name(),name), datatype, policy ) ) );
         
         return ((PortOut<DATATYPE>*) output_ports_[name].get());
     }
@@ -86,7 +86,7 @@ public:
             throw std::runtime_error( "Input port name \"" + name + "\" is invalid or already exists." );
         }
         
-        input_ports_[name] = std::move( std::unique_ptr<IPortIn>( (IPortIn*) new PortIn<DATATYPE>( name, datatype, policy ) ) );
+        input_ports_[name] = std::move( std::unique_ptr<IPortIn>( (IPortIn*) new PortIn<DATATYPE>( this, PortAddress(this->name(),name), datatype, policy ) ) );
         return ((PortIn<DATATYPE>*) input_ports_[name].get());
     }
     

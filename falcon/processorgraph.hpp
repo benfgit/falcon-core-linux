@@ -91,6 +91,9 @@ public:
 
     void LinkSharedStates( const YAML::Node& node );
 
+protected:
+    void CreateConnection( SlotAddress & out, SlotAddress & in );
+
 private:
     YAML::Node yaml_;
     
