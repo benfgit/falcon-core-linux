@@ -47,7 +47,7 @@
 #define FILESERIALIZER_HPP
 
 #include "iprocessor.hpp"
-#include "serialize.hpp"
+#include "serializer.hpp"
 
 class FileSerializer : public IProcessor
 {

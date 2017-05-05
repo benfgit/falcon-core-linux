@@ -45,7 +45,7 @@
 #include <zmq.hpp>
 #include "yaml-cpp/yaml.h"
 #include "iprocessor.hpp"
-#include "serialize.hpp"
+#include "serializer.hpp"
 
 class ZMQSerializer : public IProcessor
 {
