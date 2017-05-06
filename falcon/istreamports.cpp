@@ -60,7 +60,7 @@ void ISlotIn::Connect( ISlotOut* upstream ) {
 }
 
 void ISlotIn::NegotiateUpstream() {
-    upstream_->parent()->parent()->NegotiateConnections();
+    upstream_->parent()->parent()->internal_NegotiateConnections();
 }
 
 void ISlotIn::PrepareProcessing() {

@@ -49,25 +49,59 @@ GRAPHERROR( ProcessingPreprocessingError );
 
 bool is_valid_name( std::string s );
 
-//forward declaration
-class ProcessorEngine;
+namespace graph {
+class ProcessorGraph;
+}
 
 class IProcessor {
 
 friend class ISlotIn;
-friend class ProcessorEngine;
-    
-public:
-    IProcessor( ThreadPriority default_priority = PRIORITY_NONE ) : default_thread_priority_(default_priority) {}
-    
-    virtual void Configure(const YAML::Node& node, const GlobalContext& context) {};
-    virtual void CreatePorts() = 0;
+friend class graph::ProcessorGraph;
+
+public: // called by anyone
+    IProcessor( ThreadPriority priority = PRIORITY_NONE ) :
+    running_(false), thread_(), 
+    has_test_flag_(false), test_flag_(false),
+    thread_priority_(priority), thread_core_(CORE_NOT_PINNED) {}
+
+    ~IProcessor() { internal_Stop(); }
+
+    const std::string name() const { return name_; }
     
     unsigned int n_input_ports() const { return input_ports_.size(); }
     unsigned int n_output_ports() const { return output_ports_.size(); }
     
     const std::set<std::string> input_port_names() const; 
     const std::set<std::string> output_port_names() const;
+
+    bool has_input_port( std::string port ) { return input_ports_.count( port )==1; }
+    bool has_output_port( std::string port ) { return output_ports_.count( port )==1; }
+    
+    virtual bool issource() const { return n_input_ports()==0; }
+    virtual bool issink() const { return n_output_ports()==0; }
+    virtual bool isfilter() const { return (!issource() && !issink()); }
+    virtual bool isautonomous() const { return (issource() && issink()); }
+    
+    ThreadPriority thread_priority() const { return thread_priority_; }
+    ThreadCore thread_core() const { return thread_core_; }
+    
+    bool running() const { return running_.load(); };
+   
+    YAML::Node ExportYAML();
+
+protected: // need to be removed??
+    std::map<std::string, std::shared_ptr<std::ostream>> streams_;
+    std::vector<TimePoint> test_source_timestamps_;
+
+    /* this methods creates a file whose access key is filename and whose
+    fullpath is prefix.filename.extension*/
+    void create_file( std::string prefix, std::string variable_name,
+        std::string extension="bin" );
+    
+    void prepare_latency_test( ProcessingContext& context );
+    void save_source_timestamps_to_disk( std::uint64_t n_timestamps );
+
+protected: // callable by derived processors, but not others
 
     template <typename DATATYPE>
     PortOut<DATATYPE>* create_output_port( std::string name, DATATYPE datatype, PortOutPolicy policy ) {
@@ -90,33 +124,14 @@ public:
         return ((PortIn<DATATYPE>*) input_ports_[name].get());
     }
     
-    virtual std::string default_input_port() const;
-    virtual std::string default_output_port() const;
-    
-    bool has_input_port( std::string port ) { return input_ports_.count( port )==1; }
-    bool has_output_port( std::string port ) { return output_ports_.count( port )==1; }
-    
-    virtual bool issource() const { return n_input_ports()==0; }
-    virtual bool issink() const { return n_output_ports()==0; }
-    virtual bool isfilter() const { return (!issource() && !issink()); }
-    virtual bool isautonomous() const { return (issource() && issink()); }
-        
     IPortIn* input_port( std::string port ) { return input_ports_.at(port).get(); }
     IPortOut* output_port( std::string port ) { return output_ports_.at(port).get(); }
-    
-    virtual void Preprocess( ProcessingContext& context ) {};
-    virtual void Process( ProcessingContext& context ) = 0;
-    virtual void Postprocess( ProcessingContext& context ) {};
-    virtual void CompleteStreamInfo();
-    virtual void Prepare( GlobalContext& context ) {};
-    virtual void Unprepare( GlobalContext& context ) {};
-    
-    virtual void TestPrepare( ProcessingContext& context ) {};
-    virtual void TestFinalize( ProcessingContext& context ) {};
-    
-    ThreadPriority default_thread_priority() const { return default_thread_priority_; }
-    
-    std::string name() const { return name_; }
+
+    IPortIn* input_port( const PortAddress & address );
+    IPortOut* output_port( const PortAddress & address );    
+
+    ISlotIn* input_slot( const SlotAddress & address );
+    ISlotOut* output_slot( const SlotAddress & address );
     
     template <typename T>
     ReadableState<T>* create_readable_shared_state( std::string state, T default_value, Permission peers = Permission::WRITE, Permission external = Permission::NONE ) {
@@ -162,48 +177,77 @@ public:
         return exposed_methods_[method];
     }
     
-    YAML::Node ExportYAML();
+protected: // to be overridden and callable by derived processors
+    virtual std::string default_input_port() const;
+    virtual std::string default_output_port() const;
     
-private:    // called by ProcessorEngine
-    bool UpdateState( std::string state, std::string value );
-    std::string RetrieveState( std::string state );
-    YAML::Node ApplyMethod( std::string name, const YAML::Node& node );
-    void CreatePortsInternal( std::map<std::string,int> & buffer_sizes );
-  
-      
-protected:
-    std::map<std::string, std::shared_ptr<std::ostream>> streams_;
-    std::vector<TimePoint> test_source_timestamps_;
+private: // to be overridden by derived processors, callable internally
+    virtual void Configure(const YAML::Node& node, const GlobalContext& context) {};
+    virtual void CreatePorts() = 0;
+    virtual void Preprocess( ProcessingContext& context ) {};
+    virtual void Process( ProcessingContext& context ) = 0;
+    virtual void Postprocess( ProcessingContext& context ) {};
+    virtual void CompleteStreamInfo();
+    virtual void Prepare( GlobalContext& context ) {};
+    virtual void Unprepare( GlobalContext& context ) {};
+    virtual void TestPrepare( ProcessingContext& context ) {};
+    virtual void TestFinalize( ProcessingContext& context ) {};
+
+private: // callable internally only
+
+    void internal_Configure(const YAML::Node& node, const GlobalContext& context); // from engine
+    void internal_CreatePorts();    
+    void internal_PrepareConnectionIn( SlotAddress & in );
+    void internal_PrepareConnectionOut( SlotAddress & out );
+    bool internal_ConnectionCompatibilityCheck( const SlotAddress & address, IProcessor * upstream, const SlotAddress & upstream_address );
+    void internal_ConnectIn( const SlotAddress & address, IProcessor * upstream, const SlotAddress & upstream_address);
+    void internal_ConnectOut( const SlotAddress & address, IProcessor * downstream, const SlotAddress & downstream_address);
     
-protected:
-    std::map<std::string,std::function<YAML::Node(const YAML::Node&)>> exposed_methods_;
-    std::map<std::string,std::unique_ptr<IState>> shared_states_;
+    void internal_NegotiateConnections();
     
+    void internal_CreateRingBuffers();
+    void internal_PrepareProcessing();
+    
+    void internal_ThreadEntry(RunContext& runcontext);
+    
+    void internal_Start(RunContext& runcontext);
+    void internal_Stop();
+    
+    void internal_Alert();    
+
+    bool internal_UpdateState( std::string state, std::string value );
+    std::string internal_RetrieveState( std::string state );
+    YAML::Node internal_ApplyMethod( std::string name, const YAML::Node& node );    
+    
+    void set_name( std::string name ) { name_ = name; }
+
+private: // member variables
+    std::string name_;
+
     std::map<std::string, std::unique_ptr<IPortIn>> input_ports_;
     std::map<std::string, std::unique_ptr<IPortOut>> output_ports_;
     
-    /* this methods creates a file whose access key is filename and whose
-    fullpath is prefix.filename.extension*/
-    void create_file( std::string prefix, std::string variable_name,
-        std::string extension="bin" );
-    
-    void prepare_latency_test( ProcessingContext& context );
-    void save_source_timestamps_to_disk( std::uint64_t n_timestamps );
-    
-private:
-    void NegotiateConnections();
-    void CreateRingBuffers();
-    void PrepareProcessing();
-    void Alert();
-    
-private:
-    void set_name( std::string name ) { name_ = name; }
-    std::string name_;
+    std::map<std::string,std::function<YAML::Node(const YAML::Node&)>> exposed_methods_;
+    std::map<std::string,std::unique_ptr<IState>> shared_states_;
 
-    ThreadPriority default_thread_priority_;
-    
     bool negotiated_ = false;
+    bool prepared_ = false;
+    
+    std::atomic<bool> running_;
+            
+    std::thread thread_;
+    
+    std::atomic<bool> has_test_flag_;
+    std::atomic<bool> test_flag_;
+    
+    ThreadPriority thread_priority_;
+    ThreadCore thread_core_;
+    
+    std::map<std::string, int> requested_buffer_sizes_;
+
 };
+
+typedef std::map<std::string, std::pair< std::string, std::unique_ptr<IProcessor>>> ProcessorMap;
 
 typedef factory::ObjectFactory<IProcessor, std::string> ProcessorFactory;
 

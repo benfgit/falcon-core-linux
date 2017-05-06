@@ -48,6 +48,52 @@ const std::set<std::string> IProcessor::output_port_names() const {
     return names;
 }
 
+YAML::Node IProcessor::ExportYAML() {
+    
+    YAML::Node node;
+    
+    for (auto & it : input_ports_ ) {
+        node["inports"][it.first] = it.second->ExportYAML();
+    }
+    
+    for (auto & it : output_ports_ ) {
+        node["outports"][it.first] = it.second->ExportYAML();
+    }
+    
+    for (auto & it : shared_states_ ) {
+        if (it.second->permissions().external()==Permission::WRITE) {
+            node["states"][it.first]["permission"] = "write";
+        } else if (it.second->permissions().external()==Permission::READ) {
+            node["states"][it.first]["permission"] = "read";
+        }
+        node["states"][it.first]["value"] = it.second->get_string();
+        node["states"][it.first]["units"] = it.second->units();
+        node["states"][it.first]["description"] = it.second->description();
+    }
+    
+    for (auto & it : exposed_methods_ ) {
+        node["methods"].push_back( it.first );
+    }
+    
+    return node;
+}
+
+IPortIn* IProcessor::input_port( const PortAddress & address ) {
+    return input_port( address.port() );
+}
+
+IPortOut* IProcessor::output_port( const PortAddress & address ) {
+    return output_port( address.port() );
+}
+
+ISlotIn* IProcessor::input_slot( const SlotAddress & address ) {
+    return input_port( address.port() )->slot( address.slot() );
+}
+
+ISlotOut* IProcessor::output_slot( const SlotAddress & address ) {
+    return output_port( address.port() )->slot( address.slot() );
+}
+
 std::string IProcessor::default_input_port() const {
     
     if (input_ports_.size()!=1) {
@@ -64,6 +110,300 @@ std::string IProcessor::default_output_port() const {
     return output_ports_.begin()->first;
 }
 
+void IProcessor::CompleteStreamInfo() {
+
+    for (auto & it : output_ports_) {
+        for ( int k=0; k<it.second->number_of_slots(); ++k ) {
+            it.second->slot(k)->streaminfo().Finalize();
+        }
+    }
+}        
+
+
+void IProcessor::internal_Configure( const YAML::Node& node, const GlobalContext& context ) {
+    
+    if ( node["options"] ) {
+        
+        if (node["options"]["test"]) {
+            has_test_flag_ = true;
+            test_flag_ = node["options"]["test"].as<bool>();
+        }
+    }
+
+    if (node["advanced"]) {
+        thread_priority_ = node["advanced"]["threadpriority"].as<ThreadPriority>( thread_priority_ );
+        thread_core_ = node["advanced"]["threadcore"].as<ThreadCore>( thread_core_ );
+
+        if (node["advanced"]["buffer_sizes"]) {
+            requested_buffer_sizes_ = node["advanced"]["buffer_sizes"].as<std::map<std::string,int>>( );
+        }
+    }
+    
+    Configure( node["options"], context );
+
+}
+
+void IProcessor::internal_CreatePorts( ) {
+
+    CreatePorts();
+    // set requested buffer sizes
+    for ( auto & it : requested_buffer_sizes_ ) {
+        if (!has_output_port( it.first ) || it.second<2) {
+            LOG(WARNING) << "Could not set ringbuffer size to " << it.second << " for port " << name() << "." << it.first;
+        } else {
+            output_port( it.first )->set_buffer_size( it.second );
+            LOG(INFO) << "Set ringbuffer size to " << it.second << " for port " << name() << "." << it.first;
+        }
+    }    
+}
+
+void IProcessor::internal_PrepareConnectionIn( SlotAddress & address ) {
+    
+    if (address.processor()!=name()) {
+        throw std::runtime_error("Internal error: processor name does not match address.");
+    }
+
+    // get default port if needed
+    if (address.port()=="") {
+        address.set_port( default_input_port() );
+    }
+    
+    // test if port exists
+    if (!has_input_port( address.port() ) ) {
+        throw std::out_of_range( "Unknown input port \"" + address.processor() + "." + address.port() + "\"." );
+    }
+    
+    // test if slot is valid and create new slot if needed
+    int slot = input_port( address )->ReserveSlot( address.slot() );
+    
+    // and update slot in address
+    if (slot<0) {
+        throw std::out_of_range( "Unable to reserve slot \"" + std::to_string(address.slot()) + "\" for input port \"" + address.processor() + "." + address.port() + "\"." );
+    }
+      
+    address.set_slot( slot );
+}
+
+void IProcessor::internal_PrepareConnectionOut( SlotAddress & address ) {
+    
+    if (address.processor()!=name()) {
+        throw std::runtime_error("Internal error: processor name does not match address.");
+    }
+    
+    // get default port if needed
+    if (address.port()=="") {
+        address.set_port( default_output_port() );
+    }
+    
+    // test if port exists
+    if (!has_output_port( address.port() ) ) {
+        throw std::out_of_range( "Unknown output port \"" + address.port() + "\" on processor \"" + address.processor() + "\"." );
+    }
+    
+    // test if slot is valid and create new one if necessary
+    int slot = output_port( address )->ReserveSlot( address.slot() );
+    
+    // and update slot in address
+    if (slot<0) {
+        throw std::out_of_range( "Unable to reserve slot \"" + std::to_string(address.slot()) + "\" for output port \"" + address.processor() + "." + address.port() + "\"." );
+    }
+    
+    address.set_slot( slot );
+}
+
+bool IProcessor::internal_ConnectionCompatibilityCheck( const SlotAddress & address, IProcessor * upstream, const SlotAddress & upstream_address ) {
+    return input_port(address)->CheckCompatibility( upstream->output_port( upstream_address ) );
+}
+
+void IProcessor::internal_ConnectIn( const SlotAddress & address, IProcessor * upstream, const SlotAddress & upstream_address) {
+    input_port( address )->Connect( address.slot(), upstream->output_slot(upstream_address) );
+}
+
+void IProcessor::internal_ConnectOut( const SlotAddress & address, IProcessor * downstream, const SlotAddress & downstream_address) {
+    output_port( address )->Connect( address.slot(), downstream->input_slot(downstream_address) );
+}
+
+void IProcessor::internal_NegotiateConnections() {
+    
+    if (!negotiated_) {
+        // check if all input slots are connected
+        for (auto & it : input_ports_ ) {
+            for ( int k=0; k<it.second->number_of_slots(); ++k ) {
+                if (!it.second->slot(k)->connected()) {
+                    LOG(ERROR) << name() << ": input slot \"" << it.first + "." << std::to_string(k) << "\" is not connected.";
+                    throw ProcessorInternalError( "input slot \"" + it.first + "." + std::to_string(k) + "\" is not connected.", name() );
+                }
+            }
+        }
+        
+        for (auto & it : output_ports_ ) {
+            for ( int k=0; k<it.second->number_of_slots(); ++k ) {
+                if (!it.second->slot(k)->connected()) {
+                    LOG(WARNING) << name() << ": output slot \"" << it.first + "." << std::to_string(k) << "\" is not connected.";
+                }
+            }
+        }
+        
+        CompleteStreamInfo();
+        
+        for (auto & it : output_ports_ ) {
+            for ( int k=0; k<it.second->number_of_slots(); ++k ) {
+                if (!it.second->slot(k)->streaminfo().finalized()) {
+                    LOG(ERROR) << name() << ": output slot \"" << it.first + "." << std::to_string(k) << "\" is not finalized.";
+                    throw ProcessorInternalError( "output slot \"" + it.first + "." + std::to_string(k) + "\" is not finalized.", name() );
+                }
+            }
+        }
+        
+        negotiated_ = true;
+    }
+}
+
+void IProcessor::internal_CreateRingBuffers() {
+    
+    for (auto& it : output_ports_ ) {
+        it.second->CreateRingBuffers();
+    }
+}
+
+void IProcessor::internal_PrepareProcessing() {
+    
+    for (auto& it : input_ports_ ) {
+        it.second->PrepareProcessing();
+    }
+    
+    // reset all output slot cursors to 0
+    for (auto& it : output_ports_ ) {
+        it.second->PrepareProcessing();
+    }
+}
+
+void IProcessor::internal_ThreadEntry( RunContext& runcontext ) {
+    
+    LOG(DEBUG) << "Entering thread for processor " << name_;
+    
+    ProcessingContext context( runcontext, name_, has_test_flag_.load() ? test_flag_.load() : runcontext.test() );
+    
+    LOG(DEBUG) << name_ << ": processor test flag set to " << context.test();
+    
+    internal_PrepareProcessing();
+    
+    try {
+        TestPrepare( context );
+    } catch (std::exception& e) {
+        context.TerminateWithError( "TestPrepare", e.what() );
+    }
+    
+    try {
+        Preprocess(context);
+    } catch (std::exception& e) {
+        context.TerminateWithError( "PreProcess", e.what() );
+    }
+    
+    running_.store(true);
+
+    // wait for the go signal
+    {
+        std::unique_lock<std::mutex> lock(runcontext.mutex);
+        while (!runcontext.go_signal) { runcontext.go_condition.wait(lock); }
+    }
+    
+    try {
+        Process(context);
+    } catch (std::exception& e) {
+        context.TerminateWithError( "Process", e.what() );
+    }
+    
+    try {
+        Postprocess(context);
+    } catch (std::exception& e) {
+        context.TerminateWithError( "PostProcess", e.what() );
+    }
+    
+    try {
+        TestFinalize(context);
+    } catch (std::exception& e) {
+        //LOG(ERROR) << name_ << " (TestFinalize): " << e.what();
+        context.TerminateWithError( "TestFinalize", e.what() );
+    }
+    
+    running_.store(false);
+    
+    LOG(DEBUG) << "Exiting thread for processor " << name_;
+}
+
+void IProcessor::internal_Start(RunContext& runcontext) {
+
+    if (!running_) {
+        internal_Stop();
+        
+        thread_ = std::thread( &IProcessor::internal_ThreadEntry, this, std::ref(runcontext) );
+        
+        if (!set_realtime_priority( thread_.native_handle(), thread_priority_)) {
+            LOG(WARNING) << "Unable to set thread priority for " << name_;
+        } else if (thread_priority_>=PRIORITY_LOW) {
+            LOG(INFO) << "Successfully set thread priority for " << name_ << " to " << thread_priority_ << "%.";
+        }
+        
+        if (!set_thread_core( thread_.native_handle(), thread_core_)) {
+            LOG(WARNING) << "Unable to pin thread for " << name_ << " to core "
+                << thread_core_;
+        } else if (thread_core_>=0) {
+            LOG(INFO) << "Successfully pinned thread for " << name_ << " to core "
+                << thread_core_ << ".";
+        }
+        
+    }
+}
+
+void IProcessor::internal_Stop() {
+    
+    if( thread_.joinable()) thread_.join();
+    LOG(DEBUG) << name() << ": thread joined";
+}
+
+void IProcessor::internal_Alert() {
+    
+    for (auto& it : output_ports_ ) {
+        it.second->UnlockSlots();
+    }
+    for (auto& it : input_ports_ ) {
+        it.second->UnlockSlots();
+    }
+}
+
+
+bool IProcessor::internal_UpdateState( std::string state, std::string value ) {
+    
+    // look up state variable
+    IState* pstate = this->shared_state(state);
+    
+    // check if externally settable??
+    if (pstate->permissions().external()==Permission::WRITE) {
+        // set from string
+        return pstate->set_string( value );
+    } else {
+        throw ProcessorInternalError( "Shared state " + state + " can not be controlled externally.", name());
+    }
+}
+
+std::string IProcessor::internal_RetrieveState( std::string state ) {
+    
+    // look up state variable
+    IState* pstate = this->shared_state(state);
+    
+    if (pstate->permissions().external()!=Permission::NONE) {
+        return pstate->get_string();
+    } else {
+        throw ProcessorInternalError( "Shared state " + state + " can not be read externally.", name());
+    }
+}
+
+YAML::Node IProcessor::internal_ApplyMethod( std::string name, const YAML::Node& node ) {
+    
+    return exposed_method(name)(node);
+}
+    
 void IProcessor::create_file( std::string prefix, std::string variable_name,
 std::string extension ) {
     
@@ -107,155 +447,4 @@ void IProcessor::save_source_timestamps_to_disk( std::uint64_t n_timestamps ) {
     }
     LOG(INFO) << name() << ". " << test_source_timestamps_.size() <<
         " source timestamps were written to disk.";
-}
-
-void IProcessor::NegotiateConnections() {
-    
-    if (!negotiated_) {
-        // check if all input slots are connected
-        for (auto & it : input_ports_ ) {
-            for ( int k=0; k<it.second->number_of_slots(); ++k ) {
-                if (!it.second->slot(k)->connected()) {
-                    LOG(ERROR) << name() << ": input slot \"" << it.first + "." << std::to_string(k) << "\" is not connected.";
-                    throw ProcessorInternalError( "input slot \"" + it.first + "." + std::to_string(k) + "\" is not connected.", name() );
-                }
-            }
-        }
-        
-        for (auto & it : output_ports_ ) {
-            for ( int k=0; k<it.second->number_of_slots(); ++k ) {
-                if (!it.second->slot(k)->connected()) {
-                    LOG(WARNING) << name() << ": output slot \"" << it.first + "." << std::to_string(k) << "\" is not connected.";
-                }
-            }
-        }
-        
-        CompleteStreamInfo();
-        
-        for (auto & it : output_ports_ ) {
-            for ( int k=0; k<it.second->number_of_slots(); ++k ) {
-                if (!it.second->slot(k)->streaminfo().finalized()) {
-                    LOG(ERROR) << name() << ": output slot \"" << it.first + "." << std::to_string(k) << "\" is not finalized.";
-                    throw ProcessorInternalError( "output slot \"" + it.first + "." + std::to_string(k) + "\" is not finalized.", name() );
-                }
-            }
-        }
-        
-        negotiated_ = true;
-    }
-}
-
-void IProcessor::CompleteStreamInfo() {
-    
-    for (auto & it : output_ports_) {
-        for ( int k=0; k<it.second->number_of_slots(); ++k ) {
-            it.second->slot(k)->streaminfo().Finalize();
-        }
-    }
-}
-
-void IProcessor::CreateRingBuffers() {
-    
-    for (auto& it : output_ports_ ) {
-        it.second->CreateRingBuffers();
-    }
-}
-
-void IProcessor::PrepareProcessing() {
-    
-    for (auto& it : input_ports_ ) {
-        it.second->PrepareProcessing();
-    }
-    
-    // reset all output slot cursors to 0
-    for (auto& it : output_ports_ ) {
-        it.second->PrepareProcessing();
-    }
-}
-
-void IProcessor::Alert() {
-    
-    for (auto& it : output_ports_ ) {
-        it.second->UnlockSlots();
-    }
-    for (auto& it : input_ports_ ) {
-        it.second->UnlockSlots();
-    }
-}
-
-
-bool IProcessor::UpdateState( std::string state, std::string value ) {
-    
-    // look up state variable
-    IState* pstate = this->shared_state(state);
-    
-    // check if externally settable??
-    if (pstate->permissions().external()==Permission::WRITE) {
-        // set from string
-        return pstate->set_string( value );
-    } else {
-        throw ProcessorInternalError( "Shared state " + state + " can not be controlled externally.", name());
-        //return false;
-    }
-}
-
-std::string IProcessor::RetrieveState( std::string state ) {
-    
-    // look up state variable
-    IState* pstate = this->shared_state(state);
-    
-    if (pstate->permissions().external()!=Permission::NONE) {
-        return pstate->get_string();
-    } else {
-        throw ProcessorInternalError( "Shared state " + state + " can not be read externally.", name());
-    }
-}
-
-YAML::Node IProcessor::ApplyMethod( std::string name, const YAML::Node& node ) {
-    
-    return exposed_method(name)(node);
-}
-    
-YAML::Node IProcessor::ExportYAML() {
-    
-    YAML::Node node;
-    
-    for (auto & it : input_ports_ ) {
-        node["inports"][it.first] = it.second->ExportYAML();
-    }
-    
-    for (auto & it : output_ports_ ) {
-        node["outports"][it.first] = it.second->ExportYAML();
-    }
-    
-    for (auto & it : shared_states_ ) {
-        if (it.second->permissions().external()==Permission::WRITE) {
-            node["states"][it.first]["permission"] = "write";
-        } else if (it.second->permissions().external()==Permission::READ) {
-            node["states"][it.first]["permission"] = "read";
-        }
-        node["states"][it.first]["value"] = it.second->get_string();
-        node["states"][it.first]["units"] = it.second->units();
-        node["states"][it.first]["description"] = it.second->description();
-    }
-    
-    for (auto & it : exposed_methods_ ) {
-        node["methods"].push_back( it.first );
-    }
-    
-    return node;
-}
-
-void IProcessor::CreatePortsInternal( std::map<std::string, int> & buffer_sizes ) {
-    
-    CreatePorts();
-    // set requested buffer sizes
-    for ( auto & it : buffer_sizes ) {
-        if (!has_output_port( it.first ) || it.second<2) {
-            LOG(WARNING) << "Could not set ringbuffer size to " << it.second << " for port " << name() << "." << it.first;
-        } else {
-            output_port( it.first )->set_buffer_size( it.second );
-            LOG(INFO) << "Set ringbuffer size to " << it.second << " for port " << name() << "." << it.first;
-        }
-    }
 }
