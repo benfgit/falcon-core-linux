@@ -46,7 +46,7 @@ class RunContext : public StorageContext {
 public:
 
 friend class graph::ProcessorGraph;
-friend class ProcessorEngine;
+friend class IProcessor;
 
 public:
     RunContext( GlobalContext& context, std::atomic<bool>& terminate_signal, std::string run_group_id, std::string run_id, std::string template_id, bool test_flag ) :
