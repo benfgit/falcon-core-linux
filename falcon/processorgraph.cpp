@@ -188,107 +188,87 @@ std::string ProcessorGraph::state_string() const {
     return graph_state_string( state_ );
 }
 
-void ProcessorGraph::LinkSharedStates( const YAML::Node& node ) {
+IProcessor* ProcessorGraph::LookUpProcessor(std::string name) {
+    if (processors_.count( name )==0) {
+        throw InvalidProcessorError(
+            "Processor \"" + name + "\" not found.");
+    }
     
-    // node is a sequence
-    // each item in the sequence should be a sequence of processor.state IDs to be linked:
+    return processors_[name].second.get();
+}
+
+std::vector<std::pair<std::string, std::shared_ptr<IState>>> ProcessorGraph::LookUpStates(std::vector<std::string> state_addresses) {
+    
+    std::vector<std::pair<std::string, std::shared_ptr<IState>>> states;
+    
+    for (auto & state_address : state_addresses){
+        // parse processor.state name
+        std::vector<std::string> address = split(state_address, '.');
+        
+        if (address.size()!=2) {
+            throw InvalidGraphError("Error parsing state address \"" +
+                state_address + "\"" );
+        }
+        
+        // expand processor part of address
+        auto expanded_processor = expandProcessorName( address[0] );
+    
+        for (auto & itv : expanded_processor) {          
+            
+            IProcessor* processor = LookUpProcessor(itv);
+            auto state = processor->shared_state(address[1]);  // fix error message when this fails
+            
+            states.push_back( std::make_pair( itv + "." + address[1], state ) );
+        }
+    }
+    
+    return states;
+}
+
+void ProcessorGraph::BuildSharedStates( const YAML::Node& node ) {
+    
     // states:
     //     - [processor.state, processor.state, ...]
+    //     - group-name:
+    //         permission: xxx
+    //         description: xxx
+    //         states: [...]
+    //     - group-name: [...]
 
-    std::set<std::string> state_set;
-
+    std::vector<std::pair<std::string, std::shared_ptr<IState>>> states;
+    std::string alias;
+    Permission permission;
+    std::string description;
+    int group_index = 0;
+    
     // loop through items in sequence:
     for(YAML::const_iterator link=node.begin();link!=node.end();++link) {
-        // is item a sequence?
-        if (!link->IsSequence()) {
-            throw InvalidGraphError("Error parsing states: not a sequence.");
-        }
-
-        std::vector<std::pair<std::string, IState*>> states;
-
-        // loop through items in sequence
-        for(YAML::const_iterator linked_state=link->begin();linked_state!=link->end();
-        ++linked_state) {  
-            // parse procesor.state name
-            std::vector<std::string> address = split(linked_state->as<std::string>(), '.');
-
-            if (address.size()!=2) {
-                throw InvalidGraphError("Error parsing state value address: " +
-                    linked_state->as<std::string>() );
-            }
-
-            // expand state address
-            auto p = expandProcessorName( address[0] );
-            auto s = expandProcessorName( address[1] );
-            std::vector<std::pair<std::string,std::string>> v;
-            
-            // combine
-            for (auto & itp : p) {
-                for (auto & its : s) {
-                    v.push_back( std::make_pair( itp, its ) );
-                }
-
-            }
-
-            // for each address:
-            // already in the list?
-            // processor exists?
-            // get processor and create new connection
-            for (auto & itv : v) {          
-
-                if (state_set.count( itv.first + "." + itv.second )!=0) {
-                    throw InvalidGraphError("Cannot link same state twice: " +
-                        itv.first + "." + itv.second);
-                }
-
-                state_set.insert( itv.first + "." + itv.second );
-
-                // find corresponding processor engine
-                if (processors_.count( itv.first )==0) {
-                    throw InvalidProcessorError(
-                        "Error parsing state value address: no such processor \""
-                            + itv.first + "\".");
-                }
-
-                IProcessor* processor = processors_[itv.first].second.get();
-
-                // look up state
-                states.push_back( std::make_pair( linked_state->as<std::string>(),
-                    processor->shared_state( itv.second )  ) );
-            }
-
-        }
-
-        if (states.size()<2) {continue;} // nothing to link
         
-        // check if all states are compatible with each other
-        for (unsigned int m=0; m<states.size(); ++m) {
-            for (unsigned int n=m+1; n<states.size(); ++n) {
-                if (!states[m].second->IsCompatible( states[n].second ) ) {
-                    throw InvalidGraphError("Cannot link incompatible states: \"" + states[m].first + "\" and \"" + states[n].first + "\"."  );
-                }
-            }
+        ++group_index;
+        
+        description = "";
+        permission = Permission::WRITE;
+        
+        if (link->IsSequence()) {
+            alias = "alias_" + std::to_string(group_index);
+            states = LookUpStates(link->as<std::vector<std::string>>());
+        } else if (link->IsMap() && link->size()==1 && link->begin()->second.IsSequence()) {
+            alias = link->begin()->first.as<std::string>();
+            states = LookUpStates(link->begin()->second.as<std::vector<std::string>>());
+        } else if (link->IsMap() && link->size()==1 && link->begin()->second.IsMap()) {
+            alias = link->begin()->first.as<std::string>();
+            description = link->begin()->second["description"].as<std::string>("");
+            permission = permission_from_string(link->begin()->second["permission"].as<std::string>("unspecified"));
+            states = LookUpStates(link->begin()->second["states"].as<std::vector<std::string>>());
+        } else {
+            throw InvalidGraphError("Error parsing linked state request.");
         }
-
-        // determine master state, which will store the state value
-        unsigned int master_state = 0;
-        for (unsigned int m=0; m<states.size(); ++m) {
-            if (states[m].second->permissions().self() != Permission::WRITE) {
-                master_state = m;
-                break;
-            }
-        }  
-
-        states[master_state].second->SetMaster();
-
-        // link all shared states to master state
-        for (unsigned int m=0; m<states.size(); ++m) {
-            if (m!=master_state) {
-                states[m].second->Share( states[master_state].second );
-                LOG(DEBUG) << "Successfully linked state " << states[m].first << " to master state " << states[master_state].first;
-            }
+        
+        shared_state_map_.AddAlias(alias, permission, description);
+        for (auto const & state : states) {
+            shared_state_map_.ShareState(alias, state.first, state.second);
+            LOG(DEBUG) << "Successfully linked state " << state.first << " to alias " << alias;
         }
-  
     }
 }
 
@@ -366,7 +346,7 @@ void ProcessorGraph::Build( const YAML::Node& node ) {
         }
         
         if (node["states"] && node["states"].IsSequence()) {
-            LinkSharedStates( node["states"] );
+            BuildSharedStates( node["states"] );
             LOG(INFO) << "Linked all shared states.";
         }
         
@@ -443,8 +423,9 @@ void ProcessorGraph::Destroy() {
     }
     
     // destroy connections and processors
+    shared_state_map_.clear();  // will unlink all states and remove groups
     connections_.clear();
-    processors_.clear();
+    processors_.clear();  // will destroy processors and all their ports/states
     
     yaml_ = YAML::Null;
     
@@ -553,35 +534,56 @@ void ProcessorGraph::StopProcessing( ) {
 void ProcessorGraph::Update( YAML::Node& node ) {
     
     // YAML
-    // processor:
-    //     state: value
+    // shared-state: value
+    // processor: {state: value}
     
-        // make sure node is a map
+    // make sure node is a map
     if (!node.IsMap()) {
-        throw InvalidProcessorError("No processors found in state definition.");
+        throw InvalidProcessorError("No valid map with states found.");
     }
-    // loop through all processors, make sure value is another map
+    
+    // loop through all keys
     for(YAML::iterator it=node.begin();it!=node.end();++it) {
-        std::string processor_name = it->first.as<std::string>();
         
-        if (!it->second.IsMap()) { 
-            LOG(ERROR) << "Invalid method definition for processor " << processor_name;
-            continue;
-        }
-        // find corresponding processor engine
-        if (processors_.count( processor_name )==0) {
-            LOG(ERROR) << "In method definition: no processor named " << processor_name;
-            continue;
-        }
+        std::string key = it->first.as<std::string>();
         
-        IProcessor* processor = processors_[processor_name].second.get();
-        
-        // loop through all states
-        for (YAML::iterator it2=it->second.begin();it2!=it->second.end();++it2) {
+        if (it->second.IsMap()){
+            // find corresponding processor engine
+            if (processors_.count( key )==0) {
+                LOG(ERROR) << "No processor named " << key;
+                continue;
+            }
+            
+            IProcessor* processor = processors_[key].second.get();
+            
+            // loop through states
+            for (YAML::iterator it2=it->second.begin();it2!=it->second.end();++it2) {
+                try {
+                    auto state_name = it2->first.as<std::string>();
+                    auto state_value = it2->second.as<std::string>();
+                    //it2->second = processor->internal_UpdateState( state_name, state_value );
+                    auto pstate = processor->shared_state(state_name);
+                    
+                    // check if externally settable??
+                    if (pstate->external_permission() == Permission::WRITE) {
+                        // set from string
+                        it2->second = pstate->set_string( state_value );
+                    } else {
+                        throw std::runtime_error( "Shared state " + state_name + " on processor " + key + " can not be controlled externally.");
+                    }
+                    LOG(UPDATE) << "State " << key < "." << state_name << " set to " << state_value;
+                } catch ( std::exception & e ) {
+                    it2->second = false;
+                    LOG(ERROR) << "Unable to update state value: " << e.what();
+                }
+            }
+        } else {  // key points to shared state alias
             try {
-                it2->second = processor->internal_UpdateState( it2->first.as<std::string>(), it2->second.as<std::string>() );
-            } catch ( std::exception & e ) {
-                it2->second = false;
+                auto state_value = it->second.as<std::string>();
+                it->second = shared_state_map_.UpdateAlias(key, state_value);
+                LOG(UPDATE) << "Alias state " << key << " set to " << state_value;
+            } catch (std::exception & e) {
+                it->second = false;
                 LOG(ERROR) << "Unable to update state value: " << e.what();
             }
         }
@@ -593,33 +595,47 @@ void ProcessorGraph::Retrieve( YAML::Node& node ) {
     // YAML
     // processor:
     //    state: <null>
-    //return;
+    
     // make sure node is a map
     if (!node.IsMap()) {
-        throw InvalidProcessorError("No processors found in state definition.");
+        throw InvalidProcessorError("No valid map with states found.");
     }
-    // loop through all processors, make sure value is another map
+    
+    // loop through all keys
     for(YAML::iterator it=node.begin();it!=node.end();++it) {
-        std::string processor_name = it->first.as<std::string>();
         
-        if (!it->second.IsMap()) { 
-            LOG(ERROR) << "Invalid method definition for processor " << processor_name;
-            continue;
-        }
-        // find corresponding processor engine
-        if (processors_.count( processor_name )==0) {
-            LOG(ERROR) << "In method definition: no processor named " << processor_name;
-            continue;
-        }
+        std::string key = it->first.as<std::string>();
         
-        IProcessor* processor = processors_[processor_name].second.get();
-        
-        // loop through all states
-        for (YAML::iterator it2=it->second.begin();it2!=it->second.end();++it2) {
+        if (it->second.IsMap()){
+            // find corresponding processor engine
+            if (processors_.count( key )==0) {
+                LOG(ERROR) << "No processor named " << key;
+                continue;
+            }
+            
+            IProcessor* processor = processors_[key].second.get();
+            
+            // loop through states
+            for (YAML::iterator it2=it->second.begin();it2!=it->second.end();++it2) {
+                try {
+                    auto state_name = it2->first.as<std::string>();
+                    //it2->second = processor->internal_RetrieveState( state_name );
+                    auto pstate = processor->shared_state(state_name);
+                    if (pstate->external_permission() != Permission::NONE) {
+                        it2->second = pstate->get_string();
+                    } else {
+                        throw std::runtime_error( "Shared state " + state_name + " on processor " + key + " can not be read externally.");
+                    }
+                } catch ( std::exception & e ) {
+                    it2->second = YAML::Null;
+                    LOG(ERROR) << "Unable to retrieve state value: " << e.what();
+                }
+            }
+        } else {  // key points to shared state alias
             try {
-                it2->second = processor->internal_RetrieveState( it2->first.as<std::string>() );
-            } catch ( std::exception & e ) {
-                it2->second = YAML::Null;
+                it->second = shared_state_map_.RetrieveAlias(key);
+            } catch (std::exception & e) {
+                it->second = YAML::Null;
                 LOG(ERROR) << "Unable to retrieve state value: " << e.what();
             }
         }
@@ -673,7 +689,7 @@ std::string ProcessorGraph::ExportYAML() {
     if (state_!=GraphState::NOGRAPH) {
     
         for ( auto& it : this->processors_ ) {
-            node["processors"][it.first] = it.second.second->ExportYAML( );
+            node["processors"][it.first] = it.second.second->ExportYAML();
             node["processors"][it.first]["class"] = it.second.first;
             
             if (yaml_["processors"][it.first]["options"]) {
@@ -689,6 +705,8 @@ std::string ProcessorGraph::ExportYAML() {
         for (auto& it : this->connections_ ) {
             node["connections"].push_back( it.first.string() + "=" + it.second.string() );
         }
+        
+        node["states"] = shared_state_map_.ExportYAML();
         
         out << node;
         s = out.c_str();

@@ -20,25 +20,89 @@
 #ifndef SHAREDSTATES_H
 #define SHAREDSTATES_H
 
+#include <typeinfo>
 #include <atomic>
 #include <sstream>
+#include <set>
+#include <map>
+#include <algorithm>
+#include <memory>
 
-enum class Permission {NONE=0, READ, WRITE};
+#include "g3log/src/g2log.hpp"
+#include "yaml-cpp/yaml.h"
+
+// a state wraps a value that is possibly shared between threads
+// access to the value should be protected (atomic or lock)
+// a state has a non-shared cached value that is synchronized with every set/get operation (optional) on the state
+// the cache is useful for checking if the value was changed outside of the state since the last set/get operation
+
+// TODO: take state retrieval/update out of IProcessor and make it responsibility of ProcessorGraph
+// IProcessors should only be allowed to set/get state value (and not change permissions, (un)share, etc.)
+// ProcessorGraph is responsible for moderating external access (including permission check)
+// ProcessorGraph is responsible for (un)linking states
+
+// ProcessorGraph owns a LinkedStateMap that manages LinkedStateGroups
+// shared states are linked to each other (managed by a LinkedStateGroup)
+// processor.state can be added/removed (by name) to/from LinkedStateGroup
+
+// ProcessorGraph::Update/Retrieve
+//   global-state: value
+//   processor: {state: value}
+
+enum class Permission {NONE=0, READ, WRITE};  // in order of least permissive to most permissive
+
+Permission permission_from_string(std::string s);
+std::string permission_to_string(Permission p, bool shorthand = false);
+
+class ExternalPermissionTracker {
+public:
+    ExternalPermissionTracker() : none_(0), read_(0), write_(0) {}
+    ExternalPermissionTracker(Permission permission):ExternalPermissionTracker() {
+        add(permission);
+    }
+    
+    Permission permission() {
+        if (none_.load()>0) { return Permission::NONE; }
+        if (read_.load()>0) { return Permission::READ; }
+        if (write_.load()>0) { return Permission::WRITE; }
+        return Permission::NONE;
+    }
+    
+    void add(Permission permission) {
+        if (permission == Permission::NONE) { ++none_; }
+        else if (permission == Permission::READ) { ++read_; }
+        else if (permission == Permission::WRITE) { ++write_; }
+    }
+    
+    void subtract(Permission permission) {
+        if (permission == Permission::NONE) { --none_; }
+        else if (permission == Permission::READ) { --read_; }
+        else if (permission == Permission::WRITE) { --write_; }
+    }
+
+protected:
+    std::atomic<int> none_;
+    std::atomic<int> read_;
+    std::atomic<int> write_;
+};
 
 class Permissions {
 public:
-    Permissions( Permission self = Permission::WRITE, Permission others = Permission::READ, Permission external = Permission::NONE ) :
-    self_(self), others_(others), external_(external) {}
+    Permissions( Permission self = Permission::WRITE,
+                 Permission others = Permission::READ,
+                 Permission external = Permission::NONE );
     
-    Permission self() const { return self_; }
-    Permission others() const { return others_; }
-    Permission external() const { return external_; }
+    const Permission self() const;
+    const Permission others() const;
+    const Permission external() const;
     
-    bool IsCompatible( const Permissions& p ) {
-        return !(others_==Permission::NONE || p.others()==Permission::NONE || 
-        (others_==Permission::READ && p.self()!=Permission::READ) || 
-        (self_!=Permission::READ && p.others()==Permission::READ) );
-    }
+    void set_self (const Permission p);
+    void set_others (const Permission p);
+    void set_external (const Permission p);
+    
+    std::string to_string(bool shorthand = true) const;
+        
+    bool IsCompatible( const Permissions& p );
     
 protected:
     Permission self_;
@@ -46,139 +110,268 @@ protected:
     Permission external_;
 };
 
+class SharedStateAlias;
+namespace graph { class ProcessorGraph; }
+
 class IState {
-friend class IProcessor;
+friend class SharedStateAlias;
+friend class graph::ProcessorGraph;
 public:
-    IState( Permissions& permissions, std::string units="", std::string description="" ) : 
-    permissions_(permissions), units_(units), description_(description) {}
+    IState( const Permissions& permissions, std::string description="" );
     
-    const Permissions& permissions() const { return permissions_; }
+    IState( const IState& other );
     
-    virtual bool IsCompatible( const IState* other ) = 0;
+    virtual ~IState() {}
     
-    virtual void Share( IState* master ) = 0;
-    virtual void Unshare() = 0;
+    virtual IState* clone() const = 0;
     
-    void SetMaster() { is_master_ = true; }
-    bool IsMaster() { return is_master_; }
+    bool IsCompatible(const Permissions & permissions);
     
-    std::string units() { return units_; }
-    std::string description() { return description_; }
+    const Permissions& permissions() const;
+    Permission external_permission();
     
-    void set_units(std::string value) { units_ = value; }
-    void set_description(std::string value) { description_ = value; }
+    std::string description();
+    
+    virtual std::string get_string(bool cache = true) = 0;
+    
+protected:  // for friends only
+    virtual bool IsLikeMe( const std::shared_ptr<IState> & other ) = 0;
+    
+    virtual void Share( const std::shared_ptr<IState> & other ) = 0;
+    virtual void UnShare() = 0;
+    
+    virtual bool IsShared();
+    
+    void set_description(std::string value);
+    
+    virtual bool set_string( const std::string & value, bool cache = true ) = 0;
+    
+    void set_external_permission(Permission permission);
     
 protected:
-    
-    virtual std::string get_string() const = 0;
-    virtual bool set_string( std::string & value ) = 0;
-    
+    void lock();
+    void unlock();
+
 protected:
     Permissions permissions_;
-    std::string units_;
     std::string description_;
+    bool shared_;
+    std::shared_ptr<ExternalPermissionTracker> external_permission_;
+
+private:
+    std::atomic_flag lock_= ATOMIC_FLAG_INIT;
+};
+
+template <typename Base, typename Derived>
+class StateCloneable : public Base {
+public:
+    using Base::Base;
     
-    bool is_master_ = false;
-    
+    virtual Base* clone() const {
+        return new Derived(static_cast<Derived const &>(*this));
+    }
 };
 
 template <typename T>
-class State : public IState {
+class ReadableState : public StateCloneable<IState,ReadableState<T>> {
 public:
-    State( T default_value, Permissions permissions, std::string units="", std::string description="" ) : 
-    IState(permissions, units, description), default_(default_value), state_(default_value) {
+    ReadableState( T default_value, std::string description = "",
+                   Permission peers = Permission::WRITE,
+                   Permission external = Permission::NONE )
+        : StateCloneable<IState,ReadableState<T>>(Permissions(Permission::READ,peers,external), description),
+        default_(default_value), cache_(default_value),
+        state_(std::make_shared<std::atomic<T>>(default_value)) {}
+    
+    ReadableState( const ReadableState & other )
+        : StateCloneable<IState,ReadableState<T>>(other.permissions_, other.description_),
+        default_(other.default_), cache_(other.cache_),
+        state_(std::make_shared<std::atomic<T>>(other.state_->load())) {
         
-        shared_state_ = &state_; // by default use our own store
+        // note that we are creating our own (unshared) state
+        // and that we do not share other's state
     }
     
-    virtual bool IsCompatible( const IState* other ) override {
+    T get(bool cache = true) {
         
+        T val;
+        this->lock();
+        val = state_->load();
+        if (cache) { cache_ = val; }
+        this->unlock();
+        
+        return val;
+    }
+    
+    bool changed_get(T & val, bool cache = true) {
+        
+        bool ret;
+        this->lock();
+        val = state_->load();
+        ret = cache_==val;
+        if (cache) { cache_=val; }
+        this->unlock();
+        
+        return ret;
+    }
+    
+    virtual std::string get_string(bool cache = true) override {
+        
+        return std::to_string( get(cache) );
+    }
+    
+protected:  // for friends only
+    void set(T value, bool cache = true) {
+        
+        this->lock();
+        state_->store(value);
+        if (cache) { cache_ = value; }
+        this->unlock();
+    }
+    
+    T exchange(T value, bool cache = true) {
+        
+        this->lock();
+        value = state_->exchange(value);
+        if (cache) { cache_ = value; }
+        this->unlock();
+        
+        return value;
+    }
+
+    virtual bool set_string( const std::string & value, bool cache = true ) override {
+        
+        std::stringstream ss(value);
+        T result;
+        if (ss >> result) {
+            set(result, cache);
+            return true;
+        }
+        return false;
+    } 
+    
+    void reset() {
+        set(default_);
+    }
+    
+    virtual void Share(const std::shared_ptr<IState> & other) override {
+        
+        if (other.get() == this) { return; }
+        
+        auto cast = dynamic_cast<ReadableState<T>*>( other.get() );
+        if (cast) {
+            this->lock();
+            this->state_ = cast->state_;
+            this->external_permission_ = cast->external_permission_;
+            this->external_permission_->add( this->permissions_.external() );
+            this->shared_ = true;
+            this->unlock();
+        } else {
+            throw std::runtime_error( "Cannot delegate to incompatible state." );
+        }
+    }    
+    
+    virtual void UnShare() override {
+        this->lock();
+        this->state_ = std::make_shared<std::atomic<T>>(this->state_->load());
+        this->external_permission_->subtract( this->permissions_.external() );
+        this->external_permission_ = std::make_shared<ExternalPermissionTracker>( this->permissions_.external() );
+        this->shared_ = false;
+        this->unlock();
+    }
+    
+    virtual bool IsLikeMe(const std::shared_ptr<IState> & other) override {
         try {
-            auto cast = dynamic_cast<const State<T>*>( other );
+            auto cast = dynamic_cast<const ReadableState<T>*>( other.get() );
             if (cast) {
-                return permissions_.IsCompatible( cast->permissions() );
+                return true;
             } else { return false; }
         } catch ( const std::bad_cast& e ) {
             return false;
         }
     }
     
-    virtual void Share( IState* master ) override {
-        
-        if ( IsMaster() ) {
-            throw std::runtime_error( "Internal error. Attempting to reshare master." );
-        }
-        
-        auto cast = dynamic_cast<State<T>*>( master );
-        if (cast) {
-            this->shared_state_ = cast->shared_state();
-        } else {
-            throw std::runtime_error( "Internal error. Bad cast!!" );
-        }
-    }
-    
-    virtual void Unshare() override {
-        
-        this->shared_state_ = &this->state_;
-    }
-    
-protected:
-    std::atomic<T>* shared_state() { return shared_state_; }
-    
-    // only for external control
-    virtual std::string get_string() const override {
-        
-        return std::to_string( shared_state_->load() );
-    }
-    virtual bool set_string( std::string & value )  override {
-        
-        std::stringstream ss(value);
-        T result;
-        if (ss >> result) {
-            shared_state_->store(result);
-            return true;
-        }
-        return false;
-    } 
-    
-protected:
+private:
     T default_;
-    std::atomic<T> state_;
-    std::atomic<T>* shared_state_ = nullptr;
-
+    T cache_;
+    std::shared_ptr<std::atomic<T>> state_;  // our own state, that may be shared with others
 };
 
 template <typename T>
-class ReadableState : public State<T> {
+class WritableState : public ReadableState<T> {
 public:
-    ReadableState( T default_value, Permission peers = Permission::WRITE, Permission external = Permission::NONE ) : State<T>( default_value, Permissions( Permission::READ, peers, external ) ) {}
-    ReadableState( T default_value, std::string units="", std::string description="", Permission peers = Permission::WRITE, Permission external = Permission::NONE ) : State<T>( default_value, Permissions( Permission::READ, peers, external ), units, description ) {}
+    WritableState( T default_value, std::string description = "",
+                   Permission peers = Permission::READ,
+                   Permission external = Permission::NONE )
+        : ReadableState<T>(default_value, description, peers, external) {
     
-    const T get() const {
-        
-        return this->shared_state_->load();
+        this->permissions_.set_self(Permission::WRITE);
     }
-
+    
+    // make set methods publicly available
+    void set(T value, bool cache = true) { ReadableState<T>::set(value, cache); }
+    T exchange(T value, bool cache = true) { return ReadableState<T>::exchange(value, cache); }
+    virtual bool set_string(const std::string & value, bool cache = true) override {
+        return ReadableState<T>::set_string(value, cache);
+    }
+    void reset() { ReadableState<T>::reset(); }
 };
 
-template <typename T>
-class WritableState : public State<T> {
+class SharedStateAlias {
 public:
-    WritableState( T default_value, Permission peers = Permission::READ, Permission external = Permission::NONE ) : State<T>( default_value, Permissions( Permission::WRITE, peers, external ) ) {}
-    WritableState( T default_value, std::string units="", std::string description="", Permission peers = Permission::READ, Permission external = Permission::NONE ) : State<T>( default_value, Permissions( Permission::WRITE, peers, external ), units, description ) {}
+    SharedStateAlias(Permission external = Permission::WRITE, std::string description="");
+
+    ~SharedStateAlias();
     
-    const T get() const {
-        
-        return this->shared_state_->load();
-    }
-    void set( T value ) {
-        
-        this->shared_state_->store(value);
-    }
-    T exchange( T value ) {
-        
-        return this->shared_state_->exchange(value);
-    }
+    void AddState(std::string name, const std::shared_ptr<IState> & dependent);
+    
+    void RemoveState(std::string name);
+    
+    void RemoveAllStates();
+    
+    bool Update(std::string value);
+    
+    std::string Retrieve();
+    
+    YAML::Node ExportYAML();
+    
+private:
+    Permission external_;
+    std::string description_;
+    std::shared_ptr<IState> master_;
+    std::map<std::string, std::shared_ptr<IState>> dependents_;
+};
+
+class SharedStateMap {
+public:
+    SharedStateMap() {}
+    
+    ~SharedStateMap();
+    
+    void AddAlias(std::string alias, Permission permission = Permission::WRITE, std::string description = "");
+     
+    void RemoveAlias(std::string alias);
+    
+    void ShareState(std::string alias, std::string name, std::shared_ptr<IState> state);
+    
+    void UnShareState(std::string name);
+    
+    void UnShareAll();
+    
+    void clear();
+    
+    bool IsShared(std::string name);
+    
+    std::vector<std::string> ListSharedStates(std::string alias);
+    
+    bool UpdateAlias(std::string alias, std::string value);
+    
+    std::string RetrieveAlias(std::string alias);
+    
+    YAML::Node ExportYAML();
+    
+protected:
+    std::map<std::string, SharedStateAlias> aliases_;
+    std::map<std::string, std::string> shared_states_;
 };
 
 #endif

@@ -108,6 +108,9 @@ bool KeyboardCommands::getcommand( std::deque<std::string> & command ) {
             command.push_back( "stop" );
         } else if (c=='k' || c=='K') { // kill
             command.push_back( "kill" );
+        } else if (c=='y' || c=='Y') { // graph | yaml
+            command.push_back( "graph" );
+            command.push_back( "yaml" );
         } else {
             return false;
         }
