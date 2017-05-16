@@ -61,13 +61,10 @@ YAML::Node IProcessor::ExportYAML() {
     }
     
     for (auto & it : shared_states_ ) {
-        if (it.second->permissions().external()==Permission::WRITE) {
-            node["states"][it.first]["permission"] = "write";
-        } else if (it.second->permissions().external()==Permission::READ) {
-            node["states"][it.first]["permission"] = "read";
+        node["states"][it.first]["permission"] = permission_to_string(it.second->external_permission());
+        if (it.second->external_permission()!=Permission::NONE) {
+            node["states"][it.first]["value"] = it.second->get_string();
         }
-        node["states"][it.first]["value"] = it.second->get_string();
-        node["states"][it.first]["units"] = it.second->units();
         node["states"][it.first]["description"] = it.second->description();
     }
     
@@ -369,33 +366,6 @@ void IProcessor::internal_Alert() {
     }
     for (auto& it : input_ports_ ) {
         it.second->UnlockSlots();
-    }
-}
-
-
-bool IProcessor::internal_UpdateState( std::string state, std::string value ) {
-    
-    // look up state variable
-    IState* pstate = this->shared_state(state);
-    
-    // check if externally settable??
-    if (pstate->permissions().external()==Permission::WRITE) {
-        // set from string
-        return pstate->set_string( value );
-    } else {
-        throw ProcessorInternalError( "Shared state " + state + " can not be controlled externally.", name());
-    }
-}
-
-std::string IProcessor::internal_RetrieveState( std::string state ) {
-    
-    // look up state variable
-    IState* pstate = this->shared_state(state);
-    
-    if (pstate->permissions().external()!=Permission::NONE) {
-        return pstate->get_string();
-    } else {
-        throw ProcessorInternalError( "Shared state " + state + " can not be read externally.", name());
     }
 }
 

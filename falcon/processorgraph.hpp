@@ -90,8 +90,11 @@ public:
     
     const ProcessorMap& processors() const { return processors_; }
     const StreamConnections& connections() const { return connections_; }
-
-    void LinkSharedStates( const YAML::Node& node );
+    
+    IProcessor* LookUpProcessor(std::string name);
+    std::vector<std::pair<std::string, std::shared_ptr<IState>>> LookUpStates(std::vector<std::string> state_addresses);
+    
+    void BuildSharedStates( const YAML::Node& node );
 
 protected:
     void CreateConnection( SlotAddress & out, SlotAddress & in );
@@ -103,6 +106,8 @@ private:
     
     ProcessorMap processors_;
     StreamConnections connections_;
+    
+    SharedStateMap shared_state_map_;
     
     GraphState state_ = GraphState::NOGRAPH;
     

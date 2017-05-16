@@ -134,32 +134,36 @@ protected: // callable by derived processors, but not others
     ISlotOut* output_slot( const SlotAddress & address );
     
     template <typename T>
-    ReadableState<T>* create_readable_shared_state( std::string state, T default_value, Permission peers = Permission::WRITE, Permission external = Permission::NONE ) {
+    ReadableState<T>* create_readable_shared_state(
+      std::string state, T default_value, Permission peers = Permission::WRITE,
+      Permission external = Permission::NONE, std::string description = "" ) {
         if (shared_states_.count( state)==1 || !is_valid_name(state)) {
             throw ProcessorInternalError( "Shared state \"" + state + "\" is invalid or already exists.", name() );
         }
         
-        shared_states_[state] = std::move( std::unique_ptr<IState>( (IState*) new ReadableState<T>( default_value, peers, external ) ) );
+        shared_states_[state] = std::move( std::unique_ptr<IState>( (IState*) new ReadableState<T>( default_value, description, peers, external ) ) );
         
         return ((ReadableState<T>*) shared_states_[state].get());
     }
     
     template <typename T>
-    WritableState<T>* create_writable_shared_state( std::string state, T default_value, Permission peers = Permission::READ, Permission external = Permission::NONE ) {
+    WritableState<T>* create_writable_shared_state(
+      std::string state, T default_value, Permission peers = Permission::READ,
+      Permission external = Permission::NONE, std::string description = "" ) {
         if (shared_states_.count( state)==1 || !is_valid_name(state)) {
             throw ProcessorInternalError( "Shared state \"" + state + "\" is invalid or already exists.", name() );
         }
         
-        shared_states_[state] = std::move( std::unique_ptr<IState>( (IState*) new WritableState<T>( default_value, peers, external ) ) );
+        shared_states_[state] = std::move( std::unique_ptr<IState>( (IState*) new WritableState<T>( default_value, description, peers, external ) ) );
         
         return ((WritableState<T>*) shared_states_[state].get());
     }
     
-    IState* shared_state(std::string state) {
+    std::shared_ptr<IState> shared_state(std::string state) {
         if (this->shared_states_.count(state)==0) {
             throw ProcessorInternalError( "Shared state \"" + state + "\" does not exist.", name() );
         }
-        return shared_states_[state].get();
+        return shared_states_[state];
     }
     
     template <class T>
@@ -214,9 +218,7 @@ private: // callable internally only
     void internal_Stop();
     
     void internal_Alert();    
-
-    bool internal_UpdateState( std::string state, std::string value );
-    std::string internal_RetrieveState( std::string state );
+    
     YAML::Node internal_ApplyMethod( std::string name, const YAML::Node& node );    
     
     void set_name( std::string name ) { name_ = name; }
@@ -228,7 +230,7 @@ private: // member variables
     std::map<std::string, std::unique_ptr<IPortOut>> output_ports_;
     
     std::map<std::string,std::function<YAML::Node(const YAML::Node&)>> exposed_methods_;
-    std::map<std::string,std::unique_ptr<IState>> shared_states_;
+    std::map<std::string,std::shared_ptr<IState>> shared_states_;
 
     bool negotiated_ = false;
     bool prepared_ = false;
