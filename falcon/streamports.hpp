@@ -59,7 +59,6 @@ public:
     std::vector<DATATYPE*> ClaimDataN( uint64_t n, bool clear );
     void PublishData();
     
-    //DATATYPE& datatype() { return streaminfo_.datatype(); }
     virtual StreamInfo<DATATYPE>& streaminfo() { return streaminfo_; }
     
     uint64_t nitems_produced() const;
