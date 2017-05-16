@@ -570,7 +570,7 @@ void ProcessorGraph::Update( YAML::Node& node ) {
                     } else {
                         throw std::runtime_error( "Shared state " + state_name + " on processor " + key + " can not be controlled externally.");
                     }
-                    LOG(UPDATE) << "State " << key < "." << state_name << " set to " << state_value;
+                    LOG(UPDATE) << "State " << key << "." << state_name << " set to " << state_value;
                 } catch ( std::exception & e ) {
                     it2->second = false;
                     LOG(ERROR) << "Unable to update state value: " << e.what();
