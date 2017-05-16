@@ -91,12 +91,12 @@ void EventData::YAMLDescription( YAML::Node & node, Serialization::Format format
     }
 }
 
-std::string EventDataType::default_event() const {
+//std::string EventDataType::default_event() const {
     
-    return default_event_;
-}
+    //return default_event_;
+//}
     
-void EventDataType::InitializeData( EventData& item ) const {
+//void EventDataType::InitializeData( EventData& item ) const {
     
-    item.Initialize( default_event_ );
-}
+    //item.Initialize( default_event_ );
+//}

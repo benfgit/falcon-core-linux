@@ -104,23 +104,40 @@ protected: // need to be removed??
 protected: // callable by derived processors, but not others
 
     template <typename DATATYPE>
-    PortOut<DATATYPE>* create_output_port( std::string name, DATATYPE datatype, PortOutPolicy policy ) {
+    PortOut<DATATYPE>* create_output_port( std::string name,
+                                           const typename DATATYPE::Capabilities & capabilities,
+                                           const typename DATATYPE::Parameters & parameters,
+                                           const PortOutPolicy& policy ) {
         if (output_ports_.count( name )==1 || !is_valid_name(name)) {
             throw std::runtime_error( "Output port name \"" + name + "\" is invalid or already exists." );
         }
         
-        output_ports_[name] = std::move( std::unique_ptr<IPortOut>( (IPortOut*) new PortOut<DATATYPE>( this, PortAddress(this->name(),name), datatype, policy ) ) );
+        output_ports_[name] = std::move(
+            std::unique_ptr<IPortOut>(
+                (IPortOut*) new PortOut<DATATYPE>( this,
+                                                   PortAddress(this->name(),name),
+                                                   capabilities,
+                                                   parameters,
+                                                   policy ) ) );
         
         return ((PortOut<DATATYPE>*) output_ports_[name].get());
     }
     
     template <typename DATATYPE>
-    PortIn<DATATYPE>* create_input_port( std::string name, DATATYPE datatype, PortInPolicy policy ) {
+    PortIn<DATATYPE>* create_input_port( std::string name,
+                                         const typename DATATYPE::Capabilities & capabilities,
+                                         const PortInPolicy & policy ) {
         if (input_ports_.count( name )==1 || !is_valid_name(name)) {
             throw std::runtime_error( "Input port name \"" + name + "\" is invalid or already exists." );
         }
         
-        input_ports_[name] = std::move( std::unique_ptr<IPortIn>( (IPortIn*) new PortIn<DATATYPE>( this, PortAddress(this->name(),name), datatype, policy ) ) );
+        input_ports_[name] = std::move(
+            std::unique_ptr<IPortIn>(
+                (IPortIn*) new PortIn<DATATYPE>( this,
+                                                 PortAddress(this->name(),name),
+                                                 capabilities,
+                                                 policy ) ) );
+        
         return ((PortIn<DATATYPE>*) input_ports_[name].get());
     }
     
@@ -203,7 +220,7 @@ private: // callable internally only
     void internal_CreatePorts();    
     void internal_PrepareConnectionIn( SlotAddress & in );
     void internal_PrepareConnectionOut( SlotAddress & out );
-    bool internal_ConnectionCompatibilityCheck( const SlotAddress & address, IProcessor * upstream, const SlotAddress & upstream_address );
+    void internal_ConnectionCompatibilityCheck( const SlotAddress & address, IProcessor * upstream, const SlotAddress & upstream_address );
     void internal_ConnectIn( const SlotAddress & address, IProcessor * upstream, const SlotAddress & upstream_address);
     void internal_ConnectOut( const SlotAddress & address, IProcessor * downstream, const SlotAddress & downstream_address);
     

@@ -28,14 +28,15 @@ constexpr decltype(Rebuffer::buffer_size_seconds_) Rebuffer::DEFAULT_BUFFER_SIZE
 
 void Rebuffer::CreatePorts( ) {
     
-    data_in_port_ = create_input_port(
+    data_in_port_ = create_input_port<MultiChannelData<double>>(
         "data",
-        MultiChannelDataType<double>( ChannelRange(1,256) ),
+        MultiChannelData<double>::Capabilities( ChannelRange(1,256) ),
         PortInPolicy( SlotRange(0,256) ) );
     
-    data_out_port_ = create_output_port(
+    data_out_port_ = create_output_port<MultiChannelData<double>>(
         "data",
-        MultiChannelDataType<double>( ChannelRange(1,256) ),
+        MultiChannelData<double>::Capabilities( ChannelRange(1,256) ),
+        MultiChannelData<double>::Parameters(),
         PortOutPolicy( SlotRange(0,256) ) );
 }
 
@@ -85,7 +86,7 @@ void Rebuffer::CompleteStreamInfo( ) {
         for ( int k=0; k<data_in_port_->number_of_slots(); ++k ) {
             buffer_size_[k] = time2samples<decltype(buffer_size_samples_)>(
                 buffer_size_seconds_,
-                data_in_port_->streaminfo(k).datatype().sample_rate() / downsample_factor_ );
+                data_in_port_->streaminfo(k).parameters().sample_rate / downsample_factor_ );
             if (buffer_size_[k]==0) {
                 throw ProcessingStreamInfoError( "Buffer duration is zero.", name());
             }
@@ -94,18 +95,19 @@ void Rebuffer::CompleteStreamInfo( ) {
         for ( int k=0; k<data_in_port_->number_of_slots(); ++k ) {
             buffer_size_[k] = std::max( 1u, static_cast<decltype(buffer_size_samples_)>(
                 std::floor(
-                    data_in_port_->streaminfo(k).datatype().nsamples() / downsample_factor_ ) ) );
+                    data_in_port_->streaminfo(k).parameters().nsamples / downsample_factor_ ) ) );
         }
     }
     
     // finalize
     for ( int k=0; k<data_in_port_->number_of_slots(); ++k ) {
-        data_out_port_->streaminfo(k).datatype().Finalize(
-            buffer_size_[k], data_in_port_->streaminfo(k).datatype().nchannels(),
-            data_in_port_->streaminfo(k).datatype().sample_rate() / downsample_factor_ );
-        data_out_port_->streaminfo(k).Finalize(
+        data_out_port_->streaminfo(k).set_parameters( MultiChannelData<double>::Parameters(
+            data_in_port_->streaminfo(k).parameters().nchannels,
+            buffer_size_[k],
+            data_in_port_->streaminfo(k).parameters().sample_rate / downsample_factor_ ));
+        data_out_port_->streaminfo(k).set_stream_rate(
             data_in_port_->streaminfo(k).stream_rate() *
-                data_in_port_->streaminfo(k).datatype().nsamples() / buffer_size_[k] );
+                data_in_port_->streaminfo(k).parameters().nsamples / buffer_size_[k] );
     }
     
 }

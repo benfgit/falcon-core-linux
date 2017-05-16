@@ -24,52 +24,53 @@
 #include <vector>
 
 template <class TYPE>
-class VectorData : public IData
-{
-public:    
+class VectorData : public IData {
+public:
+    struct Parameters : IData::Parameters {
+        Parameters( unsigned int n )
+          : IData::Parameters(), size(n) {}
+        
+        unsigned int size;
+    };
+    
+    class Capabilities : public IData::Capabilities {
+    public:
+        void Validate(const Parameters & parameters ) {
+            if (parameters.size == 0) {
+                throw std::runtime_error("Vector size cannot be zero.");
+            }
+        }
+    };
+    
+    static const std::string datatype() { return "vector"; }
+
+public:
+    Initialize( const Parameters & parameters ) {
+        data_.reserve(parameters.size);
+    }
+    
     void setData( const std::vector<TYPE>& data ) {
         
-        _data = data; //copy
+        data_ = data; //copy
     }
     
     void setData( const TYPE* data, int len ) {
         
         // assert( len == _data.size() );
-        std::copy( data, data + len, _data.begin() );
+        std::copy( data, data + len, data_.begin() );
     }
     
     void setSample( int index, const TYPE& data ) {
         
-        _data[index] = data;
+        data_[index] = data;
     }
     
-    const std::vector<TYPE> data() { return _data; }
-    
-    void reserve( int n ) { _data.reserve(n); }
+    const std::vector<TYPE> data() { return data_; }
     
 protected:
-    std::vector<TYPE> _data;
+    std::vector<TYPE> data_;
 };
 
-template <class TYPE>
-class VectorDataType : public AnyDataType
-{
-
-ASSOCIATED_DATACLASS(VectorData<TYPE>)
-    
-public:
-    VectorDataType( int n = 1 ) : _size(n) { }
-        
-    void InitializeData( VectorData<TYPE>& item ) const {
-        
-        item.reserve( _size );
-    }
-    
-    virtual std::string name() const { return "vector"; }
-    
-protected:
-    int _size;
-};
 
 
 #endif

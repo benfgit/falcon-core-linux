@@ -19,13 +19,19 @@
 
 #include "streaminfo.hpp"
 
-double IStreamInfo::stream_rate() const {
+bool IStreamInfo::finalized() const { return finalized_; }
     
-    return stream_rate_;
-}
+void IStreamInfo::Finalize() { finalized_ = true; }
+        
+double IStreamInfo::stream_rate() const { return stream_rate_; }
     
-void IStreamInfo::Finalize( double stream_rate ) {
-    
+void IStreamInfo::set_stream_rate( double stream_rate ) {
+    if (finalized()) {
+        throw std::runtime_error("Stream information is finalized. Cannot change stream rate.");
+    }
     stream_rate_ = stream_rate;
-    finalized_ = true;
+}
+
+void IStreamInfo::set_stream_rate( const IStreamInfo & info) {
+    set_stream_rate( info.stream_rate() );
 }

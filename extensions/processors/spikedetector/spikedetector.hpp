@@ -68,9 +68,9 @@ public:
     virtual void Unprepare( GlobalContext& context ) override;
 
 protected:
-    PortIn<MultiChannelDataType<double>>* data_in_port_;
-    PortOut<SpikeDataType>* data_out_port_spikes_;
-    PortOut<EventDataType>* data_out_port_events_;
+    PortIn<MultiChannelData<double>>* data_in_port_;
+    PortOut<SpikeData>* data_out_port_spikes_;
+    PortOut<EventData>* data_out_port_events_;
     
     WritableState<double>* threshold_;
     WritableState<unsigned int>* peak_lifetime_;
@@ -84,10 +84,10 @@ protected:
     size_t n_incoming_;
     size_t incoming_buffer_size_samples_;
     
-    dsp::algorithms::SpikeDetector* spike_detector_;
+    std::unique_ptr<dsp::algorithms::SpikeDetector> spike_detector_;
     
     MultiChannelData<double>* data_in_;
-    MultiChannelData<double>* inverted_signals_;
+    std::unique_ptr<MultiChannelData<double>> inverted_signals_;
     SpikeData* spike_data_out_;
     EventData* event_data_out_;
     

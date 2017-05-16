@@ -70,9 +70,10 @@ bool NlxReader::CheckPacket(char * buffer, int recvlen) {
 void NlxReader::CreatePorts() {
     
     for (auto & it : channelmap_ ) {
-        data_ports_[it.first] = create_output_port(
+        data_ports_[it.first] = create_output_port<MultiChannelData<double>>(
             it.first,
-            MultiChannelDataType<double>( ChannelRange(it.second.size()) ),
+            MultiChannelData<double>::Capabilities( ChannelRange(it.second.size()) ),
+            MultiChannelData<double>::Parameters(),
             PortOutPolicy( SlotRange(1), 500, WaitStrategy::kBlockingStrategy ) );
     }
 }
@@ -81,9 +82,11 @@ void NlxReader::CompleteStreamInfo() {
     
     for (auto & it : data_ports_ ) {
         // finalize data type with nsamples == batch_size and nchannels taken from channel map
-        it.second->streaminfo(0).datatype().Finalize(
-            batch_size_, channelmap_[it.first].size(), NLX_SIGNAL_SAMPLING_FREQUENCY );
-        it.second->streaminfo(0).Finalize( NLX_SIGNAL_SAMPLING_FREQUENCY / batch_size_ );
+        it.second->streaminfo(0).set_parameters(
+            MultiChannelData<double>::Parameters( channelmap_[it.first].size(),
+                                                  batch_size_, 
+                                                  NLX_SIGNAL_SAMPLING_FREQUENCY ) );
+        it.second->streaminfo(0).set_stream_rate( NLX_SIGNAL_SAMPLING_FREQUENCY / batch_size_ );
     }
 }
 

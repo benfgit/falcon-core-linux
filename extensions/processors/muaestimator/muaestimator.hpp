@@ -58,8 +58,8 @@ public:
     virtual void Process( ProcessingContext& context ) override;
 
 protected:
-    PortIn<SpikeDataType>* data_in_port_;;
-    PortOut<MUADataType>* data_out_port_;
+    PortIn<SpikeData>* data_in_port_;;
+    PortOut<MUAData>* data_out_port_;
     
     ReadableState<double>* bin_size_;
     WritableState<double>* mua_;

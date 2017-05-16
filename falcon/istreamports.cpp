@@ -73,7 +73,7 @@ void ISlotIn::PrepareProcessing() {
 
 YAML::Node IPortOut::ExportYAML() const {
     YAML::Node node;
-    node["datatype"] = datatype().name();
+    node["datatype"] = datatype();
     node["nslots_min"] = policy().min_slot_number();
     node["nslots_max"] = policy().max_slot_number();
     node["buffer_size"] = policy().buffer_size();
@@ -92,7 +92,7 @@ YAML::Node IPortOut::ExportYAML() const {
 
 YAML::Node IPortIn::ExportYAML() const {
     YAML::Node node;
-    node["datatype"] = datatype().name();
+    node["datatype"] = datatype();
     node["nslots_min"] = policy().min_slot_number();
     node["nslots_max"] = policy().max_slot_number();
     node["cache"] = policy().cache_enabled();

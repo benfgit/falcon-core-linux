@@ -64,8 +64,8 @@ public:
 
 protected:
   
-    PortIn<MultiChannelDataType<double>>* data_in_port_;
-    PortOut<MultiChannelDataType<double>>* data_out_port_;
+    PortIn<MultiChannelData<double>>* data_in_port_;
+    PortOut<MultiChannelData<double>>* data_out_port_;
     
     double integration_time_;
     bool outlier_protection_;

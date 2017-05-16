@@ -66,19 +66,21 @@ void RippleDetector::Configure( const YAML::Node & node, const GlobalContext& co
 
 void RippleDetector::CreatePorts( ) {
     
-    data_in_port_ = create_input_port(
+    data_in_port_ = create_input_port<MultiChannelData<double>>(
         "data",
-        MultiChannelDataType<double>( ChannelRange(1,256) ),
+        MultiChannelData<double>::Capabilities( ChannelRange(1,256) ),
         PortInPolicy( SlotRange(1) ) );
     
-    event_out_port_ = create_output_port(
+    event_out_port_ = create_output_port<EventData>(
         "events",
-        EventDataType( "ripple" ),
+        EventData::Capabilities(),
+        EventData::Parameters("ripple"),
         PortOutPolicy( SlotRange(1) ) );
     
-    stats_out_port_ = create_output_port(
+    stats_out_port_ = create_output_port<MultiChannelData<double>>(
         "statistics",
-        MultiChannelDataType<double>( ChannelRange(N_STATS_OUT) ),
+        MultiChannelData<double>::Capabilities( ChannelRange(N_STATS_OUT) ),
+        MultiChannelData<double>::Parameters(),
         PortOutPolicy( SlotRange(1) ) );
     
     threshold_ = create_writable_shared_state(
@@ -139,17 +141,13 @@ void RippleDetector::CreatePorts( ) {
 void RippleDetector::CompleteStreamInfo( ) {
     
     stats_nsamples_ = stats_buffer_size_ *
-        data_in_port_->streaminfo(0).datatype().sample_rate() / stats_downsample_factor_;
+        data_in_port_->streaminfo(0).parameters().sample_rate / stats_downsample_factor_;
     stats_nsamples_ = std::max( stats_nsamples_, 1UL );
     
-    stats_out_port_->streaminfo(0).datatype().Finalize(
-        stats_nsamples_, N_STATS_OUT,
-        data_in_port_->streaminfo(0).datatype().sample_rate() / stats_downsample_factor_ );
-    stats_out_port_->streaminfo(0).Finalize(
-        data_in_port_->streaminfo(0).stream_rate() );
-    
-    event_out_port_->streaminfo(0).datatype().Finalize();
-    event_out_port_->streaminfo(0).Finalize( );
+    stats_out_port_->streaminfo(0).set_parameters( MultiChannelData<double>::Parameters(
+        N_STATS_OUT, stats_nsamples_,
+        data_in_port_->streaminfo(0).parameters().sample_rate / stats_downsample_factor_ ));
+    stats_out_port_->streaminfo(0).set_stream_rate( data_in_port_->streaminfo(0) );
     
 }
 
@@ -160,7 +158,7 @@ void RippleDetector::Preprocess( ProcessingContext& context ) {
     threshold_->set(0);
     block_ = 0;
         
-    sample_rate_ = data_in_port_->slot(0)->streaminfo().datatype().sample_rate();
+    sample_rate_ = data_in_port_->slot(0)->streaminfo().parameters().sample_rate;
     burn_in_ = initial_smooth_time_ * sample_rate_;
 
     double alpha = 1.0/burn_in_;

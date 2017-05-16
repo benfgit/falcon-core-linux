@@ -27,14 +27,63 @@
 #include "utilities/string.hpp"
 #include "utilities/general.hpp"
 #include "utilities/iterators.hpp"
-//#include "g3log/src/g2log.hpp"
 
 typedef Range<size_t> SampleRange;
 
 template <typename T>
 class MultiChannelData : public IData {
 public:
+    struct Parameters : IData::Parameters {
+        Parameters(size_t nchan=0, size_t nsamp=0, double rate = 1.0)
+          : IData::Parameters(), nchannels(nchan), nsamples(nsamp), sample_rate(rate) {}
+        
+        size_t nchannels;
+        size_t nsamples;
+        double sample_rate;
+    };
     
+    class Capabilities : public IData::Capabilities {
+    public:
+        Capabilities(ChannelRange channel_range,
+                     SampleRange sample_range = SampleRange( 1, std::numeric_limits<uint32_t>::max()))
+          : IData::Capabilities(), channel_range_(channel_range),
+            sample_range_(sample_range) {}
+        
+        ChannelRange channel_range() const { return channel_range_; }
+        SampleRange sample_range() const { return sample_range_; }
+        
+        virtual void VerifyCompatibility( const Capabilities & capabilities ) const {
+            IData::Capabilities::VerifyCompatibility( capabilities );
+            if (!channel_range_.overlapping( capabilities.channel_range() )) {
+                throw std::runtime_error("Channel ranges do not overlap ("
+                                         + channel_range_.to_string() + " and "
+                                         + capabilities.channel_range().to_string() + ")");
+            }
+            if (!sample_range_.overlapping( capabilities.sample_range() ) ) {
+                throw std::runtime_error("Sample ranges do not overlap ("
+                                         + sample_range_.to_string() + " and "
+                                         + capabilities.sample_range().to_string() + ")");
+            }
+        }
+        virtual void Validate( const Parameters & parameters ) const {
+            IData::Capabilities::Validate(parameters);
+            if (parameters.nsamples==0 || !sample_range_.inrange(parameters.nsamples)) {
+                throw std::runtime_error("Number of samples cannot be zero and needs to be in range " + sample_range_.to_string());
+            }
+            
+            if (parameters.nchannels==0 || !channel_range_.inrange(parameters.nchannels)) {
+                throw std::runtime_error("Number of channels cannot be zero and needs to be in range " + channel_range_.to_string());
+            }
+        }
+    
+    protected:
+        ChannelRange channel_range_;
+        SampleRange sample_range_;
+    };
+    
+    static const std::string datatype() { return "multichannel"; }
+    
+public:
     typedef stride_iter<T*> channel_iterator;
     typedef T* sample_iterator;
     
@@ -50,7 +99,11 @@ public:
         std::fill( data_.begin(), data_.end(), 0);
         std::fill( timestamps_.begin(), timestamps_.end(), 0);
     }
-
+    
+    void Initialize( const Parameters & parameters ) {
+        Initialize(parameters.nchannels, parameters.nsamples, parameters.sample_rate);
+    }
+    
     void Initialize( size_t nchannels, size_t nsamples, double sample_rate ) { 
 
         if (nchannels==0 || nsamples==0) {
@@ -208,72 +261,6 @@ protected:
     double sample_rate_;
     std::vector<T> data_;
     std::vector<uint64_t> timestamps_;
-};
-
-template<typename T>
-class MultiChannelDataType : public AnyDataType {
-
-ASSOCIATED_DATACLASS(MultiChannelData<T>)
-
-public:
-	
-    MultiChannelDataType( size_t nchannels = 1 ) :
-    AnyDataType(false),
-    channel_range_( nchannels ),
-    sample_range_( 1, std::numeric_limits<uint32_t>::max() ),
-    nchannels_(0), nsamples_(0)
-    {}
-	
-    MultiChannelDataType( ChannelRange channel_range,
-    SampleRange sample_range = SampleRange( 1, std::numeric_limits<uint32_t>::max()) ) :
-    AnyDataType(false), channel_range_(channel_range),
-    sample_range_(sample_range), nchannels_(0), nsamples_(0)
-    {}
-	
-    size_t nchannels() const { return nchannels_; }
-    size_t nsamples() const { return nsamples_; }
-    double sample_rate() const { return sample_rate_; }
-	
-    const ChannelRange& channel_range() const { return channel_range_; }
-    const SampleRange& sample_range() const { return sample_range_; }
-    
-    virtual void Finalize( size_t nsamples, size_t nchannels, double sample_rate) {
-        
-        if (nsamples==0 || !sample_range_.inrange(nsamples) || nchannels==0 || !channel_range_.inrange(nchannels) ) {
-            throw std::runtime_error( "Number of channels and/or samples out of range.");
-        }
-        nchannels_ = nchannels;
-        nsamples_ = nsamples;
-        sample_rate_ = sample_rate;
-        AnyDataType::Finalize();
-    }
-
-    virtual void Finalize( MultiChannelDataType& other ) {
-        
-        Finalize( other.nsamples(), other.nchannels(), other.sample_rate() );
-    }
-
-    bool CheckCompatibility( const MultiChannelDataType<T>& upstream ) const {      
-    
-        bool check1 = channel_range_.overlapping( upstream.channel_range() );
-        bool check2 = sample_range_.overlapping( upstream.sample_range() ) ;
-        return ( check1 && check2 );
-    }
-	
-    virtual void InitializeData( MultiChannelData<T>& item ) const {
-    
-        item.Initialize( nchannels_, nsamples_, sample_rate_ );
-    }
-    
-    virtual std::string name() const { return "multichannel"; }
-
-protected:
-    ChannelRange channel_range_;
-    SampleRange sample_range_;
-	
-    size_t nchannels_;
-    size_t nsamples_;
-    double sample_rate_;
 };
 
 #endif // multichanneldata.hpp

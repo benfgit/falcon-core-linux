@@ -62,7 +62,7 @@ protected:
     void create_preamble( std::ostream & out, int slot );
     
 protected:
-    PortIn<AnyDataType>* data_port_;
+    PortIn<IData>* data_port_;
     
     std::string path_;
     std::string encoding_;

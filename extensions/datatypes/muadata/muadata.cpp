@@ -27,6 +27,10 @@ void MUAData::Initialize( double bin_size) {
     bin_size_ = bin_size;
 }
 
+void MUAData::Initialize( const Parameters & parameters ) {
+    Initialize( parameters.bin_size );
+}
+
 void MUAData::ClearData() {
     
     bin_size_ = 0;
@@ -96,17 +100,3 @@ void MUAData::YAMLDescription( YAML::Node & node, Serialization::Format format )
     }
 }
 
-double MUADataType::bin_size() const {
-    
-    return bin_size_;
-}
-
-void MUADataType::InitializeData( MUAData& item ) const {
-    
-    item.Initialize( bin_size_ );
-}
-
-void MUADataType::Finalize( double bin_size ) {
-    
-    bin_size_ = bin_size;
-}

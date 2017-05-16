@@ -27,8 +27,14 @@
 #include "multichanneldata/multichanneldata.hpp"
 
 void DummySink::CreatePorts() {
-    data_port_ = create_input_port( "data", AnyDataType(), PortInPolicy( SlotRange(1) ) );
+    
+    data_port_ = create_input_port<IData>(
+        "data",
+        IData::Capabilities(),
+        PortInPolicy( SlotRange(1) ) );
+    
     tickle_state_ = create_readable_shared_state( "tickle", false, Permission::READ, Permission::WRITE);
+    
     expose_method( "kick", &DummySink::Kick );
 }
 

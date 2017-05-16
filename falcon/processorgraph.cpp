@@ -293,8 +293,7 @@ void ProcessorGraph::CreateConnection( SlotAddress & out, SlotAddress & in ) {
     processor_in->internal_PrepareConnectionIn( in );
     
     // check compatibility
-    if (!processor_in->internal_ConnectionCompatibilityCheck( in, processor_out, out ))
-    { throw std::runtime_error("Incompatible ports."); }
+    processor_in->internal_ConnectionCompatibilityCheck( in, processor_out, out );
     
     // connect in to out, connect out to in
     processor_in->internal_ConnectIn( in, processor_out, out );

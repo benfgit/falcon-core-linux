@@ -56,12 +56,11 @@ public:
 protected:
     void reset_timestamps(TimestampRegister timestamp_reg);
     void update_latest_ts(EventData* data_in);
-    void read_target_event( const YAML::Node& node );
-    void log_and_reset_counters( PortIn<EventDataType>* in_port, EventCounter& counter );
+    void log_and_reset_counters( PortIn<EventData>* in_port, EventCounter& counter );
     
 protected:
-    PortIn<EventDataType>* data_in_port_;
-    PortOut<EventDataType>* data_out_port_;
+    PortIn<EventData>* data_in_port_;
+    PortOut<EventData>* data_out_port_;
     EventData target_event_;
 
     EventCounter event_counter_;

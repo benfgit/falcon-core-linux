@@ -35,14 +35,15 @@ void LevelCrossingDetector::Configure( const YAML::Node & node, const GlobalCont
 
 void LevelCrossingDetector::CreatePorts( ) {
     
-    data_in_port_ = create_input_port(
+    data_in_port_ = create_input_port<MultiChannelData<double>>(
         "data",
-        MultiChannelDataType<double>( ChannelRange(1,256) ),
+        MultiChannelData<double>::Capabilities( ChannelRange(1,256) ),
         PortInPolicy( SlotRange(1) ) );
     
-    data_out_port_ = create_output_port(
+    data_out_port_ = create_output_port<EventData>(
         "events",
-        EventDataType(),
+        EventData::Capabilities(),
+        EventData::Parameters(),
         PortOutPolicy( SlotRange(1) ) );
     
     threshold_ = create_readable_shared_state(
@@ -75,7 +76,7 @@ void LevelCrossingDetector::Preprocess( ProcessingContext& context ) {
         init_value = std::numeric_limits<int>::min();
     }
     
-    previous_sample_.assign( data_in_port_->streaminfo(0).datatype().nchannels(), init_value );
+    previous_sample_.assign( data_in_port_->streaminfo(0).parameters().nchannels, init_value );
 }
 
 void LevelCrossingDetector::Process( ProcessingContext& context ) {
@@ -175,7 +176,7 @@ void LevelCrossingDetector::post_detection_block_update(
 decltype(initial_post_detect_block_) post_detection_block ) {
         
     double post_detection_block_us =
-        post_detection_block / data_in_port_->streaminfo(0).datatype().sample_rate() * 1e6;
+        post_detection_block / data_in_port_->streaminfo(0).parameters().sample_rate * 1e6;
     
     LOG(INFO) << name() << ". Post-detection block is set to " << post_detection_block_us << " microseconds.";
     

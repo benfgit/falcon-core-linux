@@ -52,7 +52,7 @@ public:
     virtual void Postprocess( ProcessingContext& context ) override; 
 
 protected:
-    PortIn<EventDataType>* event_port_;
+    PortIn<EventData>* event_port_;
     EventData target_event_;
     
     EventCounter event_counter_;

@@ -78,9 +78,9 @@ protected:
     double compute_value( MultiChannelData<double>* data_in, unsigned int sample );
     
 protected:
-    PortIn<MultiChannelDataType<double>>* data_in_port_;
-    PortOut<EventDataType>* event_out_port_;
-    PortOut<MultiChannelDataType<double>>* stats_out_port_;
+    PortIn<MultiChannelData<double>>* data_in_port_;
+    PortOut<EventData>* event_out_port_;
+    PortOut<MultiChannelData<double>>* stats_out_port_;
     
     WritableState<double>* threshold_;
     WritableState<double>* signal_mean_;

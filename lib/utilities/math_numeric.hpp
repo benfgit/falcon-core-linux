@@ -83,6 +83,11 @@ public:
                     static_cast<T>(other.upper()) >= lower_ );
     }
     
+    std::string to_string() const {
+        std::string s = "[" + std::to_string(lower_) + ", " + std::to_string(upper_)+ "]";
+        return s;
+    }
+    
 protected:
     T lower_;
     T upper_;

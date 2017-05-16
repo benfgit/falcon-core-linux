@@ -52,7 +52,7 @@ public:
     virtual void Process( ProcessingContext& context ) override;
     
 protected:
-    PortOut<EventDataType>* event_port_;
+    PortOut<EventData>* event_port_;
     
     std::vector<std::string> event_list_;
     double event_rate_;

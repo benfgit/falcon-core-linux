@@ -151,7 +151,7 @@ protected:
     NlxReaderStats stats_;
     decltype(timestamp_) delta_;
     
-    std::map<std::string, PortOut<MultiChannelDataType<double>>*> data_ports_;
+    std::map<std::string, PortOut<MultiChannelData<double>>*> data_ports_;
     
 public:
     static constexpr decltype(NLX_SIGNAL_SAMPLING_FREQUENCY)
