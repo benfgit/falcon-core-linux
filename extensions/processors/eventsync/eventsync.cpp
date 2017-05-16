@@ -21,19 +21,20 @@
 
 void EventSync::Configure(const YAML::Node& node, const GlobalContext& context ) {
     
-    read_target_event( node );   
+    target_event_ = EventData( node["target_event"].as<std::string>( DEFAULT_EVENT ) );
 }
 
 void EventSync::CreatePorts() {
     
-    data_in_port_ = create_input_port(
+    data_in_port_ = create_input_port<EventData>(
         "events",
-        EventDataType(),
+        EventData::Capabilities(),
         PortInPolicy( SlotRange(1, 256) ) );
     
-    data_out_port_ = create_output_port(
+    data_out_port_ = create_output_port<EventData>(
         "events",
-        EventDataType( target_event_.event() ),
+        EventData::Capabilities(),
+        EventData::Parameters( target_event_.event() ),
         PortOutPolicy( SlotRange(1) ) );
 }
 
@@ -101,7 +102,7 @@ void EventSync::update_latest_ts(EventData* data_in) {
     } 
 }
 
-void EventSync::log_and_reset_counters( PortIn<EventDataType>* in_port, 
+void EventSync::log_and_reset_counters( PortIn<EventData>* in_port, 
     EventCounter& counter ) {
     
     auto msg = ". '" + in_port->name() + "' counters.\n\t\t\t\t" +
@@ -117,9 +118,5 @@ void EventSync::log_and_reset_counters( PortIn<EventDataType>* in_port,
     counter.reset();
 }
 
-void EventSync::read_target_event( const YAML::Node& node ) {
-    
-    target_event_ = EventData( node["target_event"].as<std::string>( DEFAULT_EVENT ) );
-}
 
 REGISTERPROCESSOR(EventSync)

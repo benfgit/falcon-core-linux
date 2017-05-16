@@ -63,8 +63,8 @@ public:
     virtual void Postprocess( ProcessingContext& context ) override;
     
 protected:
-    PortIn<MultiChannelDataType<double>>* data_in_port_;
-    PortOut<EventDataType>* data_out_port_;
+    PortIn<MultiChannelData<double>>* data_in_port_;
+    PortOut<EventData>* data_out_port_;
     
     ReadableState<double>* threshold_;
     ReadableState<bool>* upslope_;

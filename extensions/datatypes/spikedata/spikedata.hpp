@@ -68,7 +68,58 @@ protected:
 
 class SpikeData : public IData {
 public:
-    void Initialize ( unsigned int nchannels, size_t max_nspikes, double sample_rate );
+    
+    struct Parameters : IData::Parameters {
+        Parameters( double bufsize = 0., unsigned int nchan = 0,
+                    double rate = 0. )
+          : buffer_size(bufsize), nchannels(nchan), sample_rate(rate) {}
+        
+        double buffer_size;
+        unsigned int nchannels;
+        double sample_rate;
+    };
+    
+    class Capabilities : public IData::Capabilities {
+    public:
+        Capabilities(ChannelRange channel_range = ChannelRange( 1, MAX_N_CHANNELS_SPIKE_DETECTION )) 
+          : channel_range_(channel_range) {}
+        
+        ChannelRange channel_range() const { return channel_range_; }
+        
+        virtual void VerifyCompatibility( const Capabilities & capabilities ) const {
+            IData::Capabilities::VerifyCompatibility( capabilities );
+            if (!channel_range_.overlapping( capabilities.channel_range() )) {
+                throw std::runtime_error("Channel ranges do not overlap ("
+                                         + channel_range_.to_string() + " and "
+                                         + capabilities.channel_range().to_string() + ")");
+            }
+        }
+        virtual void Validate( const Parameters & parameters ) const {
+            IData::Capabilities::Validate(parameters);
+            if (parameters.nchannels == 0 || !channel_range_.inrange(parameters.nchannels)) {
+                throw std::runtime_error("Number of channels cannot be zero and needs to be in range " + channel_range_.to_string());
+            }
+            if (parameters.buffer_size <= 0) {
+                throw std::runtime_error("Buffer size cannot be smaller than or equal to zero.");
+            }
+            if (parameters.sample_rate <= 0) {
+                throw std::runtime_error("Sample rate cannot be smaller than or equal to zero.");
+            }
+        }
+        
+    protected:
+        ChannelRange channel_range_;
+    };
+    
+    static const std::string datatype() { return "spike"; }
+
+public:
+    void Initialize( unsigned int nchannels, size_t max_nspikes, double sample_rate );
+    void Initialize( const Parameters & parameters ) {
+        
+        unsigned int max_nspikes = round (parameters.buffer_size * parameters.sample_rate / 1000) / 2;
+        Initialize( parameters.nchannels, max_nspikes, parameters.sample_rate);
+    }
     
     virtual void ClearData() override;
 	
@@ -125,43 +176,43 @@ protected:
 };
 
 
-class SpikeDataType : public AnyDataType {
+//class SpikeDataType : public AnyDataType {
 
-ASSOCIATED_DATACLASS(SpikeData);
+//ASSOCIATED_DATACLASS(SpikeData);
 
-public:
+//public:
 	
-    SpikeDataType( double buffer_size_ms = DEFAULT_BUFFER_SIZE_MS,
-    ChannelRange channel_range = ChannelRange( 1, MAX_N_CHANNELS_SPIKE_DETECTION )) :
-    buffer_size_ms_(buffer_size_ms), channel_range_(channel_range) {}
+    //SpikeDataType( double buffer_size_ms = DEFAULT_BUFFER_SIZE_MS,
+    //ChannelRange channel_range = ChannelRange( 1, MAX_N_CHANNELS_SPIKE_DETECTION )) :
+    //buffer_size_ms_(buffer_size_ms), channel_range_(channel_range) {}
     
-    ChannelRange channel_range() const;
+    //ChannelRange channel_range() const;
     
-    unsigned int n_channels() const;
+    //unsigned int n_channels() const;
     
-    bool CheckCompatibility( const SpikeDataType& upstream ) const;
+    //bool CheckCompatibility( const SpikeDataType& upstream ) const;
     
-    double buffer_size() const;
+    //double buffer_size() const;
     
-    double sample_rate() const;
+    //double sample_rate() const;
     
-    virtual void Finalize( unsigned int nchannels, double sample_rate = DEFAULT_SAMPLING_FREQUENCY);
+    //virtual void Finalize( unsigned int nchannels, double sample_rate = DEFAULT_SAMPLING_FREQUENCY);
     
-    virtual void Finalize( SpikeDataType& upstream );
+    //virtual void Finalize( SpikeDataType& upstream );
 	
-    virtual void InitializeData( SpikeData& item ) const ;
+    //virtual void InitializeData( SpikeData& item ) const ;
 
-    virtual std::string name() const { return "spike"; }
+    //virtual std::string name() const { return "spike"; }
 
-protected:
-    double buffer_size_ms_;
-    ChannelRange channel_range_;
-    double sample_rate_; // in Hz
-    unsigned int n_channels_;
+//protected:
+    //double buffer_size_ms_;
+    //ChannelRange channel_range_;
+    //double sample_rate_; // in Hz
+    //unsigned int n_channels_;
     
-public:
-    static constexpr double DEFAULT_SAMPLING_FREQUENCY = 32000;
+//public:
+    //static constexpr double DEFAULT_SAMPLING_FREQUENCY = 32000;
     
-};
+//};
 
 #endif // spikedata.hpp

@@ -21,8 +21,16 @@
 
 void RunningStats::CreatePorts( ) {
     
-    data_in_port_ = create_input_port( "data", MultiChannelDataType<double>( ChannelRange(1,256) ), PortInPolicy( SlotRange(1) ) );
-    data_out_port_ = create_output_port( "data", MultiChannelDataType<double>( ChannelRange(1,256) ), PortOutPolicy( SlotRange(1) ) );
+    data_in_port_ = create_input_port<MultiChannelData<double>>(
+        "data",
+        MultiChannelData<double>::Capabilities( ChannelRange(1,256) ),
+        PortInPolicy( SlotRange(1) ) );
+    
+    data_out_port_ = create_output_port<MultiChannelData<double>>(
+        "data",
+        MultiChannelData<double>::Capabilities( ChannelRange(1,256) ),
+        MultiChannelData<double>::Parameters(),
+        PortOutPolicy( SlotRange(1) ) );
     
 }
 
@@ -39,18 +47,23 @@ void RunningStats::Configure( const YAML::Node & node, const GlobalContext& cont
 void RunningStats::CompleteStreamInfo( ) {
        
     for ( int k=0; k<data_in_port_->number_of_slots(); ++k ) {
-        data_out_port_->streaminfo(k).datatype().Finalize( data_in_port_->streaminfo(k).datatype() );
-        data_out_port_->streaminfo(k).Finalize( data_in_port_->streaminfo(k).stream_rate() );
+        data_out_port_->streaminfo(k).set_parameters( data_in_port_->streaminfo(k).parameters() );
+        data_out_port_->streaminfo(k).set_stream_rate( data_in_port_->streaminfo(k) );
     }
     
 }
 
 void RunningStats::Preprocess( ProcessingContext& context ) {
     
-    double sample_rate = data_in_port_->slot(0)->streaminfo().datatype().sample_rate();
+    double sample_rate = data_in_port_->slot(0)->streaminfo().parameters().sample_rate;
     double alpha = 1.0 / (integration_time_ * sample_rate);
     
-    stats_.reset( new dsp::algorithms::RunningMeanMAD( alpha, integration_time_*sample_rate, outlier_protection_, outlier_zscore_, outlier_half_life_ ) );
+    stats_.reset( new dsp::algorithms::RunningMeanMAD(
+        alpha,
+        integration_time_*sample_rate,
+        outlier_protection_,
+        outlier_zscore_,
+        outlier_half_life_ ) );
     
 }
 

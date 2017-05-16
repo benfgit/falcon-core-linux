@@ -28,26 +28,26 @@ inline uint64_t SlotOut<DATATYPE>::nitems_produced() const {
 }
 
 template <typename DATATYPE>
-inline typename DATATYPE::DATACLASS* SlotOut<DATATYPE>::ClaimData( bool clear ) {
+inline DATATYPE* SlotOut<DATATYPE>::ClaimData( bool clear ) {
     
     next_batch(1);
     has_publishable_data_ = true;
-    typename DATATYPE::DATACLASS* data = ringbuffer_->Get( ring_batch_.Start() );
+    DATATYPE* data = ringbuffer_->Get( ring_batch_.Start() );
     if (clear) { data->ClearData(); }
     data->set_serial_number( ringbuffer_serial_number_++ );
     return data;
 }
 
 template <typename DATATYPE>
-inline std::vector<typename DATATYPE::DATACLASS*> SlotOut<DATATYPE>::ClaimDataN( uint64_t n , bool clear) {
+inline std::vector<DATATYPE*> SlotOut<DATATYPE>::ClaimDataN( uint64_t n , bool clear) {
     
-    std::vector<typename DATATYPE::DATACLASS*> data;
+    std::vector<DATATYPE*> data;
     
     next_batch( n );
     int64_t start = ring_batch_.Start();
     
     for (int64_t k=start; k<=ring_batch_.end(); k++) {
-        data.push_back( (typename DATATYPE::DATACLASS*) ringbuffer_->Get( k ) );
+        data.push_back( (DATATYPE*) ringbuffer_->Get( k ) );
     }
     
     if (clear) {
@@ -79,9 +79,9 @@ void SlotOut<DATATYPE>::CreateRingBuffer( int buffer_size, WaitStrategy wait_str
     
     // make sure buffer size is power of 2 and at least 2
     buffer_size_ = buffer_size<2 ? 2 : next_pow2( buffer_size );
-    datafactory_.reset( new DataFactory<DATATYPE>( streaminfo_.datatype() ) );
+    datafactory_.reset( new DataFactory<DATATYPE>( streaminfo_.parameters() ) );
     try {
-        ringbuffer_.reset( new RingBuffer<typename DATATYPE::DATACLASS>( datafactory_.get() , buffer_size_, ClaimStrategy::kSingleThreadedStrategy, wait_strategy ) );
+        ringbuffer_.reset( new RingBuffer<DATATYPE>( datafactory_.get() , buffer_size_, ClaimStrategy::kSingleThreadedStrategy, wait_strategy ) );
     } catch (std::runtime_error & e) {
         throw;
     }
@@ -161,15 +161,15 @@ void PortOut<DATATYPE>::NewSlot(int n) {
     SlotAddress address( this->address_, 0 );
     for( int k=0; k<n; k++ ) {
         address.set_slot( this->slots_.size() );
-        this->slots_.push_back( std::unique_ptr<SlotOut<DATATYPE>>( new SlotOut<DATATYPE>(this, address, this->datatype_) ) );
+        this->slots_.push_back( std::unique_ptr<SlotOut<DATATYPE>>( new SlotOut<DATATYPE>(this, address, parameters_) ) );
     }
 }
 
 template <typename DATATYPE>
-const typename DATATYPE::DATACLASS* SlotIn<DATATYPE>::GetDataPrototype() const {
+const DATATYPE* SlotIn<DATATYPE>::GetDataPrototype() const {
     
-    const typename DATATYPE::DATACLASS* data = nullptr;
-    data = (const typename DATATYPE::DATACLASS*) upstream_->DataAt( 0 );
+    const DATATYPE* data = nullptr;
+    data = (const DATATYPE*) upstream_->DataAt( 0 );
     return data;
 }
 
@@ -185,7 +185,7 @@ void SlotIn<DATATYPE>::check_high_water_level() {
 }
 
 template <typename DATATYPE>
-bool SlotIn<DATATYPE>::RetrieveData( typename DATATYPE::DATACLASS* & data ) {
+bool SlotIn<DATATYPE>::RetrieveData( DATATYPE* & data ) {
     
     data = nullptr;
     status_.read = status_.backlog = 0;
@@ -203,7 +203,7 @@ bool SlotIn<DATATYPE>::RetrieveData( typename DATATYPE::DATACLASS* & data ) {
             if (available_sequence==INT64_MAX) {
                 status_.alive = false;
             } else {
-                data = (typename DATATYPE::DATACLASS*) upstream_->DataAt( requested_sequence );
+                data = (DATATYPE*) upstream_->DataAt( requested_sequence );
                 ++nretrieved_;
                 status_.read = 1;
                 status_.backlog = available_sequence - requested_sequence;
@@ -218,7 +218,7 @@ bool SlotIn<DATATYPE>::RetrieveData( typename DATATYPE::DATACLASS* & data ) {
                 status_.alive = false;
             } else {
                 
-                data = (typename DATATYPE::DATACLASS*) upstream_->DataAt( requested_sequence );
+                data = (DATATYPE*) upstream_->DataAt( requested_sequence );
                 ++nretrieved_;
                 status_.read = 1;
                 status_.backlog = available_sequence - requested_sequence;
@@ -243,7 +243,7 @@ bool SlotIn<DATATYPE>::RetrieveData( typename DATATYPE::DATACLASS* & data ) {
 }
 
 template <typename DATATYPE>
-bool SlotIn<DATATYPE>::RetrieveDataN( uint64_t n, std::vector<typename DATATYPE::DATACLASS*> & data ) {
+bool SlotIn<DATATYPE>::RetrieveDataN( uint64_t n, std::vector<DATATYPE*> & data ) {
     
     // will only cache last value, but does not return cached values when timed out if n>1
     
@@ -265,7 +265,7 @@ bool SlotIn<DATATYPE>::RetrieveDataN( uint64_t n, std::vector<typename DATATYPE:
                 status_.alive = false;
             } else {
                 for (int64_t k=current_sequence+1; k<=requested_sequence; k++) {
-                    data.push_back( (typename DATATYPE::DATACLASS*) upstream_->DataAt( k ) );
+                    data.push_back( (DATATYPE*) upstream_->DataAt( k ) );
                     ++nretrieved_;
                     ++status_.read;
                 }
@@ -282,7 +282,7 @@ bool SlotIn<DATATYPE>::RetrieveDataN( uint64_t n, std::vector<typename DATATYPE:
             } else {
                 
                 for (int64_t k=current_sequence+1; k<=requested_sequence; k++) {
-                    data.push_back( (typename DATATYPE::DATACLASS*) upstream_->DataAt( k ) );
+                    data.push_back( (DATATYPE*) upstream_->DataAt( k ) );
                     ++nretrieved_;
                     ++status_.read;
                 }
@@ -306,7 +306,7 @@ bool SlotIn<DATATYPE>::RetrieveDataN( uint64_t n, std::vector<typename DATATYPE:
 }
 
 template <typename DATATYPE>
-bool SlotIn<DATATYPE>::RetrieveDataAll( std::vector<typename DATATYPE::DATACLASS*> & data ) {
+bool SlotIn<DATATYPE>::RetrieveDataAll( std::vector<DATATYPE*> & data ) {
     
     // supports single item caching
       
@@ -328,7 +328,7 @@ bool SlotIn<DATATYPE>::RetrieveDataAll( std::vector<typename DATATYPE::DATACLASS
                 status_.alive = false;
             } else {
                 for (int64_t k=current_sequence+1; k<=available_sequence; k++) {    
-                    data.push_back( (typename DATATYPE::DATACLASS*) upstream_->DataAt( k ) );
+                    data.push_back( (DATATYPE*) upstream_->DataAt( k ) );
                     ++nretrieved_;
                     ++status_.read;
                 }
@@ -343,7 +343,7 @@ bool SlotIn<DATATYPE>::RetrieveDataAll( std::vector<typename DATATYPE::DATACLASS
             } else {
                 
                 for (int64_t k=current_sequence+1; k<=available_sequence; k++) {
-                    data.push_back( (typename DATATYPE::DATACLASS*) upstream_->DataAt( k ) );
+                    data.push_back( (DATATYPE*) upstream_->DataAt( k ) );
                     ++nretrieved_;
                     ++status_.read;
                 }
@@ -407,9 +407,16 @@ int PortIn<DATATYPE>::ReserveSlot( int slot ) {
 }
 
 template <typename DATATYPE>
-bool PortIn<DATATYPE>::CheckCompatibility( IPortOut* upstream ) {
+void PortIn<DATATYPE>::VerifyCompatibility( IPortOut* upstream ) {
     
-    return CheckDataType( datatype_, upstream->datatype() );
+    auto cast = dynamic_cast<PortOut<DATATYPE>*>(upstream);
+    if (cast) {
+        // check if up and donwstream have compatible capabilities
+        capabilities_.VerifyCompatibility( cast->capabilities() );
+    } else {
+        throw std::runtime_error("Incompatible data types.");
+    }
+    
 }
 
 template <typename DATATYPE>
@@ -418,7 +425,7 @@ void PortIn<DATATYPE>::NewSlot( int n ) {
     SlotAddress address(this->address_,0);
     for (int k=0; k<n; k++) {
         address.set_slot( slots_.size() );
-        slots_.push_back( std::move( std::unique_ptr<SlotIn<DATATYPE>>( new SlotIn<DATATYPE>(this, address, datatype_, policy().time_out(), policy().cache_enabled() ) ) ) );
+        slots_.push_back( std::move( std::unique_ptr<SlotIn<DATATYPE>>( new SlotIn<DATATYPE>(this, address, capabilities_, policy().time_out(), policy().cache_enabled() ) ) ) );
     }
 }
 

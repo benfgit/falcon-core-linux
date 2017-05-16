@@ -211,8 +211,12 @@ void IProcessor::internal_PrepareConnectionOut( SlotAddress & address ) {
     address.set_slot( slot );
 }
 
-bool IProcessor::internal_ConnectionCompatibilityCheck( const SlotAddress & address, IProcessor * upstream, const SlotAddress & upstream_address ) {
-    return input_port(address)->CheckCompatibility( upstream->output_port( upstream_address ) );
+void IProcessor::internal_ConnectionCompatibilityCheck( const SlotAddress & address, IProcessor * upstream, const SlotAddress & upstream_address ) {
+    try {
+        input_port(address)->VerifyCompatibility( upstream->output_port( upstream_address ) );
+    } catch ( std::exception & e) {
+        throw ProcessorInternalError( std::string("Incompatible ports (") + e.what() + ")", name() );
+    }
 }
 
 void IProcessor::internal_ConnectIn( const SlotAddress & address, IProcessor * upstream, const SlotAddress & upstream_address) {
@@ -233,6 +237,13 @@ void IProcessor::internal_NegotiateConnections() {
                     LOG(ERROR) << name() << ": input slot \"" << it.first + "." << std::to_string(k) << "\" is not connected.";
                     throw ProcessorInternalError( "input slot \"" + it.first + "." + std::to_string(k) + "\" is not connected.", name() );
                 }
+                
+                try {
+                    it.second->slot(k)->Validate();
+                } catch ( std::exception & e) {
+                    LOG(ERROR) << name() << ": Incompatible stream on slot \"" << it.first << "." << std::to_string(k) << "\" (" << e.what() << ")";
+                    throw ProcessorInternalError( "Incompatible stream on slot \"" + it.first + "." + std::to_string(k) + "\" (" + e.what() + ")", name());
+                }
             }
         }
         
@@ -246,12 +257,12 @@ void IProcessor::internal_NegotiateConnections() {
         
         CompleteStreamInfo();
         
+        
+        // OK, so let's finalize right here, locking streaminfo forever after
+        // this also requires that set_stream_rate and set_parameters check & respect the lock
         for (auto & it : output_ports_ ) {
             for ( int k=0; k<it.second->number_of_slots(); ++k ) {
-                if (!it.second->slot(k)->streaminfo().finalized()) {
-                    LOG(ERROR) << name() << ": output slot \"" << it.first + "." << std::to_string(k) << "\" is not finalized.";
-                    throw ProcessorInternalError( "output slot \"" + it.first + "." + std::to_string(k) + "\" is not finalized.", name() );
-                }
+                it.second->slot(k)->streaminfo().Finalize();
             }
         }
         
@@ -323,7 +334,6 @@ void IProcessor::internal_ThreadEntry( RunContext& runcontext ) {
     try {
         TestFinalize(context);
     } catch (std::exception& e) {
-        //LOG(ERROR) << name_ << " (TestFinalize): " << e.what();
         context.TerminateWithError( "TestFinalize", e.what() );
     }
     

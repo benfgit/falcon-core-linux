@@ -56,19 +56,21 @@ void BurstDetector::Configure(const YAML::Node& node, const GlobalContext& conte
 
 void BurstDetector::CreatePorts() {
     
-    data_in_port_ = create_input_port(
+    data_in_port_ = create_input_port<MUAData>(
         "mua",
-        MUADataType( ),
+        MUAData::Capabilities(),
         PortInPolicy( SlotRange(1) ) );
     
-    data_out_port_ = create_output_port(
+    data_out_port_ = create_output_port<EventData>(
         "events",
-        EventDataType( "burst" ),
+        EventData::Capabilities(),
+        EventData::Parameters( "burst" ),
         PortOutPolicy( SlotRange(1) ) );
 
-    stats_out_port_ = create_output_port(
+    stats_out_port_ = create_output_port<MultiChannelData<double>>(
         "statistics",
-        MultiChannelDataType<double>( ChannelRange(N_STATS_OUT) ),
+        MultiChannelData<double>::Capabilities(ChannelRange(N_STATS_OUT)),
+        MultiChannelData<double>::Parameters(),
         PortOutPolicy( SlotRange(1) ) );
     
     threshold_ = create_writable_shared_state(
@@ -134,19 +136,19 @@ void BurstDetector::CreatePorts() {
 
 void BurstDetector::CompleteStreamInfo( ) {
     
-    stats_nsamples_ = stats_buffer_size_ * 1e3 / data_in_port_->streaminfo(0).datatype().bin_size();
+    stats_nsamples_ = stats_buffer_size_ * 1e3 / data_in_port_->streaminfo(0).parameters().bin_size;
     if ( stats_nsamples_ == 0 ) {
         throw ProcessingCreatePortsError("Stats buffersize is smaller than MUA bin size.", name());
     }
     
-    stats_out_port_->streaminfo(0).datatype().Finalize(
-        stats_nsamples_, N_STATS_OUT,
-        1 / data_in_port_->streaminfo(0).datatype().bin_size() * 1e3 );
-    stats_out_port_->streaminfo(0).Finalize(
-        data_in_port_->streaminfo(0).stream_rate() );
+    stats_out_port_->streaminfo(0).set_stream_rate( data_in_port_->streaminfo(0).stream_rate() );
+    stats_out_port_->streaminfo(0).set_parameters(
+        MultiChannelData<double>::Parameters(
+            N_STATS_OUT, stats_nsamples_,
+            1. / data_in_port_->streaminfo(0).parameters().bin_size * 1e3 ) );
     
-    data_out_port_->streaminfo(0).datatype().Finalize();
-    data_out_port_->streaminfo(0).Finalize( IRREGULARSTREAM );
+    data_out_port_->streaminfo(0).set_stream_rate( IRREGULARSTREAM );
+
 }
 
 void BurstDetector::Preprocess( ProcessingContext& context ) {
@@ -156,7 +158,7 @@ void BurstDetector::Preprocess( ProcessingContext& context ) {
     threshold_->set(0);
     block_ = 0;
         
-    sample_rate_ = 1 / data_in_port_->slot(0)->streaminfo().datatype().bin_size() * 1e3;
+    sample_rate_ = 1. / data_in_port_->slot(0)->streaminfo().parameters().bin_size * 1e3;
     
     LOG(UPDATE) << name() << ". Incoming Sample rate: " << sample_rate_;
     

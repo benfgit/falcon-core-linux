@@ -51,7 +51,7 @@ public:
     YAML::Node Kick( const YAML::Node & node );
 
 protected:
-    PortIn<AnyDataType>* data_port_;
+    PortIn<IData>* data_port_;
     ReadableState<bool>* tickle_state_;
 };
 

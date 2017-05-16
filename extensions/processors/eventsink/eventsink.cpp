@@ -27,9 +27,9 @@ void EventSink::Configure( const YAML::Node& node, const GlobalContext& context)
 
 void EventSink::CreatePorts() {
     
-    event_port_ = create_input_port(
+    event_port_ = create_input_port<EventData>(
         "events",
-        EventDataType(),
+        EventData::Capabilities(),
         PortInPolicy( SlotRange(1) ) );
 }
 

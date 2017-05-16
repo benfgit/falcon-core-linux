@@ -27,9 +27,24 @@
 
 template <class TYPE>
 class ScalarData : public IData {
+public:
+    struct Parameters : IData::Parameters {
+        Parameters( TYPE value )
+          : IData::Parameters(), default_value(value) {}
+        TYPE default_value;
+    };
+    
+    class Capabilities : public IData::Capabilities {
+    };
+    
+    static const std::string datatype() { return "scalar"; }
     
 public:
     ScalarData( TYPE data = DEFAULT_SCALAR_VALUE ) : data_(data) {}
+    
+    void Initialize( const Parameters & parameters ) {
+        data_ = parameters.default_value;
+    }
     
     virtual void ClearData() override {}
     
@@ -72,25 +87,6 @@ public:
     
 protected:
     TYPE data_;
-};
-
-template <class TYPE>
-class ScalarDataType : public AnyDataType {
-
-ASSOCIATED_DATACLASS(ScalarData<TYPE>)
-    
-public:
-    ScalarDataType( TYPE default_data = DEFAULT_SCALAR_VALUE ) : AnyDataType(true), default_data_( default_data ) { }
-    
-    TYPE default_data() const {return default_data_;}
-    
-    void InitializeData( ScalarData<TYPE>& item ) const { item.set_data(default_data_); }
-    
-    virtual std::string name() const { return "scalar"; }
-    
-protected:
-    TYPE default_data_;
-
 };
 
 

@@ -37,39 +37,22 @@
 
 // Factory for DATATYPE::DATACLASS items with support for post-construction initialization
 template <typename DATATYPE>
-class DataFactory : public IFactory<typename DATATYPE::DATACLASS> {
+class DataFactory : public IFactory<DATATYPE> {
 public:
-    DataFactory( DATATYPE& datatype ) : datatype_( datatype ) {}
+    DataFactory( const typename DATATYPE::Parameters & parameters ) : parameters_( parameters ) {}
     
-    virtual typename DATATYPE::DATACLASS* NewInstance( const int& size ) const override final {
+    virtual DATATYPE* NewInstance( const int& size ) const override final {
         
-        auto items = new typename DATATYPE::DATACLASS[size];
+        auto items = new DATATYPE[size];
         for (int k=0; k<size; k++) {
-            datatype_.InitializeData( items[k] );
+            items[k].Initialize(parameters_);
         }
         return items;
     }
 
 protected:
-    DATATYPE datatype_;
+    typename DATATYPE::Parameters parameters_;
 };
-
-// Checks if one data type object is compatible with another data type object
-template <class AbstractType, class ConcreteType>
-bool CheckDataType( const AbstractType& a, const ConcreteType& c ) {
-    try {
-        // casting Concrete DataType to Abstract DataType
-        auto cast = dynamic_cast<const AbstractType&>(c);
-        return a.CheckCompatibility( cast );
-    } catch (std::bad_cast const & e) {
-        return false;
-    }
-}
-
-// All concrete data types need to be associated with a specific data class
-// Use this macro in class declaration
-#define ASSOCIATED_DATACLASS(T) public:\
-typedef T DATACLASS;\
 
 // Base class for all data classes
 class IData {
@@ -106,6 +89,20 @@ public:
     virtual void SerializeBinary( std::ostream& stream, Serialization::Format format ) const;
     virtual void SerializeYAML( YAML::Node & node, Serialization::Format format ) const;
     virtual void YAMLDescription( YAML::Node & node, Serialization::Format format ) const;
+
+public:
+
+    struct Parameters {};
+    
+    class Capabilities {
+    public:
+        virtual ~Capabilities() {}
+        
+        virtual void VerifyCompatibility( const Capabilities & capabilities ) const {}
+        virtual void Validate( const Parameters & parameters ) const {}
+    };
+    
+    static const std::string datatype() { return "any"; }
     
 protected:
     TimePoint source_timestamp_;
@@ -114,28 +111,5 @@ protected:
     bool end_of_stream_ = false;
 };
 
-// Base class for all data types
-// AnyDataType is associated with the IData class
-class AnyDataType {
-public:
-
-    typedef IData DATACLASS;
-    
-    AnyDataType( bool finalized = true ) : finalized_(finalized) {}
-    
-    virtual ~AnyDataType() {};
-	
-    virtual bool CheckCompatibility( const AnyDataType& t ) const;
-    virtual void InitializeData( IData& item ) const {};
-    
-    bool finalized() const;
-    
-    virtual void Finalize();
-    
-    virtual std::string name() const { return "any"; }
-    
-protected:
-    bool finalized_;
-};
 
 #endif // idata.hpp

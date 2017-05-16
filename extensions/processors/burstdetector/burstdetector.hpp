@@ -75,9 +75,9 @@ public:
     virtual void Postprocess( ProcessingContext& context ) override;    
 
 protected:
-    PortIn<MUADataType>* data_in_port_;
-    PortOut<EventDataType>* data_out_port_;
-    PortOut<MultiChannelDataType<double>>* stats_out_port_;
+    PortIn<MUAData>* data_in_port_;
+    PortOut<EventData>* data_out_port_;
+    PortOut<MultiChannelData<double>>* stats_out_port_;
     
     WritableState<double>* threshold_;
     WritableState<double>* signal_mean_;

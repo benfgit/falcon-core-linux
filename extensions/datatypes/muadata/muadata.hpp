@@ -25,7 +25,27 @@
 
 class MUAData : public IData {
 public:
+    struct Parameters : IData::Parameters {
+        Parameters(double bin = 0)
+          : IData::Parameters(), bin_size(bin) {}
+        
+        double bin_size;
+    };
+    
+    class Capabilities : public IData::Capabilities {
+    public:
+        virtual void Validate( const Parameters & parameters ) const {
+            if (parameters.bin_size<=0) {
+                throw std::runtime_error( "Bin size cannot be smaller or equal to zero." );
+            }
+        }
+    };
+    
+    static const std::string datatype() { return "mua"; }
+    
+public:
     void Initialize( double bin_size );
+    void Initialize( const Parameters & parameters );
     
     virtual void ClearData() override;
     
@@ -53,24 +73,5 @@ protected:
     unsigned int n_spikes_;
 };
 
-
-class MUADataType : public AnyDataType {
-
-ASSOCIATED_DATACLASS(MUAData);
-
-public:
-	
-    MUADataType() {}
-
-    double bin_size() const;
-	
-    virtual void InitializeData( MUAData& item ) const;
-    
-    virtual void Finalize( double bin_size );
-
-protected:
-    double bin_size_;
-
-};
 
 #endif	// muadata.hpp

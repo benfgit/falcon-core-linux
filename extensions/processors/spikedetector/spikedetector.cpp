@@ -36,19 +36,21 @@ void SpikeDetector::Configure( const YAML::Node & node, const GlobalContext& con
 
 void SpikeDetector::CreatePorts( ) {
     
-    data_in_port_ = create_input_port(
+    data_in_port_ = create_input_port<MultiChannelData<double>>(
         "data",
-        MultiChannelDataType<double>( ChannelRange(1, MAX_N_CHANNELS) ),
+        MultiChannelData<double>::Capabilities( ChannelRange(1, MAX_N_CHANNELS) ),
         PortInPolicy( SlotRange(1) ) );
     
-    data_out_port_spikes_ = create_output_port(
+    data_out_port_spikes_ = create_output_port<SpikeData>(
         SPIKEDATA_S,
-        SpikeDataType( buffer_size_ms_, ChannelRange(1, MAX_N_CHANNELS) ),
+        SpikeData::Capabilities( ChannelRange(1, MAX_N_CHANNELS) ),
+        SpikeData::Parameters(buffer_size_ms_),
         PortOutPolicy( SlotRange(1), RINGBUFFER_SIZE ) );
     
-    data_out_port_events_ = create_output_port(
+    data_out_port_events_ = create_output_port<EventData>(
         "events",
-        EventDataType(),
+        EventData::Capabilities(),
+        EventData::Parameters(),
         PortOutPolicy( SlotRange(1) ) );
     
     threshold_ = create_writable_shared_state(
@@ -67,9 +69,9 @@ void SpikeDetector::CreatePorts( ) {
 void SpikeDetector::CompleteStreamInfo() {
     
     double incoming_stream_rate = data_in_port_->streaminfo(0).stream_rate();
-    incoming_buffer_size_samples_ = data_in_port_->slot(0)->streaminfo().datatype().nsamples();
+    incoming_buffer_size_samples_ = data_in_port_->slot(0)->streaminfo().parameters().nsamples;
     double incoming_buffer_size_ms =
-        incoming_buffer_size_samples_ / data_in_port_->slot(0)->streaminfo().datatype().sample_rate() * 1000;
+        incoming_buffer_size_samples_ / data_in_port_->slot(0)->streaminfo().parameters().sample_rate * 1000;
     
     try {
         check_buffer_sizes_and_log( incoming_buffer_size_ms, buffer_size_ms_,
@@ -78,27 +80,28 @@ void SpikeDetector::CompleteStreamInfo() {
         throw ProcessingStreamInfoError( error.what(), name() );
     }
 
-    n_channels_ = data_in_port_->slot(0)->streaminfo().datatype().nchannels();
-    data_out_port_spikes_->streaminfo(0).datatype().Finalize( 
-        n_channels_, incoming_stream_rate );
-    data_out_port_spikes_->streaminfo(0).Finalize(
+    n_channels_ = data_in_port_->slot(0)->streaminfo().parameters().nchannels;
+    auto parms = data_out_port_spikes_->streaminfo(0).parameters();
+    parms.nchannels = n_channels_;
+    parms.sample_rate = incoming_stream_rate;
+    data_out_port_spikes_->streaminfo(0).set_parameters( parms );
+    data_out_port_spikes_->streaminfo(0).set_stream_rate(
         incoming_stream_rate / (incoming_buffer_size_samples_ * n_incoming_) );
     
-    data_out_port_events_->streaminfo(0).datatype().Finalize();
-    data_out_port_events_->streaminfo(0).Finalize(IRREGULARSTREAM);
+    data_out_port_events_->streaminfo(0).set_stream_rate(IRREGULARSTREAM);
 }
 
 void SpikeDetector::Prepare( GlobalContext& context ) {
  
-    spike_detector_ = new dsp::algorithms::SpikeDetector(
-        n_channels_, initial_threshold_, initial_peak_lifetime_ );
+    spike_detector_.reset( new dsp::algorithms::SpikeDetector(
+        n_channels_, initial_threshold_, initial_peak_lifetime_ ) );
     
     if ( invert_signal_ ) {
-        inverted_signals_ = new MultiChannelData<double>();
+        inverted_signals_.reset(new MultiChannelData<double>());
         inverted_signals_->Initialize(
             n_channels_,
             incoming_buffer_size_samples_,
-            data_in_port_->slot(0)->streaminfo().datatype().sample_rate());     
+            data_in_port_->slot(0)->streaminfo().parameters().sample_rate);
     }
 }
 
@@ -141,7 +144,7 @@ void SpikeDetector::Process( ProcessingContext& context ) {
                             -data_in_->data_sample(s, c));
                     }
                 }
-                signals = inverted_signals_;
+                signals = inverted_signals_.get();
             } else {
                 signals = data_in_;
             }
@@ -191,8 +194,8 @@ void SpikeDetector::Postprocess( ProcessingContext& context ) {
 
 void SpikeDetector::Unprepare( GlobalContext& context ) {
 
-    delete spike_detector_; spike_detector_ = nullptr;
-    delete inverted_signals_; inverted_signals_ = nullptr;
+    //delete spike_detector_; spike_detector_ = nullptr;
+    //delete inverted_signals_; inverted_signals_ = nullptr;
 }
 
 REGISTERPROCESSOR(SpikeDetector)

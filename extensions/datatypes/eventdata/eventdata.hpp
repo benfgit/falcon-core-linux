@@ -27,12 +27,32 @@ typedef unsigned int EventIDType;
 const std::string DEFAULT_EVENT = "none";
 
 class EventData : public IData {
-
 public:
+    struct Parameters : IData::Parameters {
+        Parameters(std::string event = DEFAULT_EVENT)
+          : IData::Parameters(), default_event(event) {}
+        
+        std::string default_event;
+    };
     
+    class Capabilities : public IData::Capabilities {
+    public:
+        virtual void Validate( const Parameters & parameters ) const {
+            if (parameters.default_event.size()==0) {
+                throw std::runtime_error("Default event string cannot be empty.");
+            }
+        }
+    };
+    
+    static const std::string datatype() { return "event"; }
+    
+public:
     EventData( std::string event = DEFAULT_EVENT );
     
     void Initialize( std::string event = DEFAULT_EVENT );
+    void Initialize( const Parameters & parameters ) {
+        set_event( parameters.default_event );
+    }
     
     virtual void ClearData() override;
     
@@ -59,23 +79,5 @@ protected:
     static const unsigned int EVENT_STRING_LENGTH = 128;
 };
 
-
-class EventDataType : public AnyDataType {
-
-ASSOCIATED_DATACLASS(EventData)
-
-public:
-    EventDataType( std::string default_event = DEFAULT_EVENT ) :
-        AnyDataType(true), default_event_( default_event ) { }
-    
-    std::string default_event() const;
-    
-    virtual void InitializeData( EventData& item ) const;
-    
-    virtual std::string name() const { return DEFAULT_EVENT; }
-        
-protected:
-    std::string default_event_;
-};
 
 #endif // eventdata.hpp

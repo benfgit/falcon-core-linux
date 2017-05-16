@@ -57,8 +57,8 @@ public:
     virtual void CompleteStreamInfo( ) override;
 
 protected:   
-    PortIn<MultiChannelDataType<double>>* data_in_port_;
-    PortOut<MultiChannelDataType<double>>* data_out_port_;
+    PortIn<MultiChannelData<double>>* data_in_port_;
+    PortOut<MultiChannelData<double>>* data_out_port_;
     
     std::string buffer_unit_;
     unsigned int buffer_size_samples_;

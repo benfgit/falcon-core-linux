@@ -42,9 +42,10 @@ void EventSource::Configure( const YAML::Node& node, const GlobalContext& contex
 
 void EventSource::CreatePorts() {
     
-    event_port_ = create_output_port(
+    event_port_ = create_output_port<EventData>(
         "events",
-        EventDataType(),
+        EventData::Capabilities(),
+        EventData::Parameters(DEFAULT_EVENT),
         PortOutPolicy( SlotRange(1) ) );
 }
 

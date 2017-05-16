@@ -25,7 +25,7 @@
 
 void EventFilter::Configure(const YAML::Node& node, const GlobalContext& context) {
     
-    read_target_event( node );
+    target_event_ = EventData( node["target_event"].as<std::string>( DEFAULT_EVENT ) );
     
     blockout_time_ms_ = node["blockout_time_ms"].as<decltype(blockout_time_ms_)>(
         DEFAULT_BLOCKOUT_TIME_MS );
@@ -53,19 +53,20 @@ void EventFilter::Configure(const YAML::Node& node, const GlobalContext& context
 
 void EventFilter::CreatePorts() {
     
-    data_in_port_ = create_input_port(
+    data_in_port_ = create_input_port<EventData>(
         "events",
-        EventDataType(),
+        EventData::Capabilities(),
         PortInPolicy( SlotRange(1, 256), false, 0 ) );
     
-    block_in_port_ = create_input_port(
+    block_in_port_ = create_input_port<EventData>(
         "blocking_events",
-        EventDataType(),
+        EventData::Capabilities(),
         PortInPolicy( SlotRange(1, 256), false, 0 ) );
 
-    data_out_port_ = create_output_port(
+    data_out_port_ = create_output_port<EventData>(
         "events",
-        EventDataType( target_event_.event() ),
+        EventData::Capabilities(),
+        EventData::Parameters( target_event_.event() ),
         PortOutPolicy( SlotRange(1) ) );
     
 }
@@ -225,7 +226,7 @@ void EventFilter::Postprocess( ProcessingContext& context ) {
 }
 
 std::tuple<bool, bool, std::size_t> EventFilter::is_there_target(
-    PortIn<EventDataType>* input_port, EventCounter& event_counter,
+    PortIn<EventData>* input_port, EventCounter& event_counter,
     std::vector<TimePoint>& arrival_times, std::vector<uint64_t>& arrival_timestamps ) {
     
     std::vector<EventData*> data_in;

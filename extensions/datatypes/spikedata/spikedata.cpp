@@ -23,7 +23,7 @@
 #include "vector_operations/vector_io.hpp"
 #include <typeinfo>
 
-constexpr double SpikeDataType::DEFAULT_SAMPLING_FREQUENCY;
+//constexpr double SpikeDataType::DEFAULT_SAMPLING_FREQUENCY;
 
 ChannelValidityMask::ChannelValidityMask(unsigned int n_channels, ChannelDetection::Validity validity) {
 
@@ -67,15 +67,15 @@ void ChannelValidityMask::reset(ChannelDetection::Validity validity_value) {
 
 void SpikeData::Initialize ( unsigned int nchannels, size_t max_nspikes, double sample_rate) {
     
-    if (nchannels==0) {
-        throw std::runtime_error("SpikeData::Initializer - number of channels needs to be larger than 0.");
-    }
-    if (max_nspikes==0) {
-        throw std::runtime_error("SpikeData::Initializer - max_nspikes needs to be larger than 0.");
-    }
-    if (sample_rate<=0) {
-        throw std::runtime_error("SpikeData::Initializer - sample rate needs to be larger than 0.");
-    }
+    //if (nchannels==0) {
+        //throw std::runtime_error("SpikeData::Initializer - number of channels needs to be larger than 0.");
+    //}
+    //if (max_nspikes==0) {
+        //throw std::runtime_error("SpikeData::Initializer - max_nspikes needs to be larger than 0.");
+    //}
+    //if (sample_rate<=0) {
+        //throw std::runtime_error("SpikeData::Initializer - sample rate needs to be larger than 0.");
+    //}
     n_channels_ = nchannels;
     n_detected_spikes_ = 0;
     sample_rate_ = sample_rate;
@@ -229,48 +229,50 @@ void SpikeData::YAMLDescription( YAML::Node & node, Serialization::Format format
     }
 }
 
-double SpikeDataType::buffer_size() const {
+//double SpikeDataType::buffer_size() const {
     
-    return buffer_size_ms_;
-}
+    //return buffer_size_ms_;
+//}
 
-double SpikeDataType::sample_rate() const {
+//double SpikeDataType::sample_rate() const {
     
-    return sample_rate_;
-}
+    //return sample_rate_;
+//}
 
-ChannelRange SpikeDataType::channel_range() const {
+//ChannelRange SpikeDataType::channel_range() const {
     
-    return channel_range_;
-}
+    //return channel_range_;
+//}
 
-unsigned int SpikeDataType::n_channels() const {
+//unsigned int SpikeDataType::n_channels() const {
     
-    return n_channels_;
-}
+    //return n_channels_;
+//}
 
-bool SpikeDataType::CheckCompatibility( const SpikeDataType& upstream ) const {
+//bool SpikeDataType::CheckCompatibility( const SpikeDataType& upstream ) const {
     
-    return channel_range_.inrange( upstream.channel_range() ); 
-}
+    //return channel_range_.inrange( upstream.channel_range() ); 
+//}
 
-void SpikeDataType::Finalize( unsigned int nchannels, double sample_rate ) {
+//void SpikeDataType::Finalize( unsigned int nchannels, double sample_rate ) {
         
-    if (  nchannels==0 || !channel_range_.inrange(nchannels) ) {
-        throw std::runtime_error( "Number of channels is out of range.");
-    }
-    n_channels_ = nchannels;
-    sample_rate_ = sample_rate;
-    AnyDataType::Finalize();
-}
+    //if (  nchannels==0 || !channel_range_.inrange(nchannels) ) {
+        //throw std::runtime_error( "Number of channels is out of range.");
+    //}
+    //n_channels_ = nchannels;
+    //sample_rate_ = sample_rate;
+    //AnyDataType::Finalize();
+//}
 
-void SpikeDataType::Finalize( SpikeDataType& upstream ) {
+//void SpikeDataType::Finalize( SpikeDataType& upstream ) {
 
-    Finalize( upstream.n_channels(), upstream.sample_rate() );
-}
+    //Finalize( upstream.n_channels(), upstream.sample_rate() );
+//}
 
-void SpikeDataType::InitializeData( SpikeData& item ) const  {
+//void SpikeDataType::InitializeData( SpikeData& item ) const  {
     
-    unsigned int max_nspikes = round (buffer_size_ms_ * sample_rate_ / 1000) / 2;
-    item.Initialize( n_channels_, max_nspikes, sample_rate_ );
-}
+    //unsigned int max_nspikes = round (buffer_size_ms_ * sample_rate_ / 1000) / 2;
+    //item.Initialize( n_channels_, max_nspikes, sample_rate_ );
+//}
+
+

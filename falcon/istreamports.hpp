@@ -99,7 +99,7 @@ public:
     
     IProcessor* parent() { return parent_; }
     
-    virtual const AnyDataType& datatype() const = 0;
+    virtual std::string datatype() const = 0;
     
     virtual ISlotOut* slot( std::size_t index ) = 0;
     virtual SlotType number_of_slots() const = 0;
@@ -172,6 +172,8 @@ public:
         return upstream_->parent()->policy();
     }
     
+    virtual void Validate() = 0;
+        
 protected:
 	// called by upstream ISlotOut
 	RingSequence* sequence() { return &sequence_; }
@@ -213,7 +215,7 @@ public:
     
     IProcessor* parent() { return parent_; }
     
-    virtual const AnyDataType& datatype() const = 0;
+    virtual std::string datatype() const = 0;
     
 	virtual SlotType number_of_slots() const = 0;
 	
@@ -227,7 +229,7 @@ protected:
     // called by StreamInConnector
     virtual void Connect( int slot, ISlotOut* upstream ) = 0;
     virtual int ReserveSlot( int slot ) = 0;
-    virtual bool CheckCompatibility( IPortOut* upstream ) = 0;
+    virtual void VerifyCompatibility( IPortOut* upstream ) = 0;
     // called by ...
 	virtual void PrepareProcessing() = 0;
     

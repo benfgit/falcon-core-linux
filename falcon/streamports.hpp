@@ -21,6 +21,7 @@
 #define STREAMPORTS_H
 
 #include "istreamports.hpp"
+#include "utilities/math_numeric.hpp"
 
 #include <set>
 
@@ -48,21 +49,24 @@ class SlotOut : public ISlotOut {
 friend class PortOut<DATATYPE>;
 
 public:
-    SlotOut( PortOut<DATATYPE>* parent, const SlotAddress & address, DATATYPE datatype ) : ISlotOut(parent, address), streaminfo_(datatype), ringbuffer_serial_number_(0) {}
+    SlotOut( PortOut<DATATYPE>* parent,
+             const SlotAddress & address,
+             const typename DATATYPE::Parameters & parameters  )
+      : ISlotOut(parent, address), streaminfo_(parameters), ringbuffer_serial_number_(0) {}
     
     // public interface
-    typename DATATYPE::DATACLASS* ClaimData( bool clear );
-    std::vector<typename DATATYPE::DATACLASS*> ClaimDataN( uint64_t n, bool clear );
+    DATATYPE* ClaimData( bool clear );
+    std::vector<DATATYPE*> ClaimDataN( uint64_t n, bool clear );
     void PublishData();
     
-    DATATYPE& datatype() { return streaminfo_.datatype(); }
+    //DATATYPE& datatype() { return streaminfo_.datatype(); }
     virtual StreamInfo<DATATYPE>& streaminfo() { return streaminfo_; }
     
     uint64_t nitems_produced() const;
     
 protected:
 	// called by SlotIn<DATATYPE>
-    virtual typename DATATYPE::DATACLASS* DataAt( int64_t sequence ) const { return ringbuffer_->Get( sequence ); }
+    virtual DATATYPE* DataAt( int64_t sequence ) const { return ringbuffer_->Get( sequence ); }
     
     void CreateRingBuffer(int buffer_size, WaitStrategy wait_strategy);
     void Unlock();
@@ -82,7 +86,7 @@ protected:
 public:
     StreamInfo<DATATYPE> streaminfo_; // owned by SlotOut, once finalized, the streaminfo (and datatype) are fixed for the life time of the slot(?)
     std::unique_ptr< DataFactory<DATATYPE> > datafactory_ = nullptr;
-    std::unique_ptr< RingBuffer<typename DATATYPE::DATACLASS> > ringbuffer_ = nullptr;
+    std::unique_ptr< RingBuffer<DATATYPE> > ringbuffer_ = nullptr;
 
 protected:
     uint64_t ringbuffer_serial_number_;
@@ -91,13 +95,17 @@ protected:
 template <typename DATATYPE>
 class PortOut : public IPortOut {
 public:
-    PortOut( IProcessor* parent, const PortAddress & address, DATATYPE datatype, PortOutPolicy policy ) : IPortOut(parent, address, policy), datatype_(datatype) {
+    PortOut( IProcessor* parent, const PortAddress & address,
+             const typename DATATYPE::Capabilities & capabilities,
+             const typename DATATYPE::Parameters & parameters,
+             const PortOutPolicy & policy )
+      : IPortOut(parent, address, policy), capabilities_(capabilities), parameters_(parameters) {
         NewSlot( policy.min_slot_number() );
     }
     
     virtual SlotType number_of_slots() const override { return slots_.size(); }
     
-    virtual const AnyDataType& datatype() const override { return datatype_; }
+    virtual std::string datatype() const override { return DATATYPE::datatype(); }
     
     StreamInfo<DATATYPE>& streaminfo( std::size_t index ) { return slots_[index]->streaminfo(); }
     
@@ -105,6 +113,7 @@ public:
     
     SlotOut<DATATYPE>* dataslot( std::size_t index ) { return slots_[index].get(); }
     
+    const typename DATATYPE::Capabilities & capabilities() const { return capabilities_; }
     
 protected:
     //called by StreamOutConnector
@@ -123,9 +132,10 @@ protected:
             it->PrepareProcessing();
         }
     }
-
+    
 private:
-    DATATYPE datatype_;
+    typename DATATYPE::Capabilities capabilities_;
+    typename DATATYPE::Parameters parameters_;  // default parameters
     std::vector<std::unique_ptr<SlotOut<DATATYPE>>> slots_;
 };
 
@@ -135,15 +145,16 @@ class SlotIn : public ISlotIn {
 friend class PortIn<DATATYPE>;
 
 public:
-    SlotIn( PortIn<DATATYPE>* parent, const SlotAddress & address, DATATYPE datatype, int64_t time_out = -1, bool cache = false ) : ISlotIn(parent,address,time_out,cache), datatype_(datatype) {}
+    SlotIn( PortIn<DATATYPE>* parent, const SlotAddress & address, typename DATATYPE::Capabilities capabilities, int64_t time_out = -1, bool cache = false )
+      : ISlotIn(parent,address,time_out,cache), capabilities_(capabilities) {}
 	
 	// methods called by processor implementation
-    const typename DATATYPE::DATACLASS* GetDataPrototype() const;
-    bool RetrieveData( typename DATATYPE::DATACLASS* & data );
-    bool RetrieveDataN( uint64_t n, std::vector<typename DATATYPE::DATACLASS*> & data );
-    bool RetrieveDataAll( std::vector<typename DATATYPE::DATACLASS*> & data );
+    const DATATYPE* GetDataPrototype() const;
+    bool RetrieveData( DATATYPE* & data );
+    bool RetrieveDataN( uint64_t n, std::vector<DATATYPE*> & data );
+    bool RetrieveDataAll( std::vector<DATATYPE*> & data );
     
-    StreamInfo<DATATYPE>& streaminfo() {
+    const StreamInfo<DATATYPE>& streaminfo() {
         if (!connected()) {
             throw std::runtime_error( "Input slot is not connected" );
         }
@@ -156,6 +167,10 @@ public:
     uint64_t status_read() const { return status_.read; }
     uint64_t status_backlog() const { return status_.backlog; }
     
+    virtual void Validate() override {
+        capabilities_.Validate(this->streaminfo().parameters());
+    }
+    
 protected:
     void Unlock();
     void check_high_water_level();
@@ -166,16 +181,19 @@ protected:
     unsigned int n_messages_;
     const unsigned int MAX_N_MESSAGES = 20;
     
-    DATATYPE datatype_;
+    typename DATATYPE::Capabilities capabilities_;
     
 public:
-    typename DATATYPE::DATACLASS* cache_;
+    DATATYPE* cache_;
 };
 
 template <typename DATATYPE>
 class PortIn : public IPortIn {
 public:
-    PortIn( IProcessor* parent, const PortAddress & address, DATATYPE datatype, PortInPolicy policy ) : IPortIn(parent, address, policy), datatype_(datatype) {
+    PortIn( IProcessor* parent, const PortAddress & address,
+            const typename DATATYPE::Capabilities & capabilities,
+            const PortInPolicy & policy )
+      : IPortIn(parent, address, policy), capabilities_(capabilities) {
         NewSlot( policy.min_slot_number() );
     }
     
@@ -184,9 +202,9 @@ public:
     virtual SlotIn<DATATYPE>* slot( std::size_t index ) { return slots_[index].get(); }
     SlotIn<DATATYPE>* dataslot( std::size_t index ) { return slots_[index].get(); }
     
-    virtual const AnyDataType& datatype() const override { return datatype_; }
+    virtual std::string datatype() const override { return DATATYPE::datatype(); }
     
-    StreamInfo<DATATYPE>& streaminfo( std::size_t index ) { return slots_[index]->streaminfo(); }
+    const StreamInfo<DATATYPE>& streaminfo( std::size_t index ) { return slots_[index]->streaminfo(); }
     
     virtual void PrepareProcessing() override {
         for (auto& it : slots_) {
@@ -198,14 +216,15 @@ protected:
     //called by StreamInConnector
     virtual void Connect( int slot, ISlotOut* upstream );
     virtual int ReserveSlot( int slot );
-    virtual bool CheckCompatibility( IPortOut* upstream );
+    virtual void VerifyCompatibility( IPortOut* upstream );
     
     virtual void UnlockSlots() override;
     
     void NewSlot( int n=1 );
     
 private:
-    DATATYPE datatype_;
+    //DATATYPE datatype_;
+    typename DATATYPE::Capabilities capabilities_;
     std::vector<std::unique_ptr<SlotIn<DATATYPE>>> slots_;
 };
 

@@ -107,17 +107,4 @@ void IData::YAMLDescription( YAML::Node & node, Serialization::Format format ) c
     }
 }
 
-bool AnyDataType::CheckCompatibility( const AnyDataType& t ) const {
-    
-    return true;
-}
 
-bool AnyDataType::finalized() const {
-    
-    return finalized_;
-}
-
-void AnyDataType::Finalize() {
-    
-    finalized_ = true;
-}

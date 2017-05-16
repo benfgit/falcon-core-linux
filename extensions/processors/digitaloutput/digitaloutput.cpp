@@ -99,9 +99,9 @@ void DigitalOutput::Configure(const YAML::Node& node, const GlobalContext& conte
 
 void DigitalOutput::CreatePorts() {
     
-    data_in_port_ = create_input_port(
+    data_in_port_ = create_input_port<EventData>(
         "events",
-        EventDataType(),
+        EventData::Capabilities(),
         PortInPolicy( SlotRange(1) ) );
     
     enabled_state_ = create_readable_shared_state(

@@ -28,14 +28,15 @@ void MUAEstimator::Configure( const YAML::Node  & node, const GlobalContext& con
 
 void MUAEstimator::CreatePorts() {
     
-    data_in_port_ = create_input_port(
+    data_in_port_ = create_input_port<SpikeData>(
         "spikes",
-        SpikeDataType( ),
+        SpikeData::Capabilities(),
         PortInPolicy( SlotRange(1, 64) ) );
     
-    data_out_port_ = create_output_port(
+    data_out_port_ = create_output_port<MUAData>(
         "mua",
-        MUADataType( ),
+        MUAData::Capabilities(),
+        MUAData::Parameters(),
         PortOutPolicy( SlotRange(1) ) );
     
     bin_size_ = create_readable_shared_state(
@@ -53,17 +54,17 @@ void MUAEstimator::CreatePorts() {
 
 void MUAEstimator::CompleteStreamInfo() {
     
-    data_out_port_->slot(0)->datatype().Finalize( initial_bin_size_ );
-    data_out_port_->streaminfo(0).Finalize( 1e3 / initial_bin_size_ );
+    data_out_port_->streaminfo(0).set_parameters( MUAData::Parameters(initial_bin_size_) );
+    data_out_port_->streaminfo(0).set_stream_rate( 1e3 / initial_bin_size_ );
 }
 
 void MUAEstimator::Prepare( GlobalContext& context ) {
     
     // check that all incoming SpikeData have the same buffer size
-    spike_buffer_size_ = data_in_port_->streaminfo(0).datatype().buffer_size();
+    spike_buffer_size_ = data_in_port_->streaminfo(0).parameters().buffer_size;
     if (data_in_port_->number_of_slots() > 1) {
         for ( SlotType s=1; s < data_in_port_->number_of_slots(); ++s ) {
-            if (spike_buffer_size_ != data_in_port_->streaminfo(s).datatype().buffer_size()) {
+            if (spike_buffer_size_ != data_in_port_->streaminfo(s).parameters().buffer_size) {
                 throw ProcessingConfigureError(
                     "Incoming SpikeData buffer-sizes are different.", name());
             }

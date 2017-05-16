@@ -67,16 +67,16 @@ public:
     virtual void Postprocess( ProcessingContext& context ) override;   
 
 protected:
-    // return the alve status of the processor, the flag of found target and
+    // return the alive status of the processor, the flag of found target and
     // the timestamp of the target event detected after a read on the input port
     std::tuple<bool, bool, std::size_t> is_there_target(
-        PortIn<EventDataType>* input_port,
+        PortIn<EventData>* input_port,
         EventCounter& event_counter,
         std::vector<TimePoint>& arrival_times,
         std::vector<uint64_t>& arrival_timestamps  );
     
 protected:
-    PortIn<EventDataType>* block_in_port_;
+    PortIn<EventData>* block_in_port_;
 
     double blockout_time_ms_;
     double synch_time_ms_;

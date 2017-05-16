@@ -81,8 +81,8 @@ protected:
     std::unique_ptr<dsp::filter::IFilter> filter_template_;
     std::vector<std::unique_ptr<dsp::filter::IFilter>> filters_;
     
-    PortIn<MultiChannelDataType<double>>* data_in_port_;
-    PortOut<MultiChannelDataType<double>>* data_out_port_;
+    PortIn<MultiChannelData<double>>* data_in_port_;
+    PortOut<MultiChannelData<double>>* data_out_port_;
 };
 
 #endif // multichannelfilter.hpp

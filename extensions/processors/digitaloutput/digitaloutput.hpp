@@ -91,7 +91,7 @@ protected:
     bool to_lock_out( const uint64_t current_timestamp );
     
 protected:
-    PortIn<EventDataType>* data_in_port_;
+    PortIn<EventData>* data_in_port_;
     
     bool default_enabled_;
     ReadableState<decltype(default_enabled_)>* enabled_state_;
