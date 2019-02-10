@@ -103,7 +103,9 @@ public:
     
     virtual ISlotOut* slot( std::size_t index ) = 0;
     virtual SlotType number_of_slots() const = 0;
-	
+
+    virtual const IData::Capabilities & capabilities() const = 0;
+    
     YAML::Node ExportYAML() const;
     
     std::string name() const { return address_.port(); }

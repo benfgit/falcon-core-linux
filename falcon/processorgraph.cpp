@@ -141,7 +141,7 @@ void ProcessorGraph::ConstructProcessorEngines( const YAML::Node& node ) {
                         throw InvalidProcessorError( "Cannot create processor " + processor_name + " of unknown class " + processor_class + "." );
                     }
                     
-                    processor->set_name( processor_name );
+                    processor->set_name_and_type( processor_name,  processor_class);
                     
                     processor->internal_Configure( processor_node, global_context_ );
                     
@@ -282,12 +282,16 @@ void ProcessorGraph::CreateConnection( SlotAddress & out, SlotAddress & in ) {
         throw std::out_of_range( "Unknown processor \"" + out.processor() + "\"" );
     }
     
+    out.set_processor_class(processor_out->type());
+
     try {
         processor_in = this->processors_.at( in.processor() ).second.get();
     } catch (std::out_of_range& e) {
         throw std::out_of_range( "Unknown processor \"" + in.processor() + "\"" );
     }
     
+    in.set_processor_class(processor_in->type());
+
     // let engine prepare connections ( get default port, check port, reserve slot, update address )
     processor_out->internal_PrepareConnectionOut( out );
     processor_in->internal_PrepareConnectionIn( in );
@@ -305,7 +309,7 @@ void ProcessorGraph::CreateConnection( SlotAddress & out, SlotAddress & in ) {
         //in_connector_->Disconnect();
         throw std::runtime_error( "Internal error: cannot connect to output slot" );
     }
-    
+
 }
 
 
@@ -339,7 +343,7 @@ void ProcessorGraph::Build( const YAML::Node& node ) {
             
             for ( auto &it : connections_ ) {
                 CreateConnection( it.first, it.second );
-                LOG(DEBUG) << "Established connection " << it.first.string() << "=" << it.second.string();
+                LOG(DEBUG) << "Established connection " << it.first.string(true) << "->" << it.second.string(true);
             }
             LOG(INFO) << "All connections have been established.";
         }

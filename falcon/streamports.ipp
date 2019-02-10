@@ -409,12 +409,21 @@ int PortIn<DATATYPE>::ReserveSlot( int slot ) {
 template <typename DATATYPE>
 void PortIn<DATATYPE>::VerifyCompatibility( IPortOut* upstream ) {
     
-    auto cast = dynamic_cast<PortOut<DATATYPE>*>(upstream);
-    if (cast) {
-        // check if up and donwstream have compatible capabilities
-        capabilities_.VerifyCompatibility( cast->capabilities() );
-    } else {
-        throw std::runtime_error("Incompatible data types.");
+    try {
+        // the data type of upstream ports should be the same as or a more
+        // derived type than the data type of the downstream port
+        // dynamic_cast is used to test for upcast ability
+        auto cast = dynamic_cast<const typename DATATYPE::Capabilities & >(
+            upstream->capabilities());
+        
+        // at this point, upstream capabilities have been cast up to the
+        // same data type as the downstream capabilities
+        // here we test further compatibility of the capabilities
+        capabilities_.VerifyCompatibility( cast );
+
+    } catch (const std::bad_cast& e) {
+        // casting failed, upstream and downstream data types are not compatible
+        throw std::runtime_error(std::string("Incompatible data types"));
     }
     
 }

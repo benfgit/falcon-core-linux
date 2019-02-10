@@ -67,6 +67,7 @@ public: // called by anyone
     ~IProcessor() { internal_Stop(); }
 
     const std::string name() const { return name_; }
+    const std::string type() const { return type_; }
     
     unsigned int n_input_ports() const { return input_ports_.size(); }
     unsigned int n_output_ports() const { return output_ports_.size(); }
@@ -238,10 +239,14 @@ private: // callable internally only
     
     YAML::Node internal_ApplyMethod( std::string name, const YAML::Node& node );    
     
-    void set_name( std::string name ) { name_ = name; }
+    void set_name_and_type( std::string name, std::string type ) {
+        name_ = name;
+        type_ = type;
+    }
 
 private: // member variables
     std::string name_;
+    std::string type_;
 
     std::map<std::string, std::unique_ptr<IPortIn>> input_ports_;
     std::map<std::string, std::unique_ptr<IPortOut>> output_ports_;

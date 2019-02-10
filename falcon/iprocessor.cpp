@@ -179,6 +179,7 @@ void IProcessor::internal_PrepareConnectionIn( SlotAddress & address ) {
     }
       
     address.set_slot( slot );
+    address.set_port_datatype( input_port(address)->datatype() );
 }
 
 void IProcessor::internal_PrepareConnectionOut( SlotAddress & address ) {
@@ -206,13 +207,17 @@ void IProcessor::internal_PrepareConnectionOut( SlotAddress & address ) {
     }
     
     address.set_slot( slot );
+    address.set_port_datatype( output_port(address)->datatype() );
 }
 
 void IProcessor::internal_ConnectionCompatibilityCheck( const SlotAddress & address, IProcessor * upstream, const SlotAddress & upstream_address ) {
     try {
         input_port(address)->VerifyCompatibility( upstream->output_port( upstream_address ) );
     } catch ( std::exception & e) {
-        throw ProcessorInternalError( std::string("Incompatible ports (") + e.what() + ")", name() );
+        throw ProcessorInternalError(
+            std::string("Incompatible ports ") + 
+            upstream_address.string(true) + " -> " +
+            address.string(true) + " (" + e.what() + ")", name() );
     }
 }
 

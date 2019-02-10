@@ -26,18 +26,35 @@
 class PortAddress {
 public:
     PortAddress( std::string processor, std::string port ) :
-    processor_name_(processor), port_name_(port) {}
+    processor_name_(processor), port_name_(port),
+    processor_class_("?"), port_datatype_("?") {}
     
     const std::string processor() const { return processor_name_; }
     const std::string port() const {return port_name_; }
     
-    void set_port( std::string port ) { port_name_ = port; }
+    const std::string processor_class() const {return processor_class_; }
+    const std::string port_datatype() const {return port_datatype_; }
     
-    const std::string string() const;
+    void set_port( std::string port, std::string port_datatype="?" ) {
+        port_name_ = port;
+        port_datatype_ = port_datatype;
+    }
+
+    void set_port_datatype(std::string datatype){
+        port_datatype_ = datatype;
+    }
+
+    void set_processor_class(std::string klass) {
+        processor_class_ = klass;
+    }
+
+    const std::string string(bool full=false) const;
     
 protected:
     std::string processor_name_;
-    std::string port_name_;    
+    std::string port_name_;
+    std::string processor_class_;
+    std::string port_datatype_;
 };
 
 class SlotAddress : public PortAddress {
@@ -51,7 +68,7 @@ public:
     
     void set_slot( int slot ) { slot_ = slot; }
     
-    const std::string string() const;
+    const std::string string(bool full=false) const;
     
 protected:
     int slot_;

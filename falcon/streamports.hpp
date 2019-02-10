@@ -112,7 +112,7 @@ public:
     
     SlotOut<DATATYPE>* dataslot( std::size_t index ) { return slots_[index].get(); }
     
-    const typename DATATYPE::Capabilities & capabilities() const { return capabilities_; }
+    virtual const typename DATATYPE::Capabilities & capabilities() const { return capabilities_; }
     
 protected:
     //called by StreamOutConnector
