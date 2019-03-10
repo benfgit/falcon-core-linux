@@ -1,0 +1,2 @@
+Hippocampal ripple detection
+============================
