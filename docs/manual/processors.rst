@@ -6,52 +6,76 @@ BurstDetector
 
 Detects population bursts using a threshold crossing algorithm.
 
-Slots
-.....
+Input ports
+...........
 
-========= ====== ========= =====
-direction name   type      slots
-========= ====== ========= =====
-in        mua    MUAData   1
-out       events EventData 1
-========= ====== ========= =====
+:mua *(MUAData, 1 slot)*:
+  Binned multi-unit activity in Hz (e.g. from MUAEstimator).
 
-States
-......
+Output ports
+............
 
-========================= ============ ====== ==========================================
-state                     type         access description
-========================= ============ ====== ==========================================
-threshold_dev             double       read   threshold that needs to be crossed
-mean                      double       read   signal mean
-deviation                 double       read   signal deviation
-threshold_deviation       double       write  multiplier for threshold (# of deviations)
-detection_lockout_time_ms unsigned int write  refractory period after threshold crossing
-                                              detection that is not considered for
-                                              updating of statistics and for detecting
-                                              events
-stream_events             bool         write  enable/disable burst event output
-stream_statistics         bool         write  enable/disable streaming of burst
-                                              detection statistics
-========================= ============ ====== ==========================================
+:events *(EventData, 1 slot)*:
+  A stream of 'burst' events.
+
+:statistics *(MultiChannelData<double>, 1 slot)*:
+  A stream of nsamples-by-2 arrays with the signal test value (first column)
+  and the threshold (second column). The number of samples in each statistics
+  data packet is set by the statistics_buffer_size option.
 
 Options
 .......
 
-============================ ============ ==========================================
-options                      type         description
-============================ ============ ==========================================
-threshold_dev                double       default threshold multiplier
-smooth_time                  double       integration time for signal statistics
-detection_lockout_time_ms    double       default lock-out time
-stream_events                bool         default enable/disable burst event output
-stream_statistics            bool         default enable/disable streaming of burst
-                                          detection statistics
-statistics_buffer_size       double       buffer size (in seconds) for statistics
-                                          output buffers
-statistics_downsample_factor unsigned int downsample factor of streamed
-                                          statistics signal
-============================ ============ ==========================================
+:threshold_dev *(double)*:
+  Initial value for threshold multiplier. Units: signal standard deviations.
+  Default = 6.0
+
+:smooth_time *(double)*:
+  Initial value for integration time for signal statistics.
+  Default = 10.0
+
+:detection_lockout_time_ms *(double)*:
+  Initial value for lock-out time.
+  Default = 30.0
+
+:stream_events *(bool)*:
+  Whether or not to stream detected burst events.
+  Default = true
+
+:stream_statistics *(bool)*:
+  Whether or not to stream statistics.
+  Default = true
+
+:statistics_buffer_size *(double)*:
+  Buffer size (in seconds) for statistics output stream. This value determines
+  the number of samples that will be collected for each data packet streamed
+  out on the statistics output port. Default = 0.5
+
+
+States
+......
+
+:threshold_dev *(double, read-only)*:
+  Current threshold that needs to be crossed.
+
+:mean *(double, read-only)*:
+  Current signal mean. Units: same as input signal.
+
+:deviation *(double, read-only)*:
+  Current signal deviation. Units: same as input signal.
+
+:threshold_deviation *(double, read/write)*:
+  Current multiplier for threshold. Units: signal standard deviations.
+
+:detection_lockout_time_ms *(unsigned int, read/write)*:
+  Current refractory period following threshold crossing that is not
+  considered for updating signal statistics and for event detection.
+
+:stream_events *(bool, read/write)*:
+  Current flag for streaming events.
+
+:stream_statistics *(bool, read/write)*:
+  Current flag for streaming statistics.
 
 DigitalOutput
 -------------
