@@ -45,7 +45,7 @@ User manual
 -----------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :glob:
 
    manual/installation
@@ -59,7 +59,7 @@ Connecting to hardware
 ----------------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :glob:
    
    hardware/neuralynx
@@ -71,7 +71,7 @@ User interfaces
 ---------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :glob:
 
    ui/generic_control
@@ -82,7 +82,7 @@ Extra tools
 -----------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :glob:
 
    tools/filter_test
@@ -101,7 +101,7 @@ Extending Falcon
 ----------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :glob:
 
    extensions/extend_overview
@@ -113,7 +113,7 @@ Falcon internals
 ----------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :glob:
 
    internals/build_system
@@ -129,7 +129,7 @@ Testing Falcon
 --------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :glob:
 
    testing/debug
