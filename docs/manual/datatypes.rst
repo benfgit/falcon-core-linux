@@ -11,9 +11,9 @@ the data flow graph.
 Data types in Falcon form a hierarchy from generic to specific. At the top of
 the hierarchy is the most generic data type "IData" that is the base for all
 other data types. As long as the data type of an input port is the same or
-more generic than the data tyoe of the upstream output port, a connection can
+more generic than the data type of the upstream output port, a connection can
 be made. Thus, a processor node with an input port that expects the most
-generic IData type, can handle incoming data streams of any type.
+generic IData type, can handle incoming data streams of any other type.
 
 Below is a list of data types that are currently available in Falcon. See TODO
 for more information about how to add new data types.
