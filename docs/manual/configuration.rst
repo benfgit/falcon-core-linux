@@ -1,3 +1,5 @@
+.. _manual-configuration:
+
 Configuration
 =============
 
@@ -46,7 +48,7 @@ graph
 
 You can specify a graph definition *file* that is loaded when Falcon is
 started. If a graph file is also specified separately on the command line,
-then this will overwrite the configured file. If you would like Falcon to
+then this will override the configured file. If you would like Falcon to
 automatically start execution of the processing graph (without the user having
 to manually start execution by pressing a key), then set the *autostart*
 option to true.
