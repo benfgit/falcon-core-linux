@@ -193,36 +193,5 @@ IFilter* construct_from_yaml( const YAML::Node & node );
 } // namespace dsp
 
 
-namespace YAML {
-        
-    // std::array
-    template <typename T, std::size_t S>
-    struct convert<std::array<T,S> > {
-      static Node encode(const std::array<T,S>& rhs) {
-        Node node(NodeType::Sequence);
-        for (typename std::array<T,S>::const_iterator it = rhs.begin();
-             it != rhs.end(); ++it)
-          node.push_back(*it);
-        return node;
-      }
-    
-      static bool decode(const Node& node, std::array<T,S>& rhs) {
-        if (!node.IsSequence())
-          return false;
-        
-        if (node.size()!=S)
-            return false;
-        
-        int index = 0; 
-        
-        for (const_iterator it = node.begin(); it != node.end(); ++it) {
-            rhs[index++] = it->as<T>();
-        }
-        
-        return true;
-      }
-    };
-
-}
 
 #endif // FILTER_HPP
