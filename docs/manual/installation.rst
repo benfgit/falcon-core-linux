@@ -2,67 +2,93 @@ Installation
 ============
 
 Download
---------
+********
 
 Download the latest source from https://bitbucket.org/kloostermannerflab/falcon-core/downloads/?tab=downloads.
 
-Requirements
-------------
+Dependencies
+************
 
-yaml-cpp (version 0.5 or higher)
-zeromq
-cmake (version 3.5 or higher)
-g++ (version 5.4 or higher)
+- **zeromq**
 
-.. code-block:: bash
+::
+    sudo apt-get install libzmq3-dev
 
-    sudo apt-get install libyaml-cpp-dev libzmq3-dev cmake build-essential
+- **C++ boost libraries**
 
-To check your g++ version:
+.. code-block:: console
 
-.. code-block:: bash
+    sudo apt-get install libboost-all-dev
 
-    g++ --version
+- **CMAKE**
 
-Compile
--------
+.. code-block:: console
 
-Compiling falcon has only been tested with GNU g++ compiler. Version 5 is
-required, as it contains all C++11 libraries. To compile issue the following
-commands while in the falcon root directory:
+    pip install cmake
 
-.. code-block:: bash
+- **GSL libraries**
+
+.. code-block:: console
+
+    sudo apt-get install libgsl23 libgslcblas0:i386 libgsl23:i386 libgslcblas0
+    sudo apt-get install libgsl0-dev
+
+- **Z-lib (needed by cnpy)**
+
+.. code-block:: console
+
+    sudo apt-get install zlib1g
+    sudo apt-get install zlib1g-dev
+
+
+- **g++-5 (or upper)**
+
+G++ v.5 or upper is needed in order to have all libraries of the C++11 standard.
+In order to install it type in a terminal:
+
+.. code-block:: console
+
+    sudo apt-get install g++-7
+
+If it does not work type the following command:
+
+.. code-block:: console
+
+    sudo add-apt-repository ppa:ubuntu-toolchain-r/test && sudo apt-get update && sudo apt-get install g++-7
+
+- **External libraries included in source tree** (just for information, you don't need to do anything normally)
+
+g3log
+cppzmq (header only library)
+cmdline (header only library)
+disruptor
+cnpy
+yaml-cpp 0.6.0
+
+Build instructions
+******************
+
+Compiling falcon has only been tested with GNU g++ compiler.
+You should use version 5 or upper.
+So, to compile issue the following commands while in the falcon root directory:
+
+.. code-block:: console
 
     mkdir build
     cd build
-    cmake -DCMAKE_CXX_COMPILER=`which g++-5` ..
+    cmake -DCMAKE_CXX_COMPILER=`which g++-7` ..
     make
 
-Compile extra extensions
-------------------------
+For more informations on how to integrate third party extension to the build, refere to the build system documentation.
 
-Falcon is compile-time extendable with new data types and processor nodes.
-The *extensions* folder in the source tree contains data types, processor
-nodes and tools that ship with Falcon. To compile 3rd party extensions,
-execute the cmake command with a list of extension directories (in quotes,
-and separated by semi-colon):
+Installation instructions
+*************************
 
-.. code-block:: bash
+.. code-block:: console
 
-    cd build
-    cmake -DFALCON_EXTENSIONS="/path/to/extensions;/path/to/more/extensions" \
-          -DCMAKE_CXX_COMPILER=`which g++-5` ..
-    make
-
-
-Install
--------
-
-.. code-block:: bash
-
-    cd build/src
-    cp falcon ~/bin
-    sudo setcap 'cap_sys_nice=pe' ~/bin/falcon
+    cd falcon
+    sudo setcap 'cap_sys_nice=pe' ./falcon
 
 The last step is optional and will allow falcon to more finely control CPU
 core utilization.
+
