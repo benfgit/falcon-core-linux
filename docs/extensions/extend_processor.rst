@@ -3,6 +3,8 @@ Create new processor
 
 The new processor class needs to derive from the Iprocessor class.
 
+
+
 Two important inputs are :
 
 - const YAML: Node &node : The description from the graph of the node with the different parameters related to the processor
@@ -11,19 +13,22 @@ Two important inputs are :
 Virtual methods from the IProcessor class are available to be override:
 
 -   *Configure(const YAML::Node &node, const GlobalContext& context)* : The graph (yaml file) describe the node
-    with some parameters specific to the processor. This method is the time to read it, process it and store it for later.
+    with some parameters specific to the processor. This method is the time to read it, process it (checking errors) and store it for later.
 
 -   *CreatePorts()* : This part make use of the internal available methods from Iprocessor (see the API documentation)
     for creating input port (*create_input_port*), readable sharable state (*create_readable_shared_state*)
     and output port (*create_output_port*).
 
--   *CompleteStreamInfo()* (?)
+-   *CompleteStreamInfo()* set extra information for output datastream and parameters specific to the datatype, check additional conditions as
+    for example same numbers of input / output slot if there are related
 
 -   *Prepare(GlobalContext& context)* : prepare state of the node aka connecting servor ... etc.
 
 -   *Unprepare(GlobalContext& context)* : undo the prepare method
 
 -   *Preprocess(ProcessingContext& context)* : pre-process state of the note aka clear states
+    The Preprocess part is synchronized between processor. So, all processor will wait for that others finished this part.
+    At the difference of prepare step, it is done in their own thread.
 
 -   *Process(ProcessingContext& context)* : process state of the node : for loop while the context does not send a terminated signal
 
@@ -35,7 +40,7 @@ Virtual methods from the IProcessor class are available to be override:
         // Don't forget to use LOG
     }
 
--   *Postprocess(ProcessingContext& context)* : post-process state of the node aka log info and close communication
+-   *Postprocess(ProcessingContext& context)* : post-process state of the node aka log info, clean up and close communication
 
 -   *TestPrepare(ProcessingContext& context)* : use in case of integration test
 
@@ -69,3 +74,5 @@ While populating your extension in the falcon CMake, you can override the git lo
     FETCHCONTENT_BASE_DIR <local_path>
 
 More information `here <https://cmake.org/cmake/help/git-stage/module/FetchContent.html>`_
+
+GlobalContext => access to server side storage
