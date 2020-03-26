@@ -31,16 +31,11 @@ option(COMPILE_EXTENSIONS "compile all extensions" ON)
 
 if (COMPILE_EXTENSIONS)
     
-    SET( FALCON_PATHS "../extensions/" )
-    
-    if( DEFINED FALCON_EXTENSIONS )
-      LIST( APPEND FALCON_PATHS ${FALCON_EXTENSIONS} )
-    endif()
     
     # get real absolute extension paths
     SET( REAL_FALCON_PATHS, "" )
     
-    foreach( FALCON_PATH ${FALCON_PATHS} )
+    foreach( FALCON_PATH ${EXTENSION_PATHS} )
       get_filename_component(FALCON_PATH ${FALCON_PATH} REALPATH)
       LIST(APPEND REAL_FALCON_PATHS ${FALCON_PATH})
     endforeach()
@@ -163,6 +158,7 @@ endif()
 
 # falcon executable
 add_executable(falcon ${sources})
+
 target_link_libraries (falcon logging yaml-cpp zmq ${PLATFORM_LINK_LIBRARIES})
 
 # here we have to use --whole-archive linker option, otherwise the data type and processor libs are not

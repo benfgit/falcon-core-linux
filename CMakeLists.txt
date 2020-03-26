@@ -16,7 +16,7 @@ FetchContent_Declare(
 		yaml-cpp
 		GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
 		GIT_SHALLOW	ON
-		GIT_TAG yaml-cpp-0.6.0
+		GIT_TAG yaml-cpp-0.6.3
 	)
 
 FetchContent_Declare(
@@ -25,6 +25,7 @@ FetchContent_Declare(
 		GIT_SHALLOW	ON
 		GIT_TAG v4.6.0
 	)
+
 
 FetchContent_GetProperties(yaml-cpp)
 if(NOT yaml-cpp_POPULATED)
@@ -36,9 +37,8 @@ if(NOT yaml-cpp_POPULATED)
 	message(STATUS "Done.")
 endif()
 
-include_directories(BEFORE SYSTEM ${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR}/include)
-target_link_libraries(${YAM_CPP} yaml-cpp)
-
+include_directories(BEFORE SYSTEM "${yaml-cpp_SOURCE_DIR}/include")
+target_link_libraries(${YAMLCPP} yaml-cpp)
 
 FetchContent_GetProperties(cppzmq)
 if(NOT cppzmq_POPULATED)
@@ -50,38 +50,12 @@ if(NOT cppzmq_POPULATED)
 	message(STATUS "Done.")
 endif()
 
-include_directories(BEFORE SYSTEM ${ZMQ_SOURCE_DIR} ${ZMQ_BINARY_DIR}/include)
+include_directories(BEFORE SYSTEM "${cppzmq_SOURCE_DIR}")
 target_link_libraries(${ZMQ} cppzmq)
 
+## External extensions ##
 
-###################################
-# Define every external extension #
-###################################
-
-# FetchContent_Declare(
-#		extension
-#		GIT_REPOSITORY Local/path/extensions or Github/path/extensions
-#	)
-#
-## Add definitions here ...
-
-###############################################
-# Populate -- only populate extensions wanted #
-# Dont forget to disable tests                #
-###############################################
-
-#FetchContent_GetProperties(extension)
-#if(NOT extension_POPULATED)
-#	message(STATUS "Populating extension...")
-#	FetchContent_Populate(extension)
-#	add_subdirectory(${extension_SOURCE_DIR} ${extension_BINARY_DIR})
-#	message(STATUS "Done.")
-#endif()
-
-#include_directories(BEFORE SYSTEM ${extension_SOURCE_DIR} ${extension_BINARY_DIR}/include)
-
-## Populate new extensions here 
-
+## External extensions ##
 
 add_subdirectory(lib)
 add_subdirectory(falcon)

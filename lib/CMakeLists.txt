@@ -15,3 +15,4 @@ list(REMOVE_ITEM SRC_FILES ${EXCL_FILE})
 set(SRC_FILES ${SRC_FILES})
 
 add_library( logging ${SRC_FILES})
+

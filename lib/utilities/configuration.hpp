@@ -23,7 +23,7 @@
 #include <regex>
 #include <iostream>
 
-#include "yaml-cpp/yaml.h"
+#include <yaml-cpp/yaml.h>
 
 namespace configuration {
 
