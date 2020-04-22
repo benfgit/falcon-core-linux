@@ -1,2 +1,0 @@
-/usr/bin/ar qc libutilities.a  CMakeFiles/utilities.dir/keyboard.cpp.o CMakeFiles/utilities.dir/general.cpp.o CMakeFiles/utilities.dir/zmqutil.cpp.o CMakeFiles/utilities.dir/time.cpp.o CMakeFiles/utilities.dir/string.cpp.o CMakeFiles/utilities.dir/math_numeric.cpp.o CMakeFiles/utilities.dir/configuration.cpp.o
-/usr/bin/ranlib libutilities.a
