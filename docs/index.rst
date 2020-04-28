@@ -120,7 +120,6 @@ Falcon internals
    :maxdepth: 1
    :glob:
 
-   internals/build_system
    internals/logging_system
    internals/command_system
    internals/config_system

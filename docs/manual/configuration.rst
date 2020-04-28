@@ -6,8 +6,8 @@ Configuration
 Falcon has several options that can be configured through a configuration file
 that is written in YAML format. By default, Falcon will look for a
 configuration file in the $HOME/.falcon folder and if this file does
-not exist, a new one will be created with default values. A configuration file
-can also be specified on the command line (see Usage).
+not exist, a new one will be created with default values. A configuration file path
+can also be specified on the command line (see `Usage <usage.rst>`_).
 
 The configuration file has a number of sections with configurable options.
 An example configuration file is shown below:
@@ -33,9 +33,6 @@ An example configuration file is shown below:
    server_side_storage:
      environment: "./"
      resources: "$HOME/.falcon"
-     custom:
-       mypath: "/path/to/user/location"
-
 
 network
 .......
@@ -77,6 +74,16 @@ option). For more information about server side storage, see TODO.
 Users can also specify custom URIs that point to paths on the computer running
 Falcon. In the *server_side_storage* section of the configuration, the
 *custom* option can be set to a map that links a URI to a path.
+
+.. code-block:: yaml
+
+   server_side_storage:
+     environment: "./"                   # Where to store the output data
+     resources: "$HOME/.falcon"          # Path to the ressource (filter definitions, graph definitions...)
+     custom:
+       mypath: "/path/to/user/location"
+
+All path should be an existing path.
 
 debug
 .....

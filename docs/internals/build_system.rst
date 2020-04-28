@@ -1,30 +1,26 @@
 Build system
 ============
 
-Install
--------
-The build system is based on CMake (minimum version 3.11).
-Last version of CMake are available through pip.
-
-.. code-block:: console
-    pip install cmake
-
 Configuration options
 ---------------------
 
 ?
 
 How extensions are found and added to build ?
-----------------------------------------------
+---------------------------------------------
 
 Extensions are added through the FetchContent feature of CMake. It allows to link in the Falcon CMake
 the different git repository (or local folder) containing the extension. This extension needs to contain
 a CMake.
 This solution allows to use a specific version of an extension by adding a tag version in the option.
+The core extension are listed in the extension.yaml at the root of the repository.
+
+Manual install
+..............
 
 To manage the extension, before the build, open the CMakeLists.txt at the root of falcon-core.
 Does not modify the part "Basic libraries" as it included libraries used by falcon core.
-However, the part "Define every external extension" is the part interesting for us.
+However, the section ## External extensions ## is the part interesting for us.
 
 As it shows below, there is two important parts:
 
@@ -64,7 +60,10 @@ As it shows below, there is two important parts:
 
     ## Populate new extensions here
 
+Python install
+..............
 
+TBD
 
 
 

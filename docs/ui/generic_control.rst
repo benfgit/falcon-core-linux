@@ -4,7 +4,7 @@ Generic control app
 Installation
 ************
 
-You can also open the falcon-client ui :
+The falcon-client ui is used to remote control of the falcon system.
 
 Clone the python repository :
 
@@ -21,7 +21,7 @@ Install in your python path :
     pip install -e . --no-deps
 
 
-Launch the ui :
+The ui can be launched when the falcon program is already running.
 
 .. code-block:: console
 
