@@ -11,7 +11,7 @@ In parallel, we developed a cmake-client python gui to automatically create an i
 
 Installation
 ------------
-.. code-block::
+.. code-block:: console
 
     git clone https://bitbucket.org/kloostermannerflab/fklab-cmake-gui
     cd fklab-cmake-gui
@@ -22,9 +22,11 @@ Installation
 
 This environment will install the needed dependencies in a conda environment. You can read the readme.md in the fklab-cmake-gui repository
 for more information on how the gui is working.
-Some informations asked in the app :
- - repository path: https://bitbucket.org/kloostermannerflab/falcon-core.git
- - (last) version : 1.1.0   => See the changelog to see other available versions.
+
+Information specific to the build of falcon asked in the app :
+
+- repository path: https://bitbucket.org/kloostermannerflab/falcon-core.git
+- (last) version : 1.1.0   => See the changelog to see other available versions.
 
 A grid with available extensions will be display. You can add your own extensions if needed but note that falcon-core does
 not contains any extensions. If you want to use the core extensions, you need to have the "falcon-fklab-extension" selected.
@@ -32,7 +34,7 @@ The extensions are stored in this `repository <https://bitbucket.org/kloosterman
 
 This step is optional and will allow falcon to more finely control CPU core utilization.
 
-.. code-block::
+.. code-block:: console
 
     sudo setcap 'cap_sys_nice=pe' `which falcon`
 
@@ -57,6 +59,7 @@ The build system is based on CMake (minimum version 3.11).
 Last version of CMake are available through pip.
 
 .. code-block:: console
+
     pip install cmake
 
 - **zeromq**
@@ -90,7 +93,7 @@ The falcon-core repository does not contains any extensions. You will have to ad
 
 .. toctree::
 
-   internal/build_system
+   ../internals/build_system
 
 Once your cmakefile is all configurated, you can build the system.
 
@@ -103,7 +106,7 @@ So, to compile issue the following commands while in the falcon root directory:
     cmake ..
     make install
 
-For more informations on how to integrate third party extension to the build, refer to the build system documentation.
+For more information on how to integrate third party extension to the build, refer to the build system documentation.
 
 Installation instructions
 *************************
