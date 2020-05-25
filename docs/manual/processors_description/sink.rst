@@ -15,18 +15,18 @@ States
 
 :tickle *(bool)*:
   trigger a log message when changed :
-    True : "Hi hi, that tickles!"
-    False : "Why stop tickling?
-  Initial value : false
+  True = "Hi hi, that tickles!" / False = "Why stop tickling?
 
-  Processor connection (state type, peers permission): readable, read-only
-  User : write/read
+  *Initial value* : false
+
+  *Processor connection (state type, peers permission)*: readable, read-only
+
+  *User* : write/read
 
 Expose methods
 ..............
 
-:kick:
-?
+:kick: ?
 
 
 FileSerializer
@@ -43,31 +43,38 @@ Options
 
 :path *(string)*:
   server-side path
-  Default: "run://"
+
+  *Default value* : "run://"
 
 :encoding *(string)*:
   Only two acceptable keyword: 'binary' or 'yaml'
-  Default: "binary"
+
+  *Default value* : "binary"
 
 :format *(string)*:
   Only tree acceptable keyword: 'full', 'nodata', 'compact' (see serializer.hpp for more informations on this mode)
-  Default : full
+
+  *Default value* : full
 
 :overwrite *(bool)*:
   overwrite existing file
-  Default : False
+
+  *Default value* : False
 
 :throttle *(bool)*:
   throttle saving if we can't keep up
-  Default: False
+
+  *Default value* : False
 
 :throttle_threshold *(double)*:
   upstream ringbuffer fill fraction (between 0-1) at which throttling takes effect
-  Default: 0.3
+
+  *Default value* : 0.3
 
 :throttle_smooth *(double)*:
   smooth level of throttle level (between 0-1)
-  Default: 0.5
+
+  *Default value* : 0.5
 
 
 ZMQSerializer
@@ -83,19 +90,22 @@ Options
 .......
 
 :port *(unsigned int)*:
-  Default: 7777
+
+  *Default value* : 7777
 
 :encoding *(string)*:
   Only two acceptable keyword: 'binary' or 'yaml'
-  Default: "binary"
+  *Default value* : "binary"
 
 :format *(string)*:
   Only tree acceptable keyword: 'full', 'nodata', 'compact' (see serializer.hpp for more informations on this mode)
-  Default : full
+
+  *Default value* : full
 
 :interleaved *(bool)*:
   whether data streams from different input slots are interleaved
-  Default : False
+
+  *Default value* : False
 
 
 MUAEstimator
@@ -116,19 +126,22 @@ Options
 .......
 
 :bin_size_ms *(unsigned int)*:
-  Default: 10
+
+  *Default value* : 10
 
 States:
 .......
 
 :bin_size_ms *(unsigned int)*:
-  Initial value : see options value
+  *Initial value* : see options value
 
-  Processor connection (state type, peers permission): readable, read-only
-  User : write/read
+  *Processor connection (state type, peers permission)*: readable, read-only
+
+  *User* : write/read
 
 :MUA *(double)*:
-  Initial value : 0.0
+  *Initial value* : 0.0
 
-  Processor connection (state type, peers permission): writable, read-only
-  User : read-only
+  *Processor connection (state type, peers permission)*: writable, read-only
+
+  *User* : read-only

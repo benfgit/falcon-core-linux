@@ -1,128 +1,26 @@
 Processors
 ==========
 
-BurstDetector
--------------
+Built-in processors can be found in the falcon-fklab-extensions [TODO / Link]
 
-Detects population bursts using a threshold crossing algorithm.
+Each processor can be described with 4 categories :
 
-Input ports
-...........
+- Input ports: useful in the connection part of the graph file
+- Output ports : useful in the connection part of the graph file
+- Options : useful in the option part relative to each processor in the graph file. The processor will set its parameters
+  at the initialization time either with the value specify in the graph file or if not, with its default value.
+- States :  useful in the States part of the graph file. The concept is states is very important and are developed here [TODO add link].
+  Two interesting informations are how it can be connected to another processor and how it can be used by an external user.
 
-:mua *(MUAData, 1 slot)*:
-  Binned multi-unit activity in Hz (e.g. from MUAEstimator).
+.. toctree::
+   :maxdepth: 2
+   :glob:
 
-Output ports
-............
-
-:events *(EventData, 1 slot)*:
-  A stream of 'burst' events.
-
-:statistics *(MultiChannelData<double>, 1 slot)*:
-  A stream of nsamples-by-2 arrays with the signal test value (first column)
-  and the threshold (second column). The number of samples in each statistics
-  data packet is set by the statistics_buffer_size option.
-
-Options
-.......
-
-:threshold_dev *(double)*:
-  Initial value for threshold multiplier. Units: signal standard deviations.
-  Default = 6.0
-
-:smooth_time *(double)*:
-  Initial value for integration time for signal statistics.
-  Default = 10.0
-
-:detection_lockout_time_ms *(double)*:
-  Initial value for lock-out time.
-  Default = 30.0
-
-:stream_events *(bool)*:
-  Whether or not to stream detected burst events.
-  Default = true
-
-:stream_statistics *(bool)*:
-  Whether or not to stream statistics.
-  Default = true
-
-:statistics_buffer_size *(double)*:
-  Buffer size (in seconds) for statistics output stream. This value determines
-  the number of samples that will be collected for each data packet streamed
-  out on the statistics output port. Default = 0.5
-
-
-States
-......
-
-:threshold_dev *(double, read-only)*:
-  Current threshold that needs to be crossed.
-
-:mean *(double, read-only)*:
-  Current signal mean. Units: same as input signal.
-
-:deviation *(double, read-only)*:
-  Current signal deviation. Units: same as input signal.
-
-:threshold_deviation *(double, read/write)*:
-  Current multiplier for threshold. Units: signal standard deviations.
-
-:detection_lockout_time_ms *(unsigned int, read/write)*:
-  Current refractory period following threshold crossing that is not
-  considered for updating signal statistics and for event detection.
-
-:stream_events *(bool, read/write)*:
-  Current flag for streaming events.
-
-:stream_statistics *(bool, read/write)*:
-  Current flag for streaming statistics.
-
-DigitalOutput
--------------
+   processors_description/detectors
+   processors_description/event
+   processors_description/multichanneldata
+   processors_description/sink
 
 
 
-DummySink
----------
 
-EventFilter
------------
-
-EventSink
----------
-
-EventSource
------------
-
-EventSync
----------
-
-FileSerializer
---------------
-
-LevelCrossingDetector
----------------------
-
-MUAEstimator
-------------
-
-MultiChannelFilter
-------------------
-
-NlxReader
----------
-
-Rebuffer
---------
-
-RippleDetector
---------------
-
-RunningStats
-------------
-
-SpikeDetector
--------------
-
-ZMQSerializer
--------------
