@@ -1,3 +1,5 @@
+.. _generic_client:
+
 Generic control app
 ===================
 

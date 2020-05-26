@@ -1,5 +1,6 @@
 Detector
 ========
+
 LevelCrossingDetector
 ---------------------
 Detect a threshold crossing on any of the channels in the incoming MultiChannelData stream and emits an event in response
@@ -7,13 +8,14 @@ Detect a threshold crossing on any of the channels in the incoming MultiChannelD
 Input ports
 ...........
 
-:data *(MultiChannelData<double>, 1 slot)*:
-  A stream of data to process
+:data:
+  *type*: :ref:`MultiChannelData` <double> , 1 slot
 
 Output port
 ...........
 
-:events *(EventData, 1 slot)*:
+:events: *type*: :ref:`EventData` , 1 slot
+
   A stream of events.
 
 Options
@@ -69,6 +71,8 @@ States
 
   *User*: write/read
 
+----------
+
 BurstDetector
 -------------
 Detect population bursts using a threshold crossing algorithm.
@@ -76,16 +80,19 @@ Detect population bursts using a threshold crossing algorithm.
 Input ports
 ...........
 
-:mua *(MUAData, 1 slot)*:
+:mua: *type* : :ref:`MUAData` , 1 slot
+
   Binned multi-unit activity in Hz (e.g. from MUAEstimator).
 
 Output ports
 ............
 
-:events *(EventData, 1 slot)*:
+:events: *type* : :ref:`EventData` , 1 slot
+
   A stream of 'burst' events.
 
-:statistics *(MultiChannelData<double>, 1 slot)*:
+:statistics: *type*: :ref:`MultiChannelData` <double>, 1 slot
+
   A stream of nsamples-by-2 arrays with the signal test value (first column)
   and the threshold (second column). The number of samples in each statistics
   data packet is set by the statistics_buffer_size option.
@@ -96,19 +103,19 @@ Options
 :threshold_dev *(double)*:
   *Initial value* for threshold multiplier. Units: signal standard deviations.
 
-  *Default value* : 6.*0
+  *Default value* : 6.0
 
-:smooth*_tim*e *(double)*:
+:smooth_time *(double)*:
   *Initial value* for integration time for signal statistics. Must be a positive number.
 
-  *Default value* : 10*.0
+  *Default value* : 10.0
 
-:detect*ion_*lockout_time_ms *(double)*:
+:detection_lockout_time_ms *(double)*:
   *Initial value* for lock-out time. - must be greater than 0 ms.
 
-  *Default value* : 30*.0
+  *Default value* : 30.0
 
-:stream*_eve*nts *(bool)*:
+:stream*_events *(bool)*:
   Whether or not to stream detected burst events.
 
   *Default value* : True
@@ -206,6 +213,7 @@ States
 
   *User*: write/read
 
+----------
 
 RippleDetector
 --------------
@@ -214,16 +222,16 @@ Detect ripples in a MultiChannelData stream and emits an ripple event in respons
 Input ports
 ...........
 
-:data *(MultiChannelData<double>, 1 slot)*:
-  A stream of data to process
+:data: *type*: :ref:`MultiChannelData` <double>, 1 slot
 
 Output port
 ...........
 
-:events *(EventData, 1 slot)*:
+:events: *type*: :ref:`EventData` , 1 slot
+
   A stream of 'ripple' events.
 
-:statistics *(MultiChannelData<double>, 1 slot)*:
+:statistics: *type*: :ref:`MultiChannelData` <double>, 1 slot
 
 Options
 .......
@@ -351,6 +359,8 @@ States
 
   *User* : read-only
 
+----------
+
 SpikeDetector
 -------------
 
@@ -361,16 +371,18 @@ Detect spikes on any of the incoming MultiChannelData stream; sends SpikeData on
 Input ports
 ...........
 
-:data *(MultiChannelData<double>, 1 slot)*:
-  A stream of data to process
+:data: *type*: :ref:`MultiChannelData` <double>, 1 slot
+
 
 Output port
 ...........
 
-:events *(EventData, 1 slot)*:
+:events: *type*: :ref:`EventData` , 1 slot
+
   A stream of events.
 
-:spikes *(SpikeData, 1 slot)*:
+:spikes: *type* :ref:`SpikeData` , 1 slot
+
   A stream of detected spikes
 
 
@@ -408,7 +420,7 @@ States
 
   *Initial value* : see options value
 
-  *Processor connection* (state type, peers permission): writable, read-only
+  *Processor connection* (state type, peers permission): readable, read-only
 
   *User*: read/write
 
@@ -417,6 +429,6 @@ States
 
   *Initial value* : see options value
 
-  *Processor connection* (state type, peers permission): writable, read-only
+  *Processor connection* (state type, peers permission): readable, read-only
 
   *User*: read/write

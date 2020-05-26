@@ -7,7 +7,7 @@ Falcon has several options that can be configured through a configuration file
 that is written in YAML format. By default, Falcon will look for a
 configuration file in the $HOME/.falcon folder and if this file does
 not exist, a new one will be created with default values. A configuration file path
-can also be specified on the command line (see `Usage <usage.rst>`_).
+can also be specified on the command line (see :ref:`usage`).
 
 The configuration file has a number of sections with configurable options.
 An example configuration file is shown below:

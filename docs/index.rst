@@ -27,8 +27,8 @@ below [TODO].
 The data flow graph is specified in YAML text format and defines all the
 processor nodes and their interconnections. Falcon ships with a number of
 built-in processors that can be used to construct custom
-applications (see `Processors <manual/processors>`_). Falcon can be easily extended with new kinds of processors,
-although this requires modern C++ programming skills (see `Extending Falcon <extensions/extend_overview>`_).
+applications (see :ref:`processors`). Falcon can be easily extended with new kinds of processors,
+although this requires modern C++ programming skills (see :ref:`extending_falcon`).
 
 By design, Falcon software is only concerned with the execution of data flow
 graphs and it does not include a graphical user interface. Rather, separate
@@ -36,13 +36,10 @@ client applications interact with a running Falcon instance through network
 communication. In this way, dedicated  user interfaces may be built in any
 programming language for particular user applications (as determined by the
 data flow graph). A generic Python control client is shipped with Falcon (see
-`Generic Control app <ui/generic_control>`_) and serves as an example for how to build a user interface.
+:ref:`generic_client`) and serves as an example for how to build a user interface.
 
 Getting started
 ---------------
-
-After downloading and building Falcon software (see [TODO]), ...
-
 
 User manual
 -----------

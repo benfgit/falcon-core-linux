@@ -28,6 +28,7 @@ Expose methods
 
 :kick: ?
 
+----------
 
 FileSerializer
 --------------
@@ -76,6 +77,7 @@ Options
 
   *Default value* : 0.5
 
+----------
 
 ZMQSerializer
 -------------
@@ -107,6 +109,7 @@ Options
 
   *Default value* : False
 
+----------
 
 MUAEstimator
 ------------
@@ -115,12 +118,12 @@ Compute the Multi-Unit Activity from the spike counts provided by the spike dete
 Input ports
 ...........
 
-:spikes *(SpikeData, 1-64 slot)*:
+:spikes: *type* :ref:`SpikeData` , 1-64 slot
 
 Output port
 ...........
 
-:mua *(MUAData, 1 slot)*:
+:mua: *type*: :ref:`MUAData` , 1 slot
 
 Options
 .......

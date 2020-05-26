@@ -1,7 +1,9 @@
 EventData processor
 ===================
 
-The event library is working with event data (TODO: add link to description)
+The event library is working with :ref:`EventData`
+
+----------
 
 EventFilter
 -----------
@@ -10,14 +12,14 @@ Process neural data
 Input ports
 ...........
 
-:events *(EventData, 1-256 slots)*:
+:events: *type*: :ref:`EventData` , 1 slot
 
-:blocking_events *(EventData, 1-256 slots)*:
+:blocking_events: *type*: :ref:`EventData` , 1-256 slot
 
 Output port
 ...........
 
-:events *(EventData, 1 slot)*:
+:events: *type*: :ref:`EventData` , 1 slot
 
 Options
 .......
@@ -53,6 +55,8 @@ Options
 
   *Default value* : "any"
 
+----------
+
 EventSource
 -----------
 Generate an EventData stream by randomly emitting events from a list of candidates at a predefined rate
@@ -60,7 +64,7 @@ Generate an EventData stream by randomly emitting events from a list of candidat
 Output ports
 ............
 
-:events *(EventData, 1 slot)*:
+:events: *type*: :ref:`EventData` , 1 slot
 
 Options
 .......
@@ -75,6 +79,8 @@ Options
 
   *Default value* : 1Hz
 
+----------
+
 EventSink
 ---------
 Takes an EventData stream and logs the arrival of a target event
@@ -82,7 +88,7 @@ Takes an EventData stream and logs the arrival of a target event
 Input ports
 ...........
 
-:events *(EventData, 1 slot)*:
+:events: *type*: :ref:`EventData` , 1 slot
 
 Options
 .......
@@ -98,12 +104,12 @@ Synchronize on the occurrence of a target event on all its input slots, before e
 Input ports
 ...........
 
-:events *(EventData, 1 slot)*:
+:events: *type*: :ref:`EventData` , 1 slot
 
 Output ports
 ............
 
-:events *(EventData, 1 slot)*:
+:events: *type*: :ref:`EventData` , 1 slot
 
 Options
 .......
@@ -112,6 +118,7 @@ Options
 
   *Default value* : none (default value set in eventdata)
 
+----------
 
 DigitalOutput
 -------------
@@ -120,7 +127,7 @@ Take an EventData stream and sets digital outputs according to an event-specific
 Input ports
 ...........
 
-:events *(EventData, 1 slot)*:
+:events: *type*: :ref:`EventData` , 1 slot
 
 Options
 .......

@@ -15,25 +15,111 @@ more generic than the data type of the upstream output port, a connection can
 be made. Thus, a processor node with an input port that expects the most
 generic IData type, can handle incoming data streams of any other type.
 
-Below is a list of data types that are currently available in Falcon. See TODO
+Below is a list of data types that are currently available in Falcon. See :ref:`extend_data_type`
 for more information about how to add new data types.
 
-multi-channel (analog) data
----------------------------
-
-An nsamples-by-nchannels array of data.
-
-event data
 ----------
 
-An event string.
+.. _EventData:
 
-MUA data
---------
+EventData
+---------
+An event string. - datatype = "event"
 
-TBD
+Input parameters
+................
 
-spike data
+event type (optional, default = "none")
+
+Default values
+..............
+
+- default port/state name: "events"
+
+
 ----------
 
-TBD
+.. _spikedata:
+
+SpikeData
+---------
+
+Input parameters
+................
+
+- buffer size (optional, default = 0.)
+- number of channel (optional, default = 0)
+- rate (optional, default = 0.)
+
+Default value
+.............
+
+- default port/state name: "spikes"
+- default buffer size = 12.75 ms
+- default maximum number of channels for spike detection : 16
+- default number of spikes in the buffer : 100
+
+
+----------
+
+.. _multichanneldata:
+
+MultiChannelData
+----------------
+
+An nsamples-by-nchannels array of data.  - datatype = "multichannel"
+
+Input parameters
+................
+
+- number of channel (optional, default = 0)
+- number of samples (optional, default = 0)
+- rate (optional, default = 1.0)
+
+.. _MUAData:
+
+MUAData
+-------
+MultiUnit Activity (number of spike / size of the bin * 1e3) - datatype = "mua"
+
+Input parameters
+................
+
+bin size (ms) : (optional, default = 0)
+
+Others
+......
+the number of spike can be set separately.
+
+----------
+
+.. _scalardata:
+
+ScalarData
+----------
+an unique scalar data - datatype = "scalar"
+
+Input parameters
+................
+
+value : (optional, default = 0)
+
+----------
+
+.. _vectordata:
+
+VectorData
+----------
+
+create a vector of data - datatype = "vector"
+
+Input parameters
+................
+
+size of the vector
+
+Others
+......
+the data are set separately, once the vector data has been created by allocating in memory the right size of data needed.
+
+
