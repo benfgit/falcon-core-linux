@@ -30,7 +30,7 @@ Information specific to the build of falcon asked in the app :
 
 A grid with available extensions will be display. You can add your own extensions if needed but note that falcon-core does
 not contains any extensions. If you want to use the core extensions, you need to have the "falcon-fklab-extension" selected.
-The extensions are stored in this `repository <https://bitbucket.org/kloostermannerflab/falcon-fklab-extension.git>`_.
+The extensions are stored in this `repository <https://bitbucket.org/kloostermannerflab/falcon-fklab-extensions>`_.
 
 This step is optional and will allow falcon to more finely control CPU core utilization.
 
@@ -38,7 +38,7 @@ This step is optional and will allow falcon to more finely control CPU core util
 
     sudo setcap 'cap_sys_nice=pe' `which falcon`
 
-Once, the app has been installed (without errors) you can continue to the section `usage <usage.rst>`_.
+Once, the app has been installed (without errors) you can continue to the section :ref:`usage`.
 
 Developer guide
 ***************
@@ -95,7 +95,7 @@ The falcon-core repository does not contains any extensions. You will have to ad
 
    ../internals/build_system
 
-Once your cmakefile is all configurated, you can build the system.
+Once your cmakefile is all configured, you can build the system.
 
 So, to compile issue the following commands while in the falcon root directory:
 

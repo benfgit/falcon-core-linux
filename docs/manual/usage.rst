@@ -26,9 +26,9 @@ Command-line options
      -?, --help           print this message
 
 A configuration file can be used to specify automatically this options + others used to affine the control in the whole system.
-Check out the `next section <configuration.rst>`_.
+Check out the :ref:`manual-configuration`.
 
-.. note:: The option specified in command line are prioritary on the options specified in the config file.
+.. note:: The option specified in command line are prioritized against the options specified in the config file.
 
 Control commands with a Falcon running graph
 --------------------------------------------
@@ -50,6 +50,6 @@ k   stop processing and quit (kill)
 Falcon-client gui
 .................
 
-The graph is also controllable from gui in remote or not. See this section for more details : `falcon-client <../ui/generic_control.rst>`_
+The graph is also controllable from gui in remote or not. See this section for more details : :ref:`generic_client`
 
 

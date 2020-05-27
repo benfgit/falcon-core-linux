@@ -36,7 +36,6 @@ Default values
 
 - default port/state name: "events"
 
-
 ----------
 
 .. _spikedata:
@@ -59,7 +58,6 @@ Default value
 - default maximum number of channels for spike detection : 16
 - default number of spikes in the buffer : 100
 
-
 ----------
 
 .. _multichanneldata:
@@ -75,6 +73,8 @@ Input parameters
 - number of channel (optional, default = 0)
 - number of samples (optional, default = 0)
 - rate (optional, default = 1.0)
+
+----------
 
 .. _MUAData:
 
