@@ -1,9 +1,9 @@
-Converters
-==========
+Event
+=====
 
 
 .. toctree::
    :maxdepth: 1
    :glob:
 
-   converter/*
+   event/*

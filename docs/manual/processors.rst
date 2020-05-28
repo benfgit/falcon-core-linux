@@ -17,11 +17,12 @@ For each processor, a description is given of:
    :maxdepth: 2
    :glob:
 
-   processors_description/signal_generator
    processors_description/detectors
-   processors_description/filters
-   processors_description/converters
-   processors_description/others
+   processors_description/signal_generators_filters_converters
+   processors_description/events
+   processors_description/digitaloutput/*
+   processors_description/serializers
+   processors_description/examples
 
 
 

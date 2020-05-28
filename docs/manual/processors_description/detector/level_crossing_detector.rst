@@ -5,68 +5,79 @@ Detect a threshold crossing on any of the channels in the incoming MultiChannelD
 
 .. image:: ../../../images/LevelCrossingDetector.png
 
-Input ports
-...........
+.. list-table:: **Input port**
+   :header-rows: 1
 
-:data:
-  *type*: :ref:`MultiChannelData` <double> , 1 slot
+   * - port name
+     - data type
+     - slots
+     - description
+   * - **data**
+     - :ref:`MultiChannelData` <double>
+     - 1
+     -
 
-Output port
-...........
+.. list-table:: **Input port**
+   :header-rows: 1
 
-:events: *type*: :ref:`EventData` , 1 slot
+   * - port name
+     - data type
+     - slots
+     - description
+   * - **events**
+     - :ref:`EventData`
+     - 1
+     - A stream of events.
 
-  A stream of events.
+.. list-table:: **Options**
+   :header-rows: 1
 
-Options
-.......
+   * - port name
+     - data type
+     - default
+     - description
+   * - **threshold**
+     - double
+     - 0.0
+     - threshold that needs to be crossed
+   * - **event**
+     - string
+     - "threshold_crossing"
+     - event to emit upon detection of threshold crossing
+   * - **post_detect_block**
+     - unsigned int
+     - 2
+     - refractory period after threshold crossing detection (in number of samples )
+   * - **upslope**
+     - bool
+     - True
+     - whether to look for upward (true) or downward (false) threshold crossings
 
-:threshold *(double)*:
-  threshold that needs to be crossed
 
-  *Default value*: 0.0
+.. list-table:: **States**
+   :header-rows: 1
 
-:upslope *(bool)*:
-  whether to look for upward (true) or downward (false) threshold crossings
-
-  *Default value*: True
-
-:post_detect_block *(unsigned int)*:
-  refractory period after threshold crossing detection (in number of samples )
-
-  *Default value*: 2
-
-:event *(string)*:
-  event to emit upon detection of threshold crossing
-
-  *Default value* : "threshold_crossing"
-
-States
-......
-
-:threshold *(double)*:
-  threshold that needs to be crossed
-
-  *Initial value* : see options value
-
-  *Processor connection* (state type, peers permission): readable, read-only
-
-  *User*: write/read
-
-:upslope *(bool)*:
-  whether to look for upward (true) or downward (false) threshold crossings
-
-  *Initial value* : see options value
-
-  *Processor connection* (state type, peers permission): readable, read-only
-
-  *User*: write/read
-
-:post_detect_block *(unsigned int)*:
-  refractory period after threshold crossing detection (in number of samples )
-
-  *Initial value* : see options value
-
-  *Processor connection* (state type, peers permission): readable, read-only
-
-  *User*: write/read
+   * - name
+     - data type
+     - initial value
+     - external access
+     - peers access
+     - description
+   * - **threshold**
+     - double
+     - option: threshold
+     - read-only
+     - write/read
+     - Current threshold that needs to be crossed
+   * - **post_detect_block**
+     - unsigned int
+     - option: post_detect_block
+     - read-only
+     - write/read
+     -
+   * - **upslope**
+     - bool
+     - option: upslope
+     - read-only
+     - write/read
+     -
