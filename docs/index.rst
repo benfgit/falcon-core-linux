@@ -99,17 +99,6 @@ Example applications
 
    examples/ripple_detection
 
-Extending Falcon
-----------------
-
-.. toctree::
-   :maxdepth: 1
-   :glob:
-
-   extensions/extend_overview
-   extensions/extend_processor
-   extensions/extend_datatype
-
 
 Falcon internals
 ----------------
@@ -125,6 +114,17 @@ Falcon internals
    internals/dsp_lib
    internals/dio_lib
    internals/nlx_lib
+
+Extending Falcon
+----------------
+
+.. toctree::
+   :maxdepth: 1
+   :glob:
+
+   extensions/extend_overview
+   extensions/extend_processor
+   extensions/extend_datatype
 
 Testing Falcon
 --------------
