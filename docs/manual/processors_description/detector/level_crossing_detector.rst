@@ -4,6 +4,7 @@ LevelCrossingDetector
 Detect a threshold crossing on any of the channels in the incoming MultiChannelData stream and emits an event in response
 
 .. image:: ../../../images/LevelCrossingDetector.png
+   :align: center
 
 .. list-table:: **Input port**
    :header-rows: 1
@@ -29,6 +30,8 @@ Detect a threshold crossing on any of the channels in the incoming MultiChannelD
      - 1
      - A stream of events.
 
+.. tabularcolumns:: |p{3cm}|p{1.2cm}|p{3cm}|p{5.5cm}|
+
 .. list-table:: **Options**
    :header-rows: 1
 
@@ -53,8 +56,9 @@ Detect a threshold crossing on any of the channels in the incoming MultiChannelD
      - True
      - whether to look for upward (true) or downward (false) threshold crossings
 
+.. tabularcolumns:: |p{4cm}|p{1cm}|p{3cm}|p{1.5cm}|p{1.3cm}|p{3cm}|
 
-.. list-table:: **States**
+.. list-table:: **Readable states**
    :header-rows: 1
 
    * - name

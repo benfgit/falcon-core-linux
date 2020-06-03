@@ -5,8 +5,11 @@ Detect population bursts using a threshold crossing algorithm.
 
 .. image:: ../../../images/BurstDetector.png
 
+.. tabularcolumns:: |p{2cm}|p{2cm}|p{1cm}|p{7cm}|
+
 .. list-table:: **Input port**
    :header-rows: 1
+   :class: longtable
 
    * - port name
      - data type
@@ -16,6 +19,8 @@ Detect population bursts using a threshold crossing algorithm.
      - :ref:`MUAData`
      - 1
      - Binned multi-unit activity in Hz (e.g. from MUAEstimator).
+
+.. tabularcolumns:: |p{2cm}|p{3cm}|p{1cm}|p{8.5cm}|
 
 .. list-table:: **Output port**
    :header-rows: 1
@@ -35,7 +40,7 @@ Detect population bursts using a threshold crossing algorithm.
        and the threshold (second column). The number of samples in each statistics
        data packet is set by the statistics_buffer_size option.
 
-
+.. tabularcolumns:: |p{4cm}|p{1cm}|p{1cm}|p{8.5cm}|
 .. list-table:: **Options**
    :header-rows: 1
 
@@ -71,7 +76,9 @@ Detect population bursts using a threshold crossing algorithm.
        the number of samples that will be collected for each data packet streamed
        out on the statistics output port. must be either equals or greater than 0.
 
-.. list-table:: **States**
+.. tabularcolumns:: |p{4cm}|p{1cm}|p{3cm}|p{1.5cm}|p{1.3cm}|p{3cm}|
+
+.. list-table:: **Writable States**
    :header-rows: 1
 
    * - name
@@ -104,6 +111,18 @@ Detect population bursts using a threshold crossing algorithm.
      - read-only
      - read-only
      -
+
+.. tabularcolumns:: |p{4cm}|p{1cm}|p{3cm}|p{1.5cm}|p{1.3cm}|p{3cm}|
+
+.. list-table:: **Readable States**
+   :header-rows: 1
+
+   * - name
+     - data type
+     - initial value
+     - external access
+     - peers access
+     - description
    * - **bin_size**
      - double
      - 1.0

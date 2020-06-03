@@ -27,6 +27,9 @@ Compute running statistics
      - :ref:`MultiChannelData` <double>
      - 1-256
      -
+
+.. tabularcolumns:: |p{3cm}|p{1cm}|p{1cm}|p{8.5cm}|
+
 .. list-table:: **Options**
    :header-rows: 1
 

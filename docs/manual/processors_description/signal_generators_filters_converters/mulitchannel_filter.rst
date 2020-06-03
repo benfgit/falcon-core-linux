@@ -25,7 +25,7 @@ MultiChannelFilter
      - 1-256
      -
 
-
+.. tabularcolumns:: |p{2cm}|p{3cm}|p{3cm}|p{5.5cm}|
 .. list-table:: **Options**
    :header-rows: 1
 

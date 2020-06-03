@@ -32,6 +32,7 @@ Detect spikes on any of the incoming MultiChannelData stream; sends SpikeData on
      - 1
      - A stream of detected spikes
 
+.. tabularcolumns:: |p{3.5cm}|p{1.8cm}|p{2cm}|p{5.5cm}|
 
 .. list-table:: **Options**
    :header-rows: 1
@@ -61,7 +62,7 @@ Detect spikes on any of the incoming MultiChannelData stream; sends SpikeData on
      - True
      -
 
-.. list-table:: **States**
+.. list-table:: **Readable states**
    :header-rows: 1
 
    * - name

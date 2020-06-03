@@ -26,6 +26,8 @@ Process neural data
      - 1
      -
 
+.. tabularcolumns:: |p{3cm}|p{3cm}|p{1cm}|p{7.5cm}|
+
 .. list-table:: **Options**
    :header-rows: 1
 

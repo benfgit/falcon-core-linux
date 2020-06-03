@@ -40,7 +40,7 @@ Compute the Multi-Unit Activity from the spike counts provided by the spike dete
      - target event to be filtered out
 
 
-.. list-table:: **States**
+.. list-table:: **Readable states**
    :header-rows: 1
 
    * - name
@@ -55,6 +55,16 @@ Compute the Multi-Unit Activity from the spike counts provided by the spike dete
      - read-only
      - read/write
      -
+
+.. list-table:: **Writable states**
+   :header-rows: 1
+
+   * - name
+     - data type
+     - initial value
+     - external access
+     - peers access
+     - description
    * - **MUA**
      - double
      - 0.0

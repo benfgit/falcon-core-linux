@@ -30,6 +30,9 @@ Detect ripples in a MultiChannelData stream and emits an ripple event in respons
      - :ref:`MultiChannelData` <double>
      - 1
      -
+
+.. tabularcolumns:: |p{5cm}|p{1.2cm}|p{1cm}|p{5.5cm}|
+
 .. list-table:: **Options**
    :header-rows: 1
 
@@ -71,8 +74,8 @@ Detect ripples in a MultiChannelData stream and emits an ripple event in respons
      - True
      -
 
-
-.. list-table:: **States**
+.. tabularcolumns:: |p{4cm}|p{1cm}|p{3cm}|p{1.5cm}|p{1.3cm}|p{3cm}|
+.. list-table:: **Writable states**
    :header-rows: 1
 
    * - name
@@ -105,6 +108,17 @@ Detect ripples in a MultiChannelData stream and emits an ripple event in respons
      - read-only
      - read-only
      -
+
+.. tabularcolumns:: |p{4cm}|p{1cm}|p{3cm}|p{1.5cm}|p{1.3cm}|p{3cm}|
+.. list-table:: **Readable states**
+   :header-rows: 1
+
+   * - name
+     - data type
+     - initial value
+     - external access
+     - peers access
+     - description
    * - **threshold_dev**
      - double
      - option:threshold

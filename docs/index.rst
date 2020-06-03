@@ -38,8 +38,6 @@ programming language for particular user applications (as determined by the
 data flow graph). A generic Python control client is shipped with Falcon (see
 :ref:`generic_client`) and serves as an example for how to build a user interface.
 
-Getting started
----------------
 
 User manual
 -----------

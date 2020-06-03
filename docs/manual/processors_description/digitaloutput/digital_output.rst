@@ -13,6 +13,9 @@ Take an EventData stream and sets digital outputs according to an event-specific
      - :ref:`EventData`
      - 1
      -
+
+.. tabularcolumns:: |p{3cm}|p{2cm}|p{3cm}|p{5.5cm}|
+
 .. list-table:: **Options**
    :header-rows: 1
 
@@ -63,8 +66,8 @@ Example configuration for protocols option:
         event_c:
           pulse: [2]
 
-
-.. list-table:: **States**
+.. tabularcolumns:: |p{3cm}|p{1cm}|p{4cm}|p{1.5cm}|p{1.8cm}|p{2cm}|
+.. list-table:: **Readable states**
    :header-rows: 1
 
    * - name
@@ -75,13 +78,13 @@ Example configuration for protocols option:
      - description
    * - **enabled**
      - bool
-     - option:enabled
+     - option: enabled
      - write/read
      - read-only
      -
    * - **lockout_period_ms**
      - bool
-     - option:lockout_period_ms
+     - option: lockout_period_ms
      - write/read
      - read-only
      -

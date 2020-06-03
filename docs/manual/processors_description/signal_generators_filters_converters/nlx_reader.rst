@@ -26,6 +26,7 @@ MultiChannelData buckets on that port. The channelmap option should be specified
       portnameB: [5,6]
       portnameC: [0,5]
 
+.. tabularcolumns:: |p{4cm}|p{3cm}|p{2.5cm}|p{5.5cm}|
 
 .. list-table:: **Options**
    :header-rows: 1

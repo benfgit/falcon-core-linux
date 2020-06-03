@@ -14,6 +14,9 @@ Serializes data streams to file
      - IData
      - 1-256
      -
+
+.. tabularcolumns:: |p{3cm}|p{1.5cm}|p{2cm}|p{7cm}|
+
 .. list-table:: **Options**
    :header-rows: 1
 
