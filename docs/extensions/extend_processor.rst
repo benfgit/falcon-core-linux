@@ -1,9 +1,7 @@
 Create new processor
 ====================
 
-The new processor class needs to derive from the Iprocessor class.
-
-
+The new processor class needs to derive from the IProcessor class.
 
 Two important inputs are :
 

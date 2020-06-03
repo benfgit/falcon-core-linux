@@ -1,12 +1,12 @@
 Data Types
 ==========
 
-The input and output ports on processor nodes only handle dedicated data
-types. To be able to connect an output port to an input port, their data
-types need to be compatible. For example, a processor that generates event
-data cannot be connected to a processor that expects multi-channel analog
-data. Falcon will make sure that a connection is valid before constructing
-the data flow graph.
+The data streams that flow from processor to processor consist of data packets
+that carry the data of interest (the payload), a source timestamp
+(when the data packet was generated) and (optionally) a hardware timestamp
+(original timestamp of the external hardware that generated the data).
+Each input and output port on processor nodes only handles dedicated types of data.
+For example, some processors operate on arrays of analog data.
 
 Data types in Falcon form a hierarchy from generic to specific. At the top of
 the hierarchy is the most generic data type "IData" that is the base for all
@@ -15,111 +15,22 @@ more generic than the data type of the upstream output port, a connection can
 be made. Thus, a processor node with an input port that expects the most
 generic IData type, can handle incoming data streams of any other type.
 
+Input ports may specify additional requirements for the incoming data. For example,
+an input port could indicate that it only supports multi-channel analog data with
+exactly 4 channels. An upstream processor with an output port that serves multi-channel
+data packets with fewer or more channels will thus not be compatible.
+
 Below is a list of data types that are currently available in Falcon. See :ref:`extend_data_type`
 for more information about how to add new data types.
 
-----------
 
-.. _EventData:
+.. toctree::
+   :maxdepth: 1
+   :glob:
 
-EventData
----------
-An event string. - datatype = "event"
-
-Input parameters
-................
-
-event type (optional, default = "none")
-
-Default values
-..............
-
-- default port/state name: "events"
-
-----------
-
-.. _spikedata:
-
-SpikeData
----------
-
-Input parameters
-................
-
-- buffer size (optional, default = 0.)
-- number of channel (optional, default = 0)
-- rate (optional, default = 0.)
-
-Default value
-.............
-
-- default port/state name: "spikes"
-- default buffer size = 12.75 ms
-- default maximum number of channels for spike detection : 16
-- default number of spikes in the buffer : 100
-
-----------
-
-.. _multichanneldata:
-
-MultiChannelData
-----------------
-
-An nsamples-by-nchannels array of data.  - datatype = "multichannel"
-
-Input parameters
-................
-
-- number of channel (optional, default = 0)
-- number of samples (optional, default = 0)
-- rate (optional, default = 1.0)
-
-----------
-
-.. _MUAData:
-
-MUAData
--------
-MultiUnit Activity (number of spike / size of the bin * 1e3) - datatype = "mua"
-
-Input parameters
-................
-
-bin size (ms) : (optional, default = 0)
-
-Others
-......
-the number of spike can be set separately.
-
-----------
-
-.. _scalardata:
-
-ScalarData
-----------
-an unique scalar data - datatype = "scalar"
-
-Input parameters
-................
-
-value : (optional, default = 0)
-
-----------
-
-.. _vectordata:
-
-VectorData
-----------
-
-create a vector of data - datatype = "vector"
-
-Input parameters
-................
-
-size of the vector
-
-Others
-......
-the data are set separately, once the vector data has been created by allocating in memory the right size of data needed.
-
-
+   datatype_description/eventdata
+   datatype_description/spikedata
+   datatype_description/multichanneldata
+   datatype_description/muadata
+   datatype_description/vectordata
+   datatype_description/scalardata
