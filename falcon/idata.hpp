@@ -35,15 +35,15 @@
 #include "serialization.hpp"
 #include "yaml-cpp/yaml.h"
 
-// Factory for DATATYPE::DATACLASS items with support for post-construction initialization
+// Factory for DATATYPE::Data items with support for post-construction initialization
 template <typename DATATYPE>
 class DataFactory : public IFactory<DATATYPE> {
 public:
     DataFactory( const typename DATATYPE::Parameters & parameters ) : parameters_( parameters ) {}
     
-    virtual DATATYPE* NewInstance( const int& size ) const override final {
+    virtual typename DATATYPE::Data* NewInstance( const int& size ) const override final {
         
-        auto items = new DATATYPE[size];
+        auto items = new typename DATATYPE::Data[size];
         for (int k=0; k<size; k++) {
             items[k].Initialize(parameters_);
         }
@@ -54,61 +54,85 @@ protected:
     typename DATATYPE::Parameters parameters_;
 };
 
-// Base class for all data classes
-class IData {
+namespace nsAnyType
+{
+
+struct Parameters {};
+
+class Capabilities {
 public:
-    IData() : hardware_timestamp_(0), serial_number_(0) {}
+    virtual ~Capabilities() {}
     
-    virtual ~IData() {}
-	
-    virtual void ClearData() = 0;
-    
+    virtual void VerifyCompatibility( const Capabilities & capabilities ) const {}
+    virtual void Validate( const Parameters & parameters ) const {}
+};
+
+class Data {
+public:
+    Data() : hardware_timestamp_(0), serial_number_(0) {}
+    virtual ~Data() {}
+
+    virtual void ClearData() {}
+
+    void Initialize( const Parameters & parameters) {}
+
     bool eos() const;
     void set_eos( bool value=true );
     void clear_eos();
-    
+
     void set_serial_number( uint64_t n );
     uint64_t serial_number() const;
-	
+
     void set_source_timestamp( );
     void set_source_timestamp( TimePoint t );
-    
+
     TimePoint source_timestamp() const;
-	
+
     template <typename DURATION=std::chrono::microseconds>
-    DURATION time_passed() const { return std::chrono::duration_cast<DURATION>( Clock::now() - source_timestamp_ ); }
-	
+    DURATION time_passed() const {
+        return std::chrono::duration_cast<DURATION>(
+            Clock::now() - source_timestamp_ );
+    }
+
     template <typename DURATION=std::chrono::microseconds>
-    DURATION time_since( TimePoint reference ) const { return std::chrono::duration_cast<DURATION>( Clock::now() - reference ); }
-	
+    DURATION time_since( TimePoint reference ) const {
+        return std::chrono::duration_cast<DURATION>(
+            Clock::now() - reference );
+    }
+
     uint64_t hardware_timestamp() const;
     void set_hardware_timestamp( uint64_t t );
-    
-    void CloneTimestamps( const IData& data );
-	
-    virtual void SerializeBinary( std::ostream& stream, Serialization::Format format ) const;
-    virtual void SerializeYAML( YAML::Node & node, Serialization::Format format ) const;
-    virtual void YAMLDescription( YAML::Node & node, Serialization::Format format ) const;
 
-public:
+    void CloneTimestamps( const Data& data );
 
-    struct Parameters {};
+    virtual void SerializeBinary(
+        std::ostream& stream,
+        Serialization::Format format ) const;
+
+    virtual void SerializeYAML(
+        YAML::Node & node,
+        Serialization::Format format ) const;
     
-    class Capabilities {
-    public:
-        virtual ~Capabilities() {}
-        
-        virtual void VerifyCompatibility( const Capabilities & capabilities ) const {}
-        virtual void Validate( const Parameters & parameters ) const {}
-    };
-    
-    static const std::string datatype() { return "any"; }
-    
+    virtual void YAMLDescription(
+        YAML::Node & node,
+        Serialization::Format format ) const;
+
 protected:
     TimePoint source_timestamp_;
     uint64_t hardware_timestamp_; // e.g. from Neuralynx
     uint64_t serial_number_;
     bool end_of_stream_ = false;
+};
+
+};
+
+class AnyType {
+public:
+    static const std::string datatype() { return "any"; }
+
+    using Parameters = nsAnyType::Parameters;
+    using Capabilities = nsAnyType::Capabilities;
+    using Data = nsAnyType::Data;
 };
 
 

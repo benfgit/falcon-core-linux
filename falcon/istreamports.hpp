@@ -64,7 +64,7 @@ protected:
     int64_t WaitFor( int64_t sequence ) const { return barrier_->WaitFor( sequence ); }
     int64_t WaitFor( int64_t sequence, int64_t time_out ) const { return barrier_->WaitFor( sequence, time_out ); }
 	
-    virtual IData* DataAt( int64_t sequence ) const = 0;
+    virtual typename AnyType::Data* DataAt( int64_t sequence ) const = 0;
     
     
 	std::vector<RingSequence*> gating_sequences();
@@ -104,7 +104,7 @@ public:
     virtual ISlotOut* slot( std::size_t index ) = 0;
     virtual SlotType number_of_slots() const = 0;
 
-    virtual const IData::Capabilities & capabilities() const = 0;
+    virtual const AnyType::Capabilities & capabilities() const = 0;
     
     YAML::Node ExportYAML() const;
     
@@ -191,7 +191,7 @@ protected:
 	int64_t ncached_=0;
     int64_t nretrieved_=0;
 	
-	IData* cache_ = nullptr;
+	typename AnyType::Data* cache_ = nullptr;
 	
 	ISlotOut* upstream_ = nullptr; // access to upstream slot needs to go through base pointer (since we don't know the exact datatype)
     

@@ -28,9 +28,7 @@
 #include "yaml-cpp/yaml.h"
 
 #include "serialization.hpp"
-
-// forward declaration
-class IData;
+#include "idata.hpp"
 
 namespace Serialization {
 
@@ -40,12 +38,12 @@ public:
     Serializer( Format fmt = Format::FULL, std::string description="", std::string extension="" )
         : format_(fmt), description_(description), extension_(extension) {};
     
-    virtual bool Serialize( std::ostream & stream, IData* data, uint16_t streamid, uint64_t packetid ) const = 0;
+    virtual bool Serialize( std::ostream & stream, typename AnyType::Data* data, uint16_t streamid, uint64_t packetid ) const = 0;
     
     Format format() const;
     void set_format( Format fmt );
     
-    YAML::Node DataDescription( const IData* data ) const;
+    YAML::Node DataDescription( const typename AnyType::Data* data ) const;
     
     std::string description() const;
     std::string extension() const;
@@ -61,7 +59,7 @@ class BinarySerializer : public Serializer {
 public:
     BinarySerializer( Format fmt = Format::FULL )
         : Serializer( fmt, "Compact binary format", "bin" ) {}
-    bool Serialize( std::ostream & stream, IData* data, uint16_t streamid, uint64_t packetid ) const;
+    bool Serialize( std::ostream & stream, typename AnyType::Data* data, uint16_t streamid, uint64_t packetid ) const;
 };
 
 class YAMLSerializer : public Serializer {
@@ -70,7 +68,7 @@ public:
     YAMLSerializer( Format fmt = Format::FULL )
         : Serializer( fmt, "Human readable YAML format", "yaml" ) {}
     
-    bool Serialize( std::ostream & stream, IData* data, uint16_t streamid, uint64_t packetid ) const;
+    bool Serialize( std::ostream & stream, typename AnyType::Data* data, uint16_t streamid, uint64_t packetid ) const;
 };
 
 
