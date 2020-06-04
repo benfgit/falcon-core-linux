@@ -1,7 +1,9 @@
+.. _RippleDetector:
+
 RippleDetector
 ==============
 
-Detect ripples in a MultiChannelData stream and emits an ripple event in response
+Detect ripples in a MultiChannelData stream and emits a ripple event in response
 
 .. list-table:: **Input port**
    :header-rows: 1

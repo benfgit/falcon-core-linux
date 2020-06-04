@@ -1,3 +1,5 @@
+.. _MultiChannelFilter:
+
 MultiChannelFilter
 ==================
 

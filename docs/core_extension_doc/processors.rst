@@ -23,8 +23,3 @@ For each processor, a description is given of:
    processors_description/digitaloutput/*
    processors_description/serializers
    processors_description/examples
-
-
-
-
-

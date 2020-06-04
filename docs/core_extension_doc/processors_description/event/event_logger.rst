@@ -1,5 +1,7 @@
-EventSync
-=========
+.. _EventLogger:
+
+EventLogger
+===========
 
 Synchronize on the occurrence of a target event on all its input slots, before emitting the same target event
 

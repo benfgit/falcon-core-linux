@@ -1,3 +1,5 @@
+.. _EventFilter:
+
 EventFilter
 -----------
 Process neural data
