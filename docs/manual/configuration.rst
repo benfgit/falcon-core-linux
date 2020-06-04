@@ -1,7 +1,7 @@
 .. _manual-configuration:
 
-Configuration
-=============
+Configuring falcon
+==================
 
 Falcon has several options that can be configured through a configuration file
 that is written in YAML format. By default, Falcon will look for a

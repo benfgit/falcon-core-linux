@@ -1,5 +1,5 @@
-Processing graph system
-=======================
+Graph life cycle
+================
 |
 .. image:: ../images/falcon_graph.png
 |
@@ -49,6 +49,7 @@ Ringbuffer based on disruptor
 |
 .. image:: ../images/processor_lifecycle.png
 |
+
 Read data on input slot
 -----------------------
 

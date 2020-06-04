@@ -1,16 +1,10 @@
-Installation
-============
+Installation using graphical installer
+======================================
 
-User guide
-**********
-
-Who is concerned by this guide ?
---------------------------------
 You just want to run falcon with a set of selected extensions and you don't want to look at the code ? This part is for you.
 In parallel, we developed a cmake-client python gui to automatically create an installation of Falcon.
 
-Installation
-------------
+
 .. code-block:: console
 
     git clone https://bitbucket.org/kloostermannerflab/fklab-cmake-gui
@@ -40,8 +34,8 @@ This step is optional and will allow falcon to more finely control CPU core util
 
 Once, the app has been installed (without errors) you can continue to the section :ref:`usage`.
 
-Developer guide
-***************
+Manual installation
+===================
 
 The building of the falcon app is based on cmake and fetch_dependency to manage libraries and extensions.
 
@@ -51,7 +45,7 @@ Download
 Download the latest source from https://bitbucket.org/kloostermannerflab/falcon-core/downloads/?tab=downloads.
 
 Dependencies
-************
+------------
 
 - **CMAKE**
 
@@ -85,7 +79,7 @@ cmdline (header only library)
 disruptor
 
 Build instructions
-******************
+------------------
 
 Compiling falcon has only been tested with GNU g++ compiler. You should use version 5 or upper.
 
@@ -109,7 +103,7 @@ So, to compile issue the following commands while in the falcon root directory:
 For more information on how to integrate third party extension to the build, refer to the build system documentation.
 
 Installation instructions
-*************************
+-------------------------
 
 .. code-block:: console
 

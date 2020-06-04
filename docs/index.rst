@@ -39,101 +39,102 @@ data flow graph). A generic Python control client is shipped with Falcon (see
 :ref:`generic_client`) and serves as an example for how to build a user interface.
 
 
-User manual
------------
+Installation
+------------
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :glob:
 
    manual/installation
+
+User guide
+----------
+.. toctree::
+   :maxdepth: 2
+
    manual/usage
-   manual/configuration
-   manual/interaction
    manual/graphs
-   manual/datatypes
-   manual/processors
+   manual/configuration
    manual/troubleshoot
-
-Connecting to hardware
-----------------------
-
-.. toctree::
-   :maxdepth: 1
-   :glob:
-
-   hardware/neuralynx
-   hardware/openephys
-   hardware/arduino
-   hardware/advantech
-
-User interfaces
----------------
-
-.. toctree::
-   :maxdepth: 1
-   :glob:
-
-   ui/generic_control
-   ui/create_ui
-   ui/lib_python
-
-Extra tools
------------
-
-.. toctree::
-   :maxdepth: 1
-   :glob:
-
-   tools/filter_test
-   tools/nlxtestbench
-
-
-Example applications
---------------------
-
-.. toctree::
-   :maxdepth: 1
-
-   examples/ripple_detection
-
-
-Falcon internals
-----------------
-
-.. toctree::
-   :maxdepth: 1
-   :glob:
-
-   internals/logging_system
-   internals/command_system
-   internals/config_system
-   internals/graph_system
-   internals/dsp_lib
-   internals/dio_lib
-   internals/nlx_lib
-
-Extending Falcon
-----------------
-
-.. toctree::
-   :maxdepth: 1
-   :glob:
-
-   extensions/extend_overview
-   extensions/extend_processor
-   extensions/extend_datatype
-
-Testing Falcon
---------------
-
-.. toctree::
-   :maxdepth: 1
-   :glob:
-
    testing/debug
    testing/test_mode
    testing/test_graphs
+
+
+Extending Falcon
+----------------
+.. toctree::
+   :maxdepth: 2
+   :glob:
+
+   extensions/overview
+   extensions/extend_overview
+   extensions/extend_processor
+   extensions/extend_datatype
+   extensions/tools
+
+
+Building custom clients
+-----------------------
+.. toctree::
+   :maxdepth: 2
+   :glob:
+
+   ui/interaction
+   ui/create_ui
+   ui/lib_python
+
+Developer's guide
+-----------------
+
+.. toctree::
+   :maxdepth: 2
+   :glob:
+
+   internals/overview
+   internals/logging_system
+   internals/command_system
+   internals/config_system
+   internals/thread_management
+   internals/graph_system
+   internals/utilities
+
+Falcon core extension (separate repository)
+-------------------------------------------
+
+.. toctree::
+   :maxdepth: 2
+   :glob:
+
+   core_extension_doc/overview
+   core_extension_doc/datatypes
+   core_extension_doc/processors
+   core_extension_doc/hardware
+   core_extension_doc/libs
+   core_extension_doc/tools
+   core_extension_doc/example
+   core_extension_doc/ressource
+
+
+Real-time decoding extension (separate repository)
+--------------------------------------------------
+
+Falcon control client (separate repository)
+------------------------------------------
+
+.. toctree::
+   :maxdepth: 2
+   :glob:
+
+   ui/generic_control
+
+Ripple detection client (separate repository)
+---------------------------------------------
+.. toctree::
+   :maxdepth: 2
+
+   examples/ripple_detection
 
 
 Indices and tables

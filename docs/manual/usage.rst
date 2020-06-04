@@ -1,17 +1,14 @@
 .. _usage:
 
-Usage
-=====
+Launch Falcon from command line
+===============================
 
-Launch Falcon
--------------
+Command-line
+------------
 
 .. code-block:: bash
 
    falcon graph.yaml
-
-Command-line options
---------------------
 
 .. code-block:: bash
 
