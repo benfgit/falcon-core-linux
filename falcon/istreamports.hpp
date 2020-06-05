@@ -104,7 +104,7 @@ public:
     virtual ISlotOut* slot( std::size_t index ) = 0;
     virtual SlotType number_of_slots() const = 0;
 
-    virtual const AnyType::Capabilities & capabilities() const = 0;
+    virtual const typename AnyType::Capabilities & capabilities() const = 0;
     
     YAML::Node ExportYAML() const;
     

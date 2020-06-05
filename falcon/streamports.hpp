@@ -84,7 +84,7 @@ protected:
     
 public:
     StreamInfo<DATATYPE> streaminfo_; // owned by SlotOut, once finalized, the streaminfo (and datatype) are fixed for the life time of the slot(?)
-    std::unique_ptr< DataFactory<typename DATATYPE::Data> > datafactory_ = nullptr;
+    std::unique_ptr< DataFactory<DATATYPE> > datafactory_ = nullptr;
     std::unique_ptr< RingBuffer<typename DATATYPE::Data> > ringbuffer_ = nullptr;
 
 protected:
@@ -148,7 +148,7 @@ public:
       : ISlotIn(parent,address,time_out,cache), capabilities_(capabilities) {}
 	
 	// methods called by processor implementation
-    //const typename DATATYPE::Data* GetDataPrototype() const;
+    const typename DATATYPE::Data* GetDataPrototype() const;
     bool RetrieveData( typename DATATYPE::Data* & data );
     bool RetrieveDataN( uint64_t n, std::vector<typename DATATYPE::Data*> & data );
     bool RetrieveDataAll( std::vector<typename DATATYPE::Data*> & data );

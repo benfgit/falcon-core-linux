@@ -79,7 +79,7 @@ void SlotOut<DATATYPE>::CreateRingBuffer( int buffer_size, WaitStrategy wait_str
     
     // make sure buffer size is power of 2 and at least 2
     buffer_size_ = buffer_size<2 ? 2 : next_pow2( buffer_size );
-    datafactory_.reset( new DataFactory<typename DATATYPE::Data>( streaminfo_.parameters() ) );
+    datafactory_.reset( new DataFactory<DATATYPE>( streaminfo_.parameters() ) );
     try {
         ringbuffer_.reset( new RingBuffer<typename DATATYPE::Data>( datafactory_.get() , buffer_size_, ClaimStrategy::kSingleThreadedStrategy, wait_strategy ) );
     } catch (std::runtime_error & e) {
@@ -165,13 +165,13 @@ void PortOut<DATATYPE>::NewSlot(int n) {
     }
 }
 
-//template <typename DATATYPE>
-//const DATATYPE* SlotIn<DATATYPE>::GetDataPrototype() const {
-//    
-//    const typename DATATYPE::Data* data = nullptr;
-//    data = (const typename DATATYPE::Data*) upstream_->DataAt( 0 );
-//    return data;
-//}
+template <typename DATATYPE>
+const typename DATATYPE::Data* SlotIn<DATATYPE>::GetDataPrototype() const {
+    
+    const typename DATATYPE::Data* data = nullptr;
+    data = (const typename DATATYPE::Data*) upstream_->DataAt( 0 );
+    return data;
+}
 
 template <typename DATATYPE>
 void SlotIn<DATATYPE>::check_high_water_level() {

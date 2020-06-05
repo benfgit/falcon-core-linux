@@ -37,7 +37,7 @@
 
 // Factory for DATATYPE::Data items with support for post-construction initialization
 template <typename DATATYPE>
-class DataFactory : public IFactory<DATATYPE> {
+class DataFactory : public IFactory<typename DATATYPE::Data> {
 public:
     DataFactory( const typename DATATYPE::Parameters & parameters ) : parameters_( parameters ) {}
     
@@ -124,11 +124,12 @@ protected:
     bool end_of_stream_ = false;
 };
 
-};
+}
 
 class AnyType {
 public:
     static const std::string datatype() { return "any"; }
+    static const std::string dataname() { return "data"; }
 
     using Parameters = nsAnyType::Parameters;
     using Capabilities = nsAnyType::Capabilities;
