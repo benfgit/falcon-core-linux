@@ -182,34 +182,38 @@ protected: // callable by derived processors, but not others
     */
 
     template <typename T>
-    ReadableState<T>* create_static_state(
-      std::string state, T default_value, Permission peers = Permission::READ,
+    StaticState<T>* create_static_state(
+      std::string state, T default_value, bool shared = true,
       Permission external = Permission::READ, std::string description = "" ) {
-        return create_readable_shared_state(state, default_value, peers, external, description);
+        if( shared ){
+            return ((StaticState<T>*) create_readable_shared_state(state, default_value, Permission::READ, external, description));
+        }
+        else {
+            return ((StaticState<T>*) create_readable_shared_state(state, default_value, Permission::NONE, external, description));
+        }
     }
 
     template <typename T>
-    WritableState<T>* create_isolated_producer_state(
-      std::string state, T default_value, Permission external = Permission::READ, std::string description = "" ) {
-        return create_writable_shared_state(state, default_value, Permission::NONE, external, description);
+    ProducerState<T>* create_producer_state(
+      std::string state, T default_value, bool cooperative = false, Permission external = Permission::READ, std::string description = "" ) {
+        if( cooperative ){
+            return ((ProducerState<T>*) create_writable_shared_state(state, default_value, Permission::WRITE, external, description));
+        }
+        else{
+            return ((ProducerState<T>*) create_writable_shared_state(state, default_value, Permission::NONE, external, description));
+        }
     }
 
     template <typename T>
-    WritableState<T>* create_coop_producer_state(
+    BroadcasterState<T>* create_broadcaster_state(
       std::string state, T default_value, Permission external = Permission::NONE, std::string description = "" ) {
-        return create_writable_shared_state(state, default_value, Permission::WRITE, external, description);
+        return ((BroadcasterState<T>*)  create_writable_shared_state(state, default_value, Permission::READ, external, description));
     }
 
     template <typename T>
-    WritableState<T>* create_broadcaster_state(
+    FollowerState<T>* create_follower_state(
       std::string state, T default_value, Permission external = Permission::NONE, std::string description = "" ) {
-        return create_writable_shared_state(state, default_value, Permission::READ, external, description);
-    }
-
-    template <typename T>
-    ReadableState<T>* create_follower_state(
-      std::string state, T default_value, Permission external = Permission::NONE, std::string description = "" ) {
-        return create_readable_shared_state(state, default_value, Permission::WRITE, external, description);
+        return ((FollowerState<T>*) create_readable_shared_state(state, default_value, Permission::WRITE, external, description));
     }
 
     template <typename T>
