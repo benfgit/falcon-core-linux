@@ -55,7 +55,8 @@ target_link_libraries(${ZMQ} cppzmq)
 
 ## External extensions ##
 
-SET( EXTENSION_PATHS "")
+SET(EXTENSION_PATHS "")
+SET(INSTALLED_EXTENSIONS "")
 
 message(STATUS "Checking for extensions.")
 
@@ -90,6 +91,17 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/extensions.txt")
 		list(GET ext 2 ext_path)
 
 		if(ext_enabled)
+			
+			if(ext_name IN_LIST INSTALLED_EXTENSIONS)
+				message(STATUS "Skip duplicate. Extension ${ext_name} already installed")
+				continue()
+			endif()
+
+			if(ext_enabled STREQUAL "dev")
+				string(TOUPPER ${ext_name} ext_name_upper)
+				SET(FETCHCONTENT_SOURCE_DIR_${ext_name_upper} ${ext_path})
+				message(STATUS "Adding ${ext_name} in development mode.")
+			endif()
 
 			# check if optional version is given
 			if (nitems GREATER_EQUAL 4)	
@@ -100,14 +112,14 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/extensions.txt")
 					GIT_SHALLOW	ON
 					GIT_TAG ${ext_version}
 				)
-				message(STATUS "Adding extension ${ext_name} (version ${ext_version}) at ${ext_path}.")
+				message(STATUS "Declared ${ext_name} (version ${ext_version}) at ${ext_path}.")
 			else()
 				FetchContent_Declare(
 					${ext_name}
 					GIT_REPOSITORY ${ext_path}
 					GIT_SHALLOW	ON
 				)
-				message(STATUS "Adding extension ${ext_name} at ${ext_path}.")
+				message(STATUS "Declared ${ext_name} at ${ext_path}.")
 			endif()
 			
 			# populate
@@ -123,6 +135,9 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/extensions.txt")
 
 			# add to list of extensions
 			list(APPEND EXTENSION_PATHS ${${ext_name}_SOURCE_DIR})
+
+			# add to installed extensions
+			list(APPEND INSTALLED_EXTENSIONS ${ext_name})
 		
 		else()
 			message(STATUS "Extension ${ext_name} is not enabled. Skipped.")
