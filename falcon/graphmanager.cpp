@@ -34,70 +34,78 @@ void GraphManager::HandleCommand( std::string command, std::deque<std::string>& 
     
     if (command == "build") {
 
-       if (extra.size()<1) { throw std::runtime_error( "Missing YAML graph definition." ); }
+        if (extra.size()<1) { throw std::runtime_error( "Missing YAML graph definition." ); }
 
-        std::string file = global_context_->resolve_path(extra[0], "graphs");
-        try {
-            auto node = YAML::LoadFile(file);
+        YAML::Node full_definition = YAML::Load(extra[0]);
+        YAML::Node node;
+
+        if (!full_definition["definition"].IsMap()) {
+            std::string file = full_definition["definition"].as<std::string>();
+            try {
+                node = YAML::LoadFile(file);
+            } catch (YAML::BadFile& e) {
+                throw std::runtime_error( "Cannot open YAML graph definition file " + file + ". Check if file actually exists.");
+            }
+        }
+        else{
+            node = full_definition["definition"];
+        }
 
 
-            if (!node["falcon"] or !node["graph"]){throw std::runtime_error( "Not valable YAML graph definition file." ); }
-            if (!node["falcon"]["version"] or node["falcon"]["version"].as<double>() < 1.0){throw std::runtime_error( "YAML graph definition file not valable for the Falcon version 1.0."); }
+        if (!node["falcon"] or !node["graph"]){throw std::runtime_error( "Not valable YAML graph definition file." ); }
 
-            YAML::Node template_node;
-            if( !node["graph"].IsMap()){
-                std::string graph_template_path =  global_context_->resolve_path(node["graph"].as<std::string>());
+        YAML::Node template_node;
+        if( !node["graph"].IsMap()){
+             std::string graph_template_path =  global_context_->resolve_path(node["graph"].as<std::string>());
+             try{
+                template_node = YAML::LoadFile( graph_template_path );
+             } catch (YAML::BadFile& e) {
+                throw std::runtime_error( "Cannot open YAML graph template definition file "
+                       + graph_template_path + ". Check if file actually exists.");
+             }
+        }
+        else{
+             template_node = node["graph"];
+        }
+
+        if (node["options"]){
+             YAML::Node options_node;
+             if( !node["options"].IsMap()){
+                std::string graph_options_path =  global_context_->resolve_path(node["options"].as<std::string>());
+
                 try{
-                    template_node = YAML::LoadFile( graph_template_path );
+                     options_node = YAML::LoadFile( graph_options_path );
                 } catch (YAML::BadFile& e) {
-                        throw std::runtime_error( "Cannot open YAML graph template definition file "
-                            + graph_template_path + ". Check if file actually exists.");
+                     throw std::runtime_error( "Cannot open YAML graph options definition file "
+                           + graph_options_path + ". Check if file actually exists.");
                 }
+
             }
             else{
-                template_node = node["graph"];
+             options_node = node["options"];
             }
 
-            if (node["options"]){
-                YAML::Node options_node;
-                if( !node["options"].IsMap()){
-                    std::string graph_options_path =  global_context_->resolve_path(node["options"].as<std::string>());
-                    try{
-                        options_node = YAML::LoadFile( graph_options_path );
-                    } catch (YAML::BadFile& e) {
-                        throw std::runtime_error( "Cannot open YAML graph options definition file "
-                            + graph_options_path + ". Check if file actually exists.");
-                    }
-                }
-                else{
-                    options_node = node["options"];
-                }
+            for(YAML::const_iterator it=options_node.begin();it!=options_node.end();++it) {
+                  std::string processor_name = it->first.as<std::string>();
 
-                for(YAML::const_iterator it=options_node.begin();it!=options_node.end();++it) {
-                    std::string processor_name = it->first.as<std::string>();
+                  if ( !template_node["processors"][processor_name] ){throw std::runtime_error( "Mismatch between the options graph and the template graph."); }
 
-                    if ( !template_node["processors"][processor_name] ){throw std::runtime_error( "Mismatch between the options graph and the template graph."); }
-
-                    for(YAML::const_iterator options_type_it=it->second.begin();options_type_it!=it->second.end();++options_type_it) {
+                  for(YAML::const_iterator options_type_it=it->second.begin();options_type_it!=it->second.end();++options_type_it) {
 
                         for(YAML::const_iterator options_it=options_type_it->second.begin();options_it!=options_type_it->second.end();++options_it) {
                             std::string processor_option_name = options_it->first.as<std::string>();
                             template_node["processors"][processor_name][options_type_it->first.as<std::string>()][processor_option_name]  = options_it->second;
                         }
-                    }
-                }
+                  }
             }
-            graph_.Build( template_node );
+        }
+
+
+        graph_.Build( template_node );
 
             // save YAML to global_context_.resolve_path( "graphs://_last_graph" )
-            std::ofstream fout( global_context_->resolve_path( "graphs://_last_graph" ) );
-            fout << template_node;
-
-
-        } catch (YAML::BadFile& e) {
-            throw std::runtime_error( "Cannot open YAML graph definition file "
-                + file + ". Check if file actually exists.");
-        }
+        std::ofstream fout( global_context_->resolve_path( "graphs://_last_graph" ) );
+        fout << template_node;
 
     } else if (command == "destroy") {
         graph_.Destroy();
