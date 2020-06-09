@@ -156,7 +156,7 @@ int main(int argc, char** argv) {
         graph_file = context.resolve_path( graph_file, "graphs" );
         
         command.push_back("graph");
-        command.push_back("buildfile");
+        command.push_back("build");
         command.push_back(graph_file);
         
         cl.AddCommand( command );

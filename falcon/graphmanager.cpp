@@ -33,16 +33,7 @@ GraphManager::GraphManager( GlobalContext& context ) : global_context_(&context)
 void GraphManager::HandleCommand( std::string command, std::deque<std::string>& extra, std::deque<std::string>& reply ) {
     
     if (command == "build") {
-        if (extra.size()<1) { throw std::runtime_error( "Missing YAML graph definition." ); }
-        
-        auto node = YAML::Load( extra[0] );        
-        graph_.Build( node );
-        
-        // save YAML to global_context_.resolve_path( "graphs://_last_graph" )
-        std::ofstream fout( global_context_->resolve_path( "graphs://_last_graph" ) );
-        fout << extra[0];
-            
-    } else if (command == "buildfile") {
+
        if (extra.size()<1) { throw std::runtime_error( "Missing YAML graph definition." ); }
 
         std::string file = global_context_->resolve_path(extra[0], "graphs");
@@ -56,7 +47,12 @@ void GraphManager::HandleCommand( std::string command, std::deque<std::string>& 
             YAML::Node template_node;
             if( !node["graph"].IsMap()){
                 std::string graph_template_path =  global_context_->resolve_path(node["graph"].as<std::string>());
-                template_node = YAML::LoadFile( graph_template_path );
+                try{
+                    template_node = YAML::LoadFile( graph_template_path );
+                } catch (YAML::BadFile& e) {
+                        throw std::runtime_error( "Cannot open YAML graph template definition file "
+                            + graph_template_path + ". Check if file actually exists.");
+                }
             }
             else{
                 template_node = node["graph"];
@@ -66,7 +62,12 @@ void GraphManager::HandleCommand( std::string command, std::deque<std::string>& 
                 YAML::Node options_node;
                 if( !node["options"].IsMap()){
                     std::string graph_options_path =  global_context_->resolve_path(node["options"].as<std::string>());
-                    options_node = YAML::LoadFile( graph_options_path );
+                    try{
+                        options_node = YAML::LoadFile( graph_options_path );
+                    } catch (YAML::BadFile& e) {
+                        throw std::runtime_error( "Cannot open YAML graph options definition file "
+                            + graph_options_path + ". Check if file actually exists.");
+                    }
                 }
                 else{
                     options_node = node["options"];
@@ -89,18 +90,14 @@ void GraphManager::HandleCommand( std::string command, std::deque<std::string>& 
             graph_.Build( template_node );
 
             // save YAML to global_context_.resolve_path( "graphs://_last_graph" )
-            // copy file
-            std::ifstream source(file, std::ios::binary);
-            std::ofstream dest(global_context_->resolve_path( "graphs://_last_graph" ), std::ios::binary);
-            dest << source.rdbuf();
+            std::ofstream fout( global_context_->resolve_path( "graphs://_last_graph" ) );
+            fout << template_node;
 
 
         } catch (YAML::BadFile& e) {
             throw std::runtime_error( "Cannot open YAML graph definition file "
                 + file + ". Check if file actually exists.");
         }
-        
-        
 
     } else if (command == "destroy") {
         graph_.Destroy();
