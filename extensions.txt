@@ -1,1 +1,2 @@
 enable , extension name , extension path , extension version (optional)
+1 , extensions , https://bitbucket.org/kloostermannerflab/falcon-fklab-extensions

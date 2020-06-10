@@ -150,7 +150,72 @@ protected: // callable by derived processors, but not others
 
     ISlotIn* input_slot( const SlotAddress & address );
     ISlotOut* output_slot( const SlotAddress & address );
-    
+
+
+
+    /*self – peers – external
+
+    static variable: value is not changed by self or others
+    R – N – N (static variable) -> not very useful
+    R – N – R (externally observed static variable)
+    R – R – N (static shared observable)
+    R – R – R (externally observed static shared observable)
+    R – N – W (externally controlled static variable)
+    R – R – W (externally controlled shared static variable)
+    isolated producer: value is changed by self only
+    W – N – N (isolated producer) -> not very useful
+    W – N – R (externally observed isolated producer)
+    W – N – W (bi-directional channel)
+    co-operative producer: self and others change the value
+    W – W – N (co-operative producer)
+    W – W – R (externally observed co-operative producer)
+    W – W – W (externally controlled co-operative producer)
+    follower: value is changed by others, self only reads
+    R – W – N (follower)
+    R – W – R (externally observed follower)
+    R – W – W (externally controlled follower)
+    broadcaster: self changes the value, others follow
+    W – R – N (broadcaster)
+    W – R – R (externally observed broadcaster)
+    W – R – W (externally controlled broadcaster)
+
+    */
+
+    template <typename T>
+    StaticState<T>* create_static_state(
+      std::string state, T default_value, bool shared = true,
+      Permission external = Permission::READ, std::string description = "" ) {
+        if( shared ){
+            return ((StaticState<T>*) create_readable_shared_state(state, default_value, Permission::READ, external, description));
+        }
+        else {
+            return ((StaticState<T>*) create_readable_shared_state(state, default_value, Permission::NONE, external, description));
+        }
+    }
+
+    template <typename T>
+    ProducerState<T>* create_producer_state(
+      std::string state, T default_value, bool cooperative = false, Permission external = Permission::READ, std::string description = "" ) {
+        if( cooperative ){
+            return ((ProducerState<T>*) create_writable_shared_state(state, default_value, Permission::WRITE, external, description));
+        }
+        else{
+            return ((ProducerState<T>*) create_writable_shared_state(state, default_value, Permission::NONE, external, description));
+        }
+    }
+
+    template <typename T>
+    BroadcasterState<T>* create_broadcaster_state(
+      std::string state, T default_value, Permission external = Permission::NONE, std::string description = "" ) {
+        return ((BroadcasterState<T>*)  create_writable_shared_state(state, default_value, Permission::READ, external, description));
+    }
+
+    template <typename T>
+    FollowerState<T>* create_follower_state(
+      std::string state, T default_value, Permission external = Permission::NONE, std::string description = "" ) {
+        return ((FollowerState<T>*) create_readable_shared_state(state, default_value, Permission::WRITE, external, description));
+    }
+
     template <typename T>
     ReadableState<T>* create_readable_shared_state(
       std::string state, T default_value, Permission peers = Permission::WRITE,
@@ -158,9 +223,9 @@ protected: // callable by derived processors, but not others
         if (shared_states_.count( state)==1 || !is_valid_name(state)) {
             throw ProcessorInternalError( "Shared state \"" + state + "\" is invalid or already exists.", name() );
         }
-        
+
         shared_states_[state] = std::move( std::unique_ptr<IState>( (IState*) new ReadableState<T>( default_value, description, peers, external ) ) );
-        
+
         return ((ReadableState<T>*) shared_states_[state].get());
     }
     

@@ -296,6 +296,7 @@ private:
     std::shared_ptr<std::atomic<T>> state_;  // our own state, that may be shared with others
 };
 
+
 template <typename T>
 class WritableState : public ReadableState<T> {
 public:
@@ -340,6 +341,19 @@ private:
     std::shared_ptr<IState> master_;
     std::map<std::string, std::shared_ptr<IState>> dependents_;
 };
+
+template <typename T>
+using StaticState = ReadableState<T>;
+
+template <typename T>
+using FollowerState = ReadableState<T>;
+
+template <typename T>
+using ProducerState = WritableState<T>;
+
+template <typename T>
+using BroadcasterState =  WritableState<T>;
+
 
 class SharedStateMap {
 public:
