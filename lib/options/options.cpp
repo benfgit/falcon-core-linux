@@ -20,7 +20,34 @@ bool options::get_nested_yaml_node(
     return true;
 }
 
+void options::set_nested_yaml_node(
+    YAML::Node& root,
+    const std::vector<std::string>& path,
+    const YAML::Node & value) {
+    
+    YAML::Node x;
 
+    if (path.size()==0) {
+        // do nothing
+    } else if (path.size()==1) {
+        root[path[0]] = value;
+    } else {
+        x.reset(root);
+        
+        for (auto it = path.begin(); it != path.end(); ++it) {
+
+            if (std::next(it)==path.end()) {
+                x[*it] = value;
+            } else if (!x[*it]) {
+                x[*it] = YAML::Node(YAML::NodeType::Map);
+            }
+
+            x.reset(x[*it]);
+            
+        }
+    }
+
+}
 
 OptionBase::OptionBase(std::string name, ValueBase & value, std::string description, bool required)
 : name_(name), description_(description), required_(required), value_(value) {
@@ -76,6 +103,18 @@ OptionBase & OptionBase::describe(std::string description) {
     return *(this);
 }
 
+OptionBase & OptionBase::set_null() {
+    value_.set_null();
+    return *(this);
+}
+
+bool OptionBase::is_null() const {
+    return value_.is_null();
+}
+
+bool OptionBase::is_nullable() const {
+    return value_.is_nullable();
+}
 
 OptionBase& OptionList::operator[](std::string key) {
     for (auto & option : options_) {
@@ -138,6 +177,16 @@ void OptionList::from_yaml(
         // check if available in YAML node
         // treat "/" in option name special (e.g. recurse into maps)
         if (get_nested_yaml_node(node, option.path(), x)) {
+            
+            if (x.IsNull()) {
+                if (option.is_nullable()) {
+                    option.set_null();
+                    continue;
+                } else {
+                    throw std::runtime_error("Error setting option " + option.name() + ": value cannot be null");
+                }
+            }
+            
             try {
                 option.from_yaml(x);
             } catch (ConversionError & e) {
@@ -149,6 +198,7 @@ void OptionList::from_yaml(
                     throw std::runtime_error("Error setting option " + option.name() + ": " + e.what());
                 }
             }
+
         } else if (option.is_required()) {
             if (!handler || !handler(option.name(), option.is_required(), OptionError::requirement_failed, "")) {
                 throw std::runtime_error("Missing required option " + option.name() + ".");
@@ -160,44 +210,27 @@ void OptionList::from_yaml(
 YAML::Node OptionList::to_yaml(const option_error_handler & handler) const {
 
     YAML::Node root = YAML::Node(YAML::NodeType::Map);
-    YAML::Node x;
 
     for (auto & option : options_) {
-        if (option.path().size()==0) {
-            // do nothing
-        } else if (option.path().size()==1) {
+        
+        YAML::Node n;
+
+        if (!option.is_nullable() || !option.is_null()) {
+
             try {
-                root[option.path()[0]] = option.to_yaml();
+                n = option.to_yaml();
             } catch (ConversionError & e) {
                 if (handler && !handler(option.name(), option.is_required(), OptionError::conversion_to_yaml_failed, e.what())) {
                     throw std::runtime_error("Error exporting option " + option.name() + ": " + e.what());
                 }
+            } catch (SkipError & e) {
+                continue;
             } catch (...) {
                 throw std::runtime_error("Unknown error for option " + option.name());
             }
-        } else {
-            x.reset(root);
-            
-            for (auto it = option.path().begin(); it != option.path().end(); ++it) {
-
-                if (std::next(it)==option.path().end()) {
-                    try {
-                        x[*it] = option.to_yaml();
-                    } catch (ConversionError & e) {
-                        if (handler && !handler(option.name(), option.is_required(), OptionError::conversion_to_yaml_failed, e.what())) {
-                            throw std::runtime_error("Error exporting option " + option.name() + ": " + e.what());
-                        }
-                    } catch (...) {
-                        throw std::runtime_error("Unknown error for option " + option.name());
-                    }
-                } else if (!x[*it]) {
-                    x[*it] = YAML::Node(YAML::NodeType::Map);
-                }
-
-                x.reset(x[*it]);
-                
-            }
         }
+        
+        set_nested_yaml_node(root, option.path(), n);
         
     }
 

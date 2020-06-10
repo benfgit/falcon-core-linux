@@ -38,6 +38,9 @@
 #include <functional>
 #include "sharedstate.hpp"
 
+#include "options/options.hpp"
+
+
 // exception class for all processor related errors
 GRAPHERROR( ProcessorInternalError );
 GRAPHERROR( ProcessingError );
@@ -60,9 +63,17 @@ friend class graph::ProcessorGraph;
 
 public: // called by anyone
     IProcessor( ThreadPriority priority = PRIORITY_NONE ) :
-    running_(false), thread_(), 
-    has_test_flag_(false), test_flag_(false),
-    thread_priority_(priority), thread_core_(CORE_NOT_PINNED) {}
+    running_(false), thread_() 
+    {
+        // add test option
+        add_option("test", new_test_flag_);
+
+        // add advanced options
+        add_advanced_option("threadcore", thread_core_);
+        add_advanced_option("threadpriority", thread_priority_=priority);
+        add_advanced_option("buffer_sizes", requested_buffer_sizes_);
+
+    }
 
     ~IProcessor() { internal_Stop(); }
 
@@ -83,8 +94,8 @@ public: // called by anyone
     virtual bool isfilter() const { return (!issource() && !issink()); }
     virtual bool isautonomous() const { return (issource() && issink()); }
     
-    ThreadPriority thread_priority() const { return thread_priority_; }
-    ThreadCore thread_core() const { return thread_core_; }
+    ThreadPriority thread_priority() const { return thread_priority_(); }
+    ThreadCore thread_core() const { return thread_core_(); }
     
     bool running() const { return running_.load(); };
    
@@ -103,6 +114,13 @@ protected: // need to be removed??
     void save_source_timestamps_to_disk( std::uint64_t n_timestamps );
 
 protected: // callable by derived processors, but not others
+    
+    template <typename TValue>
+    void add_option(std::string name, TValue & value, std::string description="", bool required=false) {
+        options_.add(name, value, description, required);
+    }
+
+    void remove_option(std::string name);
 
     template <typename DATATYPE>
     PortOut<DATATYPE>* create_output_port( std::string name,
@@ -309,6 +327,11 @@ private: // callable internally only
         type_ = type;
     }
 
+    template <typename TValue>
+    void add_advanced_option(std::string name, TValue & value, std::string description="", bool required=false) {
+        advanced_options_.add(name, value, description, required);
+    }
+
 private: // member variables
     std::string name_;
     std::string type_;
@@ -325,14 +348,15 @@ private: // member variables
     std::atomic<bool> running_;
             
     std::thread thread_;
-    
-    std::atomic<bool> has_test_flag_;
-    std::atomic<bool> test_flag_;
-    
-    ThreadPriority thread_priority_;
-    ThreadCore thread_core_;
-    
-    std::map<std::string, int> requested_buffer_sizes_;
+
+    options::ConstrainedValue<ThreadPriority> thread_priority_{PRIORITY_NONE, PRIORITY_HIGH, PRIORITY_NONE};
+    options::ConstrainedValue<ThreadCore> thread_core_{CORE_NOT_PINNED, (ThreadCore) sysconf(_SC_NPROCESSORS_ONLN)-1, CORE_NOT_PINNED};
+    options::NullableBool new_test_flag_;
+    options::Value<std::map<std::string,int>> requested_buffer_sizes_{};
+
+protected:
+    options::OptionList options_;
+    options::OptionList advanced_options_;
 
 };
 

@@ -40,16 +40,38 @@ enum class OptionError {
     requirement_failed
     };
 
+class SkipError : public std::runtime_error {
+public:
+    SkipError( std::string msg = "" ) : std::runtime_error( msg ) {}
+};
+
 bool get_nested_yaml_node(
     const YAML::Node& root,
     const std::vector<std::string>& path,
     YAML::Node & out);
+
+void set_nested_yaml_node(
+    YAML::Node& root,
+    const std::vector<std::string>& path,
+    const YAML::Node & value);
 
 
 class OptionBase {
 public:
 
     OptionBase(std::string name, ValueBase & value, std::string description="", bool required=false);
+
+    OptionBase(const OptionBase & other)
+    : OptionBase(other.name_, other.value_, other.description_, other.required_) {}
+
+    OptionBase& operator=(const options::OptionBase& other) {
+        name_ = other.name_;
+        path_ = other.path_;
+        description_ = other.description_;
+        value_ = other.value_;
+        required_ = other.required_;
+        return *this;
+    }
 
     std::string name() const;
 
@@ -69,6 +91,12 @@ public:
 
     OptionBase & describe(std::string description);
 
+    OptionBase & set_null();
+    
+    bool is_null() const;
+
+    bool is_nullable() const;
+
 protected:
     std::string name_;
     std::string description_;
@@ -77,13 +105,16 @@ protected:
     ValueBase & value_;
 };
 
+
 template <typename T>
 class Option : public OptionBase {
+
+static_assert(std::is_base_of<ValueBase,T>::value, "Option requires a Value derived from ValueBase.");
+
 public:
 
     Option(std::string name, T & value, std::string description="", bool required=false)
     : OptionBase(name, value, description, required) {}
-
 
     Option<T> & init(const typename T::ValueType & value) {
         static_cast<T&>(this->value_).set_value(value);
@@ -111,6 +142,10 @@ public:
 
     Option<T> & describe(std::string description) {
         return static_cast<Option<T>&>(OptionBase::describe(description));
+    }
+
+    Option<T> & set_null() {
+        return static_cast<Option<T>&>(OptionBase::set_null());
     }
 
     const typename T::ValueType & get_value() const {

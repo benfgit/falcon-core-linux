@@ -75,6 +75,10 @@ YAML::Node IProcessor::ExportYAML() {
     return node;
 }
 
+void IProcessor::remove_option(std::string name) {
+    options_.remove(name);
+}
+
 IPortIn* IProcessor::input_port( const PortAddress & address ) {
     return input_port( address.port() );
 }
@@ -119,23 +123,22 @@ void IProcessor::CompleteStreamInfo() {
 
 void IProcessor::internal_Configure( const YAML::Node& node, const GlobalContext& context ) {
     
-    if ( node["options"] ) {
-        
-        if (node["options"]["test"]) {
-            has_test_flag_ = true;
-            test_flag_ = node["options"]["test"].as<bool>();
-        }
+    YAML::Node empty_node(YAML::NodeType::Map);
+
+    if (!node["options"]) {
+        // to trigger check of required options
+        options_.from_yaml(empty_node);
+    } else {
+        options_.from_yaml(node["options"]);
     }
 
-    if (node["advanced"]) {
-        thread_priority_ = node["advanced"]["threadpriority"].as<ThreadPriority>( thread_priority_ );
-        thread_core_ = node["advanced"]["threadcore"].as<ThreadCore>( thread_core_ );
-
-        if (node["advanced"]["buffer_sizes"]) {
-            requested_buffer_sizes_ = node["advanced"]["buffer_sizes"].as<std::map<std::string,int>>( );
-        }
+    if (!node["advanced"]) {
+        // to trigger check of required options
+        advanced_options_.from_yaml(empty_node);
+    } else {
+        advanced_options_.from_yaml(node["advanced"]);
     }
-    
+
     Configure( node["options"], context );
 
 }
@@ -144,7 +147,10 @@ void IProcessor::internal_CreatePorts( ) {
 
     CreatePorts();
     // set requested buffer sizes
-    for ( auto & it : requested_buffer_sizes_ ) {
+
+    if (requested_buffer_sizes_.is_null()) {return;}
+
+    for ( auto & it : requested_buffer_sizes_() ) {
         if (!has_output_port( it.first ) || it.second<2) {
             LOG(WARNING) << "Could not set ringbuffer size to " << it.second << " for port " << name() << "." << it.first;
         } else {
@@ -295,7 +301,8 @@ void IProcessor::internal_ThreadEntry( RunContext& runcontext ) {
     
     LOG(DEBUG) << "Entering thread for processor " << name_;
     
-    ProcessingContext context( runcontext, name_, has_test_flag_.load() ? test_flag_.load() : runcontext.test() );
+    //ProcessingContext context( runcontext, name_, has_test_flag_.load() ? test_flag_.load() : runcontext.test() );
+    ProcessingContext context( runcontext, name_, new_test_flag_.is_null() ? runcontext.test() : new_test_flag_() );
     
     LOG(DEBUG) << name_ << ": processor test flag set to " << context.test();
     
@@ -351,18 +358,18 @@ void IProcessor::internal_Start(RunContext& runcontext) {
         
         thread_ = std::thread( &IProcessor::internal_ThreadEntry, this, std::ref(runcontext) );
         
-        if (!set_realtime_priority( thread_.native_handle(), thread_priority_)) {
+        if (!set_realtime_priority( thread_.native_handle(), thread_priority())) {
             LOG(WARNING) << "Unable to set thread priority for " << name_;
-        } else if (thread_priority_>=PRIORITY_LOW) {
-            LOG(INFO) << "Successfully set thread priority for " << name_ << " to " << thread_priority_ << "%.";
+        } else if (thread_priority()>=PRIORITY_LOW) {
+            LOG(INFO) << "Successfully set thread priority for " << name_ << " to " << thread_priority() << "%.";
         }
         
-        if (!set_thread_core( thread_.native_handle(), thread_core_)) {
+        if (!set_thread_core( thread_.native_handle(), thread_core())) {
             LOG(WARNING) << "Unable to pin thread for " << name_ << " to core "
-                << thread_core_;
-        } else if (thread_core_>=0) {
+                << thread_core();
+        } else if (thread_core()>=0) {
             LOG(INFO) << "Successfully pinned thread for " << name_ << " to core "
-                << thread_core_ << ".";
+                << thread_core() << ".";
         }
         
     }
