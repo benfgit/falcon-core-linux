@@ -47,12 +47,12 @@ private:
     std::thread thread_;
     
     void Run();
-    
     bool terminate_ = false;
     GlobalContext* global_context_;
     
     void HandleCommand( std::string command, std::deque<std::string>& extra, std::deque<std::string>& reply );
-    
+    YAML::Node ParseNewGraph(YAML::Node node);
+
     ProcessorGraph graph_;
     
 };

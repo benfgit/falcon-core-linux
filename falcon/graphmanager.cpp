@@ -51,10 +51,75 @@ void GraphManager::HandleCommand( std::string command, std::deque<std::string>& 
             node = full_definition["definition"];
         }
 
+        YAML::Node graph_node;
 
-        if (!node["falcon"] or !node["graph"]){throw std::runtime_error( "Not valable YAML graph definition file." ); }
+        if (node["graph"]){
+            if (node["processors"]){
+                LOG(WARNING) << "Detection of a mixed graph version - "
+                                "processors, connections, states top level description will be ignored to keep only "
+                                "the graph description.\n";
+            }
+            if (node["falcon"]){graph_node["falcon"] = node["falcon"]; }
+            graph_node["graph"] = ParseNewGraph(node);
+        }
+        else if (node["processors"] ){
+            LOG(WARNING) << "The graph definition seems to follow the old format. "
+                            "Consider to update it to follow the new format - see here (add later link to the description)\n";
+            graph_node["graph"] = node;
+        }
+        else {throw std::runtime_error( "Invalid graph description.");}
 
-        YAML::Node template_node;
+        graph_.Build( graph_node["graph"] );
+
+        // save YAML to global_context_.resolve_path( "graphs://_last_graph" )
+        std::ofstream fout( global_context_->resolve_path( "graphs://_last_graph" ) );
+        fout << graph_node;
+
+    } else if (command == "destroy") {
+        graph_.Destroy();
+    } else if (command == "start" || command == "test") {
+        std::string run_env = extra.size()>0 ? extra[0] : "";
+        std::string destination = extra.size()>1 ? extra[1] : "";
+        std::string source = extra.size()>2 ? extra[2] : "";
+        graph_.StartProcessing( run_env, destination, source, command=="test" || global_context_->test() );
+    } else if (command == "stop") {
+        graph_.StopProcessing();
+    } else if (command == "state") {
+        reply.push_back( graph_.state_string() );
+    } else if (command == "update") {
+        if (extra.size()>0) { 
+            YAML::Node node = YAML::Load( extra[0] );
+            graph_.Update( node );
+            YAML::Emitter out;
+            out << node;
+            reply.push_back(std::string( out.c_str() ));
+        }
+    } else if (command == "retrieve") {
+        if (extra.size()>0) {
+            YAML::Node node = YAML::Load( extra[0] );
+            graph_.Retrieve( node );
+            YAML::Emitter out;
+            out << node;
+            reply.push_back(std::string( out.c_str() ));
+        }
+    } else if (command == "apply") {
+        if (extra.size()>0) {
+            YAML::Node node = YAML::Load( extra[0] );
+            graph_.Apply( node );
+            YAML::Emitter out;
+            out << node;
+            reply.push_back(std::string( out.c_str() ));
+        }
+    } else if (command == "yaml") {
+        reply.push_back( graph_.ExportYAML() );
+    } else {
+        throw std::runtime_error( "Unknown graph command \"" + command + "\"." );
+    }
+    
+}
+
+YAML::Node GraphManager::ParseNewGraph(YAML::Node node){
+    YAML::Node template_node;
         if( !node["graph"].IsMap()){
              std::string graph_template_path =  global_context_->resolve_path(node["graph"].as<std::string>());
              try{
@@ -99,56 +164,9 @@ void GraphManager::HandleCommand( std::string command, std::deque<std::string>& 
                   }
             }
         }
-
-
-        graph_.Build( template_node );
-
-            // save YAML to global_context_.resolve_path( "graphs://_last_graph" )
-        std::ofstream fout( global_context_->resolve_path( "graphs://_last_graph" ) );
-        fout << template_node;
-
-    } else if (command == "destroy") {
-        graph_.Destroy();
-    } else if (command == "start" || command == "test") {
-        std::string run_env = extra.size()>0 ? extra[0] : "";
-        std::string destination = extra.size()>1 ? extra[1] : "";
-        std::string source = extra.size()>2 ? extra[2] : "";
-        graph_.StartProcessing( run_env, destination, source, command=="test" || global_context_->test() );
-    } else if (command == "stop") {
-        graph_.StopProcessing();
-    } else if (command == "state") {
-        reply.push_back( graph_.state_string() );
-    } else if (command == "update") {
-        if (extra.size()>0) { 
-            YAML::Node node = YAML::Load( extra[0] );
-            graph_.Update( node );
-            YAML::Emitter out;
-            out << node;
-            reply.push_back(std::string( out.c_str() ));
-        }
-    } else if (command == "retrieve") {
-        if (extra.size()>0) {
-            YAML::Node node = YAML::Load( extra[0] );
-            graph_.Retrieve( node );
-            YAML::Emitter out;
-            out << node;
-            reply.push_back(std::string( out.c_str() ));
-        }
-    } else if (command == "apply") {
-        if (extra.size()>0) {
-            YAML::Node node = YAML::Load( extra[0] );
-            graph_.Apply( node );
-            YAML::Emitter out;
-            out << node;
-            reply.push_back(std::string( out.c_str() ));
-        }
-    } else if (command == "yaml") {
-        reply.push_back( graph_.ExportYAML() );
-    } else {
-        throw std::runtime_error( "Unknown graph command \"" + command + "\"." );
-    }
-    
+    return template_node;
 }
+
 
 void GraphManager::Run() {
     
