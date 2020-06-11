@@ -55,8 +55,8 @@ public:
       : ISlotOut(parent, address), streaminfo_(parameters), ringbuffer_serial_number_(0) {}
     
     // public interface
-    DATATYPE* ClaimData( bool clear );
-    std::vector<DATATYPE*> ClaimDataN( uint64_t n, bool clear );
+    typename DATATYPE::Data* ClaimData( bool clear );
+    std::vector<typename DATATYPE::Data*> ClaimDataN( uint64_t n, bool clear );
     void PublishData();
     
     virtual StreamInfo<DATATYPE>& streaminfo() { return streaminfo_; }
@@ -65,7 +65,7 @@ public:
     
 protected:
 	// called by SlotIn<DATATYPE>
-    virtual DATATYPE* DataAt( int64_t sequence ) const { return ringbuffer_->Get( sequence ); }
+    virtual typename DATATYPE::Data* DataAt( int64_t sequence ) const { return ringbuffer_->Get( sequence ); }
     
     void CreateRingBuffer(int buffer_size, WaitStrategy wait_strategy);
     void Unlock();
@@ -85,7 +85,7 @@ protected:
 public:
     StreamInfo<DATATYPE> streaminfo_; // owned by SlotOut, once finalized, the streaminfo (and datatype) are fixed for the life time of the slot(?)
     std::unique_ptr< DataFactory<DATATYPE> > datafactory_ = nullptr;
-    std::unique_ptr< RingBuffer<DATATYPE> > ringbuffer_ = nullptr;
+    std::unique_ptr< RingBuffer<typename DATATYPE::Data> > ringbuffer_ = nullptr;
 
 protected:
     uint64_t ringbuffer_serial_number_;
@@ -148,10 +148,10 @@ public:
       : ISlotIn(parent,address,time_out,cache), capabilities_(capabilities) {}
 	
 	// methods called by processor implementation
-    const DATATYPE* GetDataPrototype() const;
-    bool RetrieveData( DATATYPE* & data );
-    bool RetrieveDataN( uint64_t n, std::vector<DATATYPE*> & data );
-    bool RetrieveDataAll( std::vector<DATATYPE*> & data );
+    const typename DATATYPE::Data* GetDataPrototype() const;
+    bool RetrieveData( typename DATATYPE::Data* & data );
+    bool RetrieveDataN( uint64_t n, std::vector<typename DATATYPE::Data*> & data );
+    bool RetrieveDataAll( std::vector<typename DATATYPE::Data*> & data );
     
     const StreamInfo<DATATYPE>& streaminfo() {
         if (!connected()) {
@@ -183,7 +183,7 @@ protected:
     typename DATATYPE::Capabilities capabilities_;
     
 public:
-    DATATYPE* cache_;
+    typename DATATYPE::Data* cache_;
 };
 
 template <typename DATATYPE>

@@ -19,63 +19,65 @@
 
 #include "idata.hpp"
 
-bool IData::eos() const {
+using namespace nsAnyType;
+
+bool Data::eos() const {
     
     return end_of_stream_;
 }
 
-void IData::set_eos( bool value ) {
+void Data::set_eos( bool value ) {
     
     end_of_stream_ = value;
 }
 
-void IData::clear_eos() {
+void Data::clear_eos() {
     
     end_of_stream_ = false;
 }
 
-void IData::set_serial_number( uint64_t n ) {
+void Data::set_serial_number( uint64_t n ) {
     
     serial_number_ = n;
 }
 
-uint64_t IData::serial_number() const {
+uint64_t Data::serial_number() const {
     
     return serial_number_;
 }
 
-void IData::set_source_timestamp( ) {
+void Data::set_source_timestamp( ) {
     
     source_timestamp_ = Clock::now();
 }
 
-void IData::set_source_timestamp( TimePoint t ) {
+void Data::set_source_timestamp( TimePoint t ) {
     
     source_timestamp_ = t;
 }
 
-TimePoint IData::source_timestamp() const {
+TimePoint Data::source_timestamp() const {
     
     return source_timestamp_;
 }
 
-uint64_t IData::hardware_timestamp() const {
+uint64_t Data::hardware_timestamp() const {
     
     return hardware_timestamp_;
 }
 
-void IData::set_hardware_timestamp( uint64_t t ) {
+void Data::set_hardware_timestamp( uint64_t t ) {
     
     hardware_timestamp_ = t;
 }
 
-void IData::CloneTimestamps( const IData& data ) {
+void Data::CloneTimestamps( const Data& data ) {
 
     source_timestamp_ = data.source_timestamp_;
     hardware_timestamp_ = data.hardware_timestamp_;
 }
 	
-void IData::SerializeBinary( std::ostream& stream, Serialization::Format format ) const {
+void Data::SerializeBinary( std::ostream& stream, Serialization::Format format ) const {
     
     if (format == Serialization::Format::FULL || format == Serialization::Format::HEADERONLY) {
         uint64_t t = std::chrono::duration_cast<std::chrono::microseconds>( source_timestamp_.time_since_epoch()).count();
@@ -85,7 +87,7 @@ void IData::SerializeBinary( std::ostream& stream, Serialization::Format format 
     }
 }
 
-void IData::SerializeYAML( YAML::Node & node, Serialization::Format format ) const {
+void Data::SerializeYAML( YAML::Node & node, Serialization::Format format ) const {
     
     // FULL, HEADERONLY : add timestamps
     // otherwise: do nothing
@@ -96,7 +98,7 @@ void IData::SerializeYAML( YAML::Node & node, Serialization::Format format ) con
     }
 }
 
-void IData::YAMLDescription( YAML::Node & node, Serialization::Format format ) const {
+void Data::YAMLDescription( YAML::Node & node, Serialization::Format format ) const {
     
     // FULL, HEADERONLY : add timestamps
     // otherwise: do nothing

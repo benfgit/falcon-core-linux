@@ -28,26 +28,26 @@ inline uint64_t SlotOut<DATATYPE>::nitems_produced() const {
 }
 
 template <typename DATATYPE>
-inline DATATYPE* SlotOut<DATATYPE>::ClaimData( bool clear ) {
+inline typename DATATYPE::Data* SlotOut<DATATYPE>::ClaimData( bool clear ) {
     
     next_batch(1);
     has_publishable_data_ = true;
-    DATATYPE* data = ringbuffer_->Get( ring_batch_.Start() );
+    typename DATATYPE::Data* data = ringbuffer_->Get( ring_batch_.Start() );
     if (clear) { data->ClearData(); }
     data->set_serial_number( ringbuffer_serial_number_++ );
     return data;
 }
 
 template <typename DATATYPE>
-inline std::vector<DATATYPE*> SlotOut<DATATYPE>::ClaimDataN( uint64_t n , bool clear) {
+inline std::vector<typename DATATYPE::Data*> SlotOut<DATATYPE>::ClaimDataN( uint64_t n , bool clear) {
     
-    std::vector<DATATYPE*> data;
+    std::vector<typename DATATYPE::Data*> data;
     
     next_batch( n );
     int64_t start = ring_batch_.Start();
     
     for (int64_t k=start; k<=ring_batch_.end(); k++) {
-        data.push_back( (DATATYPE*) ringbuffer_->Get( k ) );
+        data.push_back( (typename DATATYPE::Data*) ringbuffer_->Get( k ) );
     }
     
     if (clear) {
@@ -81,7 +81,7 @@ void SlotOut<DATATYPE>::CreateRingBuffer( int buffer_size, WaitStrategy wait_str
     buffer_size_ = buffer_size<2 ? 2 : next_pow2( buffer_size );
     datafactory_.reset( new DataFactory<DATATYPE>( streaminfo_.parameters() ) );
     try {
-        ringbuffer_.reset( new RingBuffer<DATATYPE>( datafactory_.get() , buffer_size_, ClaimStrategy::kSingleThreadedStrategy, wait_strategy ) );
+        ringbuffer_.reset( new RingBuffer<typename DATATYPE::Data>( datafactory_.get() , buffer_size_, ClaimStrategy::kSingleThreadedStrategy, wait_strategy ) );
     } catch (std::runtime_error & e) {
         throw;
     }
@@ -166,10 +166,10 @@ void PortOut<DATATYPE>::NewSlot(int n) {
 }
 
 template <typename DATATYPE>
-const DATATYPE* SlotIn<DATATYPE>::GetDataPrototype() const {
+const typename DATATYPE::Data* SlotIn<DATATYPE>::GetDataPrototype() const {
     
-    const DATATYPE* data = nullptr;
-    data = (const DATATYPE*) upstream_->DataAt( 0 );
+    const typename DATATYPE::Data* data = nullptr;
+    data = (const typename DATATYPE::Data*) upstream_->DataAt( 0 );
     return data;
 }
 
@@ -185,7 +185,7 @@ void SlotIn<DATATYPE>::check_high_water_level() {
 }
 
 template <typename DATATYPE>
-bool SlotIn<DATATYPE>::RetrieveData( DATATYPE* & data ) {
+bool SlotIn<DATATYPE>::RetrieveData( typename DATATYPE::Data* & data ) {
     
     data = nullptr;
     status_.read = status_.backlog = 0;
@@ -203,7 +203,7 @@ bool SlotIn<DATATYPE>::RetrieveData( DATATYPE* & data ) {
             if (available_sequence==INT64_MAX) {
                 status_.alive = false;
             } else {
-                data = (DATATYPE*) upstream_->DataAt( requested_sequence );
+                data = (typename DATATYPE::Data*) upstream_->DataAt( requested_sequence );
                 ++nretrieved_;
                 status_.read = 1;
                 status_.backlog = available_sequence - requested_sequence;
@@ -218,7 +218,7 @@ bool SlotIn<DATATYPE>::RetrieveData( DATATYPE* & data ) {
                 status_.alive = false;
             } else {
                 
-                data = (DATATYPE*) upstream_->DataAt( requested_sequence );
+                data = (typename DATATYPE::Data*) upstream_->DataAt( requested_sequence );
                 ++nretrieved_;
                 status_.read = 1;
                 status_.backlog = available_sequence - requested_sequence;
@@ -243,7 +243,7 @@ bool SlotIn<DATATYPE>::RetrieveData( DATATYPE* & data ) {
 }
 
 template <typename DATATYPE>
-bool SlotIn<DATATYPE>::RetrieveDataN( uint64_t n, std::vector<DATATYPE*> & data ) {
+bool SlotIn<DATATYPE>::RetrieveDataN( uint64_t n, std::vector<typename DATATYPE::Data*> & data ) {
     
     // will only cache last value, but does not return cached values when timed out if n>1
     
@@ -265,7 +265,7 @@ bool SlotIn<DATATYPE>::RetrieveDataN( uint64_t n, std::vector<DATATYPE*> & data 
                 status_.alive = false;
             } else {
                 for (int64_t k=current_sequence+1; k<=requested_sequence; k++) {
-                    data.push_back( (DATATYPE*) upstream_->DataAt( k ) );
+                    data.push_back( (typename DATATYPE::Data*) upstream_->DataAt( k ) );
                     ++nretrieved_;
                     ++status_.read;
                 }
@@ -282,7 +282,7 @@ bool SlotIn<DATATYPE>::RetrieveDataN( uint64_t n, std::vector<DATATYPE*> & data 
             } else {
                 
                 for (int64_t k=current_sequence+1; k<=requested_sequence; k++) {
-                    data.push_back( (DATATYPE*) upstream_->DataAt( k ) );
+                    data.push_back( (typename DATATYPE::Data*) upstream_->DataAt( k ) );
                     ++nretrieved_;
                     ++status_.read;
                 }
@@ -306,7 +306,7 @@ bool SlotIn<DATATYPE>::RetrieveDataN( uint64_t n, std::vector<DATATYPE*> & data 
 }
 
 template <typename DATATYPE>
-bool SlotIn<DATATYPE>::RetrieveDataAll( std::vector<DATATYPE*> & data ) {
+bool SlotIn<DATATYPE>::RetrieveDataAll( std::vector<typename DATATYPE::Data*> & data ) {
     
     // supports single item caching
       
@@ -328,7 +328,7 @@ bool SlotIn<DATATYPE>::RetrieveDataAll( std::vector<DATATYPE*> & data ) {
                 status_.alive = false;
             } else {
                 for (int64_t k=current_sequence+1; k<=available_sequence; k++) {    
-                    data.push_back( (DATATYPE*) upstream_->DataAt( k ) );
+                    data.push_back( (typename DATATYPE::Data*) upstream_->DataAt( k ) );
                     ++nretrieved_;
                     ++status_.read;
                 }
@@ -343,7 +343,7 @@ bool SlotIn<DATATYPE>::RetrieveDataAll( std::vector<DATATYPE*> & data ) {
             } else {
                 
                 for (int64_t k=current_sequence+1; k<=available_sequence; k++) {
-                    data.push_back( (DATATYPE*) upstream_->DataAt( k ) );
+                    data.push_back( (typename DATATYPE::Data*) upstream_->DataAt( k ) );
                     ++nretrieved_;
                     ++status_.read;
                 }

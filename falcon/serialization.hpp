@@ -22,9 +22,6 @@
 
 #include <string>
 
-// forward declaration
-class IData;
-
 namespace Serialization {
 
 static const uint8_t VERSION = 1;

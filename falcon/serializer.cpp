@@ -42,7 +42,7 @@ std::string Serializer::extension() const {
     return extension_;
 }
 
-YAML::Node Serialization::Serializer::DataDescription( const IData* data ) const {
+YAML::Node Serialization::Serializer::DataDescription( const typename AnyType::Data* data ) const {
     
     YAML::Node node;
     
@@ -59,7 +59,7 @@ YAML::Node Serialization::Serializer::DataDescription( const IData* data ) const
 }
 
 
-bool Serialization::BinarySerializer::Serialize( std::ostream & stream, IData* data, uint16_t streamid, uint64_t packetid ) const {
+bool Serialization::BinarySerializer::Serialize( std::ostream & stream, typename AnyType::Data* data, uint16_t streamid, uint64_t packetid ) const {
     
     if (format_ == Serialization::Format::NONE) { return true; }
     
@@ -75,7 +75,7 @@ bool Serialization::BinarySerializer::Serialize( std::ostream & stream, IData* d
 }
 
 
-bool Serialization::YAMLSerializer::Serialize( std::ostream & stream, IData* data, uint16_t streamid, uint64_t packetid ) const {
+bool Serialization::YAMLSerializer::Serialize( std::ostream & stream, typename AnyType::Data* data, uint16_t streamid, uint64_t packetid ) const {
     
     if (format_ == Serialization::Format::NONE) { return true; }
     
