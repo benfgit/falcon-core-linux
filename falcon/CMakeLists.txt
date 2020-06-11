@@ -20,17 +20,16 @@ add_definitions(-DG2_DYNAMIC_LOGGING)
 
 # list of source files
 file(GLOB sources *.cpp)
-
+include_directories( "../resources" )
 include_directories( "../lib" )
 include_directories(".")
-include_directories("../resources")
 
 
-Set( RESOURCES_PATH "$HOME/.falcon" CACHE STRING "")
+Set( RESOURCES_PATH ${rootproject_BINARY_DIR} CACHE STRING "")
 mark_as_advanced( RESOURCES_PATH )
 configure_file(configuration.hpp configuration.hpp)
 
-file(COPY "../resources" DESTINATION ${RESOURCES_PATH})
+
 
 
 set( DATATYPE_LIBS )
@@ -167,21 +166,6 @@ if (COMPILE_EXTENSIONS)
       math(EXPR ITER "${ITER} + 1")
       
     endforeach()
-
-
-    # add all resources
-    SET( ITER 0 )
-    foreach( FALCON_PATH ${REAL_FALCON_PATHS} )
-        SUBDIRLIST( RESOURCES "${FALCON_PATH}/resources" )
-        MESSAGE("Copy resources files from ${FALCON_PATH} in ${RESOURCES_PATH}/resources")
-        foreach( RESOURCE ${RESOURCES} )
-            # list of source files
-            file(GLOB FILES ${FALCON_PATH}/resources/${RESOURCE}/*)
-            foreach( FILE ${FILES} )
-                file(COPY ${FILES} DESTINATION ${RESOURCES_PATH}/resources/${RESOURCE})
-            endforeach()
-        endforeach()
-    endforeach()
     
 endif()
 
@@ -197,3 +181,24 @@ SET (WHOLELIBS -Wl,--whole-archive utilities disruptor ${DATATYPE_LIBS} ${PROCES
 target_link_libraries (falcon ${WHOLELIBS} )
 
 install(TARGETS falcon RUNTIME DESTINATION bin)
+
+# add all resources
+MESSAGE("install files from  ${FALCON_PATH}/resources in  ${RESOURCES_PATH}")
+ADD_CUSTOM_COMMAND(TARGET falcon
+          POST_BUILD
+          COMMAND cp -r ${rootproject_SOURCE_DIR}/resources ${RESOURCES_PATH}
+        )
+
+if (COMPILE_EXTENSIONS)
+    foreach( FALCON_PATH ${REAL_FALCON_PATHS} )
+            SUBDIRLIST( RESOURCES "${FALCON_PATH}/resources" )
+
+            foreach( RESOURCE ${RESOURCES} )
+                    MESSAGE("install files from  ${FALCON_PATH}/resources/${RESOURCE} in  ${RESOURCES_PATH}/resources")
+                    ADD_CUSTOM_COMMAND(TARGET falcon
+                      POST_BUILD
+                      COMMAND cp -r ${FALCON_PATH}/resources/${RESOURCE} ${RESOURCES_PATH}/resources
+                    )
+            endforeach()
+    endforeach()
+endif()
