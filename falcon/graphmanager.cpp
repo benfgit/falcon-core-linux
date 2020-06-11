@@ -35,45 +35,31 @@ void GraphManager::HandleCommand( std::string command, std::deque<std::string>& 
     if (command == "build") {
 
         if (extra.size()<1) { throw std::runtime_error( "Missing YAML graph definition." ); }
+        YAML::Node node = YAML::Load(extra[0]);
 
-        YAML::Node full_definition = YAML::Load(extra[0]);
-        YAML::Node node;
-
-        if (!full_definition["definition"].IsMap()) {
-            std::string file = full_definition["definition"].as<std::string>();
+        if (!node.IsMap()) {
+            std::string file = node.as<std::string>();
             try {
                 node = YAML::LoadFile(file);
             } catch (YAML::BadFile& e) {
                 throw std::runtime_error( "Cannot open YAML graph definition file " + file + ". Check if file actually exists.");
             }
         }
-        else{
-            node = full_definition["definition"];
-        }
-
-        YAML::Node graph_node;
 
         if (node["graph"]){
-            if (node["processors"]){
-                LOG(WARNING) << "Detection of a mixed graph version - "
-                                "processors, connections, states top level description will be ignored to keep only "
-                                "the graph description.\n";
-            }
-            if (node["falcon"]){graph_node["falcon"] = node["falcon"]; }
-            graph_node["graph"] = ParseNewGraph(node);
+            ParseNewGraph(node);
+            graph_.Build( node["graph"] );
         }
         else if (node["processors"] ){
             LOG(WARNING) << "The graph definition seems to follow the old format. "
-                            "Consider to update it to follow the new format - see here (add later link to the description)\n";
-            graph_node["graph"] = node;
+                            "Consider updating to the new-style graph definition - see ... (add later link to the description)\n";
+            graph_.Build( node );
         }
         else {throw std::runtime_error( "Invalid graph description.");}
 
-        graph_.Build( graph_node["graph"] );
-
         // save YAML to global_context_.resolve_path( "graphs://_last_graph" )
         std::ofstream fout( global_context_->resolve_path( "graphs://_last_graph" ) );
-        fout << graph_node;
+        fout << node;
 
     } else if (command == "destroy") {
         graph_.Destroy();
@@ -118,22 +104,24 @@ void GraphManager::HandleCommand( std::string command, std::deque<std::string>& 
     
 }
 
-YAML::Node GraphManager::ParseNewGraph(YAML::Node node){
-    YAML::Node template_node;
-        if( !node["graph"].IsMap()){
+void GraphManager::ParseNewGraph(YAML::Node& node){
+    if (node["processors"]){
+        LOG(WARNING) << "Detected mixed use of old and new style graph definition."
+                        " Only the new style graph definition will be used and top-level processors, connections"
+                        " and states maps will be ignored.\n";
+        }
+
+    if( !node["graph"].IsMap()){
              std::string graph_template_path =  global_context_->resolve_path(node["graph"].as<std::string>());
              try{
-                template_node = YAML::LoadFile( graph_template_path );
+                node["graph"] = YAML::LoadFile( graph_template_path );
              } catch (YAML::BadFile& e) {
                 throw std::runtime_error( "Cannot open YAML graph template definition file "
                        + graph_template_path + ". Check if file actually exists.");
              }
-        }
-        else{
-             template_node = node["graph"];
-        }
+    }
 
-        if (node["options"]){
+    if (node["options"]){
              YAML::Node options_node;
              if( !node["options"].IsMap()){
                 std::string graph_options_path =  global_context_->resolve_path(node["options"].as<std::string>());
@@ -153,18 +141,18 @@ YAML::Node GraphManager::ParseNewGraph(YAML::Node node){
             for(YAML::const_iterator it=options_node.begin();it!=options_node.end();++it) {
                   std::string processor_name = it->first.as<std::string>();
 
-                  if ( !template_node["processors"][processor_name] ){throw std::runtime_error( "Mismatch between the options graph and the template graph."); }
+                  if ( !node["graph"]["processors"][processor_name] ){throw std::runtime_error( "Mismatch between the options graph and the template graph."); }
 
                   for(YAML::const_iterator options_type_it=it->second.begin();options_type_it!=it->second.end();++options_type_it) {
 
                         for(YAML::const_iterator options_it=options_type_it->second.begin();options_it!=options_type_it->second.end();++options_it) {
                             std::string processor_option_name = options_it->first.as<std::string>();
-                            template_node["processors"][processor_name][options_type_it->first.as<std::string>()][processor_option_name]  = options_it->second;
+                            node["graph"]["processors"][processor_name][options_type_it->first.as<std::string>()][processor_option_name]  = options_it->second;
                         }
                   }
             }
-        }
-    return template_node;
+    }
+    LOG(INFO) << node;
 }
 
 
