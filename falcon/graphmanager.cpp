@@ -45,18 +45,7 @@ void GraphManager::HandleCommand( std::string command, std::deque<std::string>& 
                 throw std::runtime_error( "Cannot open YAML graph definition file " + file + ". Check if file actually exists.");
             }
         }
-
-        if (node["graph"]){
-            ParseNewGraph(node);
-            graph_.Build( node["graph"] );
-        }
-        else if (node["processors"] ){
-            LOG(WARNING) << "The graph definition seems to follow the old format. "
-                            "Consider updating to the new-style graph definition - see ... (add later link to the description)\n";
-            graph_.Build( node );
-        }
-        else {throw std::runtime_error( "Invalid graph description.");}
-
+        ParseGraph(node);
         // save YAML to global_context_.resolve_path( "graphs://_last_graph" )
         std::ofstream fout( global_context_->resolve_path( "graphs://_last_graph" ) );
         fout << node;
@@ -104,14 +93,16 @@ void GraphManager::HandleCommand( std::string command, std::deque<std::string>& 
     
 }
 
-void GraphManager::ParseNewGraph(YAML::Node& node){
-    if (node["processors"]){
-        LOG(WARNING) << "Detected mixed use of old and new style graph definition."
-                        " Only the new style graph definition will be used and top-level processors, connections"
-                        " and states maps will be ignored.\n";
+void GraphManager::ParseGraph(YAML::Node& node){
+
+    if (node["graph"]){
+        if (node["processors"]){
+            LOG(WARNING) << "Detected mixed use of old and new style graph definition."
+                            " Only the new style graph definition will be used and top-level processors, connections"
+                            " and states maps will be ignored.";
         }
 
-    if( !node["graph"].IsMap()){
+        if( !node["graph"].IsMap()){
              std::string graph_template_path =  global_context_->resolve_path(node["graph"].as<std::string>());
              try{
                 node["graph"] = YAML::LoadFile( graph_template_path );
@@ -119,9 +110,9 @@ void GraphManager::ParseNewGraph(YAML::Node& node){
                 throw std::runtime_error( "Cannot open YAML graph template definition file "
                        + graph_template_path + ". Check if file actually exists.");
              }
-    }
+        }
 
-    if (node["options"]){
+        if (node["options"]){
              YAML::Node options_node;
              if( !node["options"].IsMap()){
                 std::string graph_options_path =  global_context_->resolve_path(node["options"].as<std::string>());
@@ -151,8 +142,16 @@ void GraphManager::ParseNewGraph(YAML::Node& node){
                         }
                   }
             }
+        }
+        graph_.Build( node["graph"] );
     }
-    LOG(INFO) << node;
+    else if (node["processors"] ){
+        LOG(WARNING) << "The graph definition seems to follow the old format. "
+                            "Consider updating to the new-style graph definition - see ... (add later link to the description)";
+        graph_.Build( node );
+    }
+    else {throw std::runtime_error( "Invalid graph description.");}
+
 }
 
 

@@ -51,7 +51,7 @@ private:
     GlobalContext* global_context_;
     
     void HandleCommand( std::string command, std::deque<std::string>& extra, std::deque<std::string>& reply );
-    void ParseNewGraph(YAML::Node& node);
+    void ParseGraph(YAML::Node& node);
 
     ProcessorGraph graph_;
     
