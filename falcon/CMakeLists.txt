@@ -164,7 +164,7 @@ target_link_libraries (falcon logging yaml-cpp zmq ${PLATFORM_LINK_LIBRARIES})
 # here we have to use --whole-archive linker option, otherwise the data type and processor libs are not
 # linked at all because none of their exported symbols are explicitly used in falcon. Same is true for (part of)
 # the disruptor and utilities libraries
-SET (WHOLELIBS -Wl,--whole-archive utilities options disruptor ${DATATYPE_LIBS} ${PROCESSOR_LIBS} -Wl,--no-whole-archive)
+SET (WHOLELIBS -Wl,--whole-archive units-static utilities options disruptor ${DATATYPE_LIBS} ${PROCESSOR_LIBS} -Wl,--no-whole-archive)
 target_link_libraries (falcon ${WHOLELIBS} )
 
 install(TARGETS falcon RUNTIME DESTINATION bin)
