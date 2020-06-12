@@ -4,161 +4,13 @@
 #include <string>
 #include <stdexcept>
 #include <functional>
-#include <optional>
-#include <type_traits>
 
 #include "yaml-cpp/yaml.h"
 
+#include "units/units.hpp"
+#include "validation.hpp"
+
 namespace options { 
-
-class ValidationError : public std::runtime_error {
-public:
-    ValidationError( std::string msg ) : std::runtime_error( msg ) {}
-};
-
-class ConversionError : public std::runtime_error {
-public:
-    ConversionError( std::string msg ) : std::runtime_error( msg ) {}
-};
-
-template <typename T>
-using ValidatorFunc = std::function<T(const T &)>;
-
-template <typename T>
-ValidatorFunc<T> compose(ValidatorFunc<T> f, ValidatorFunc<T> g) {
-    return [f,g](T x){ return f(g(x)); };
-}
-
-template <typename T>
-class validator {
-public:
-    friend auto operator+(const ValidatorFunc<T>& lhs, const ValidatorFunc<T>& rhs) {
-        return compose<T>(rhs, lhs);
-    }
-};
-
-template <typename T>
-class inrange : public validator<T> {
-
-static_assert(std::is_arithmetic<T>::value, "inrange validator only supports numerical types.");
-
-public:
-    using value_type = T;
-
-public:
-    inrange(T min, T max) : min_(min), max_(max) {}
-
-    T operator() (const T & x) const {
-        if (x<min_ || x>max_) {
-            throw ValidationError("Value out of range.");
-        }
-        return x;
-    }
-
-protected:
-    T min_;
-    T max_;
-};
-
-template <typename T>
-class clamped : public validator<T> {
-
-static_assert(std::is_arithmetic<T>::value, "clamped validator only supports numerical types.");
-
-public:
-    using value_type = T;
-
-public:
-    clamped(T min, T max) : min_(min), max_(max) {}
-
-    T operator() (const T & x) const {
-        T y = x;
-        std::clamp(y, min_, max_);
-        return y;
-    }
-
-protected:
-    T min_;
-    T max_;
-};
-
-template <typename T>
-class squared : public validator<T> {
-
-static_assert(std::is_arithmetic<T>::value, "squared validator only supports numerical types.");
-
-public:
-    T operator() (const T & x) const {
-        return x*x;
-    }
-};
-
-template <typename T>
-class multiplied : public validator<T> {
-
-static_assert(std::is_arithmetic<T>::value, "multiplier validator only supports numerical types.");
-
-public:
-    multiplied(T multiplier) : multiplier_(multiplier) {}
-
-    T operator() (const T & x) const {
-        return multiplier_*x;
-    }
-
-protected:
-    T multiplier_;
-
-};
-
-class invert : public validator<bool> {
-public:
-    bool operator() (const bool & x) const {
-        return !x;
-    }
-};
-
-template <typename T>
-class notempty : public validator<T> {
-
-public:
-    T operator() (const T & x) {
-        if (x.size()==0) {
-            throw ValidationError("Container or value cannot be empty.");
-        }
-        return x;
-    }
-};
-
-template <typename T>
-class each : public validator<std::vector<T>> {
-public:
-    each(ValidatorFunc<T> validator) : validator_(validator) {}
-
-    std::vector<T> operator() (const std::vector<T> & x) {
-        std::vector<T> y = x;
-        std::transform(x.begin(), x.end(), y.begin(), validator_);
-        return x;
-    }
-protected:
-    ValidatorFunc<T> validator_;
-};
-
-template <typename T>
-class positive : public validator<T> {
-public:
-
-    positive(bool strict=false) : strict_(strict) {}
-
-    T operator() (const T & x) const {
-        if ((strict_ && x<=0) || x<0) {
-            throw ValidationError("Value cannot be negative" + strict_ ? " or zero." : ".");
-        }
-        return x;
-    }
-
-protected:
-    bool strict_;
-};
 
 class ValueBase {
 public:
@@ -248,6 +100,8 @@ public:
         return node;
     }
 
+    virtual 
+
     const T & get_value() const {
         return value_;
     }
@@ -300,6 +154,14 @@ public:
         } else {
             throw std::runtime_error("Value::set_null : value is not nullable.");
         }
+    }
+
+    void set_toyaml(const ToYAMLType & toyaml) {
+        toyaml_ = toyaml;
+    }
+
+    void set_fromyaml(const FromYAMLType & fromyaml) {
+        fromyaml_ = fromyaml;
     }
 
 protected:
@@ -389,6 +251,141 @@ public:
         &vector_fromyaml<T>) {}
 };
 
+
+template <typename T>
+class measurement_toyaml {
+public:
+    measurement_toyaml(units::precise_unit u) : units_(u) {}
+
+    YAML::Node operator() (const T & x) {
+        YAML::Node node;
+
+        node = std::to_string(x) + " " + units::to_string(units_);
+        
+        return node;
+    } 
+
+protected:
+    units::precise_unit units_;
+};
+
+template <typename T>
+class measurement_fromyaml {
+public:
+    measurement_fromyaml(units::precise_unit u) : units_(u) {}
+
+    T operator() (const YAML::Node & node) {
+        std::string s = node.as<std::string>();
+        auto m = units::measurement_from_string(s);
+        
+        if (!units_.has_same_base(m.units())) {
+            throw std::runtime_error("Incorrect units. Not same base.");
+        }
+        
+        double value = m.value_as(units_);
+
+        if (std::isnan(value)) {
+            throw std::runtime_error("Incorrect units: NaN");
+        }
+
+        return T(value);
+    }
+
+protected:
+    units::precise_unit units_;
+};
+
+template <typename T, bool Nullable=false>
+class Measurement : public Value<T, Nullable> {
+public:
+    Measurement(T value, units::precise_unit u=units::precise::one, ValidatorFunc<T> validator={})
+    : Value<T, Nullable>(
+        value,
+        validator,
+        measurement_toyaml<T>(u),
+        measurement_fromyaml<T>(u)), units_(u) {}
+
+    void set_units(const units::precise_unit & u) {
+        units_ = u;
+        this->set_fromyaml(measurement_fromyaml<T>(u));
+        this->set_toyaml(measurement_toyaml<T>(u));
+    }
+
+    units::precise_unit unit() const {
+        return units_;
+    }
+
+    std::string to_string(std::string dest_unit="") {
+        if (!dest_unit.size()==0) {
+            auto du = units::unit_from_string(dest_unit);
+            T v = units::precise_measurement(this->get_value(), units_).value_as(du);
+            return (std::to_string(v) + " " + dest_unit);
+        } else {
+            return (std::to_string(this->get_value()) + " " + units::to_string(units_));
+        }
+    }
+
+protected:
+    units::precise_unit units_;
+
+};
+
+template <typename T, bool Nullable>
+class MultiMeasurement : public Measurement<T,Nullable> {
+public:
+    MultiMeasurement(T value, units::precise_unit u, std::vector<units::precise_unit> alt_u={}, ValidatorFunc<T> validator={})
+    : Measurement<T,Nullable>(value, u, validator), default_units_(u), alt_units_(alt_u) {
+        this->set_fromyaml([this](const YAML::Node & node){return this->fromyaml_impl(node);});
+        //this->set_fromyaml(&this->fromyaml_impl);
+    }
+
+    T fromyaml_impl(const YAML::Node & node) {
+        std::string s = node.as<std::string>();
+        auto m = units::measurement_from_string(s);
+
+        if (m.units()==units::precise::invalid || m.units()==units::precise::error) {
+            throw std::runtime_error("Could not parse measurement.");
+        }
+
+        if (m.units().has_same_base(units::precise::one) ||
+            m.units().has_same_base(default_units_)) {
+            // default unit
+            this->set_units(default_units_);
+            return T(m.value_as(default_units_));
+        } else {
+
+            double value = std::nan("");
+            bool units_matched = false;
+
+            for (auto & u : alt_units_) {
+                if (!u.has_same_base(m.units())) {
+                    continue;
+                }
+
+                units_matched = true;
+
+                value = m.value_as(u);
+                this->set_units(u);
+
+                //if (std::isnan(value)) {
+                //    throw std::runtime_error("Incorrect units: NaN");
+                //}
+                break;
+            }   
+
+            if (!units_matched) {
+                throw std::runtime_error("Measurement in unsupported units " + units::to_string(m.units()) + ".");
+            }      
+
+            return T(value);
+        }
+    }
+
+
+protected:
+    units::precise_unit default_units_;
+    std::vector<units::precise_unit> alt_units_;
+}; 
 
 }
 

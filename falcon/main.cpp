@@ -42,6 +42,7 @@
 
 #include "configuration.hpp"
 #include "utilities/time.hpp"
+#include "options/units.hpp"
 
 using namespace std;
 
@@ -72,6 +73,10 @@ int main(int argc, char** argv) {
     // create default configuration
     FalconConfiguration config;
     
+    // add custom units
+    units::addUserDefinedUnit("sample", units::precise::sample_units);
+    units::addUserDefinedUnit("spike", units::precise::spike_units);
+
     // load configuration file
     try {
         configuration::load_config_file<FalconConfiguration>( parser.get<std::string>("config"), config );
