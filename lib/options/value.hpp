@@ -87,7 +87,7 @@ public:
     virtual YAML::Node to_yaml() const override final {
         YAML::Node node;
 
-        if (is_null()) {
+        if (is_nullable() && is_null()) {
             return node;
         }
 
