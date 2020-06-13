@@ -74,6 +74,8 @@ public:
 
 Serializer* serializer_from_string( std::string s, Serialization::Format fmt = Format::FULL );
 
+Serializer* serializer( Serialization::Encoding enc, Serialization::Format fmt = Format::FULL);
+
 } // namespace Serialization 
 
 #endif //serializer.hpp

@@ -21,6 +21,7 @@
 #define SERIALIZATION_H
 
 #include <string>
+#include "yaml-cpp/yaml.h"
 
 namespace Serialization {
 
@@ -34,9 +35,47 @@ enum class Format { NONE=-1, FULL, COMPACT, HEADERONLY, STREAMHEADER };
 // COMPACT: data only
 
 std::string format_to_string( Format fmt );
-
 Format string_to_format( std::string s );
 
+enum class Encoding { BINARY=0, YAML };
+
+std::string encoding_to_string( Encoding fmt );
+Encoding string_to_encoding( std::string s );
+
 } // namespace Serialization 
+
+namespace YAML {
+
+template<>
+struct convert<Serialization::Format> {
+    static Node encode(const Serialization::Format& rhs) {
+        Node node;
+        node = Serialization::format_to_string(rhs);
+        return node;
+    }
+
+    static bool decode(const Node& node, Serialization::Format& rhs) {
+        rhs = Serialization::string_to_format(node.as<std::string>());
+        return true;
+    }
+
+};
+
+template<>
+struct convert<Serialization::Encoding> {
+    static Node encode(const Serialization::Encoding& rhs) {
+        Node node;
+        node = Serialization::encoding_to_string(rhs);
+        return node;
+    }
+
+    static bool decode(const Node& node, Serialization::Encoding& rhs) {
+        rhs = Serialization::string_to_encoding(node.as<std::string>());
+        return true;
+    }
+
+};
+
+}
 
 #endif //serialization.hpp
