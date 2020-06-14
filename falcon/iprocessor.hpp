@@ -349,8 +349,19 @@ private: // member variables
             
     std::thread thread_;
 
-    options::ConstrainedValue<ThreadPriority> thread_priority_{PRIORITY_NONE, PRIORITY_HIGH, PRIORITY_NONE};
-    options::ConstrainedValue<ThreadCore> thread_core_{CORE_NOT_PINNED, (ThreadCore) sysconf(_SC_NPROCESSORS_ONLN)-1, CORE_NOT_PINNED};
+    options::Value<ThreadPriority,false> thread_priority_{
+        PRIORITY_NONE,
+        options::inrange<ThreadPriority>(PRIORITY_NONE, PRIORITY_HIGH)
+    };
+
+    options::Value<ThreadCore,false> thread_core_{
+        CORE_NOT_PINNED,
+        options::inrange<ThreadCore>(
+            CORE_NOT_PINNED,
+            (ThreadCore) sysconf(_SC_NPROCESSORS_ONLN)-1
+        )
+    };
+
     options::NullableBool new_test_flag_;
     options::Value<std::map<std::string,int>> requested_buffer_sizes_{};
 
