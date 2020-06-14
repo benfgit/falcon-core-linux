@@ -18,9 +18,32 @@
 // ---------------------------------------------------------------------
 
 template <typename T>
+std::string join(const std::vector<T> &s, std::string delim) {
+    std::stringstream ss;
+
+    for (auto it = s.begin(); it!=s.end(); ++it) {
+        ss << *it;
+        if (std::next(it)!=s.end()) {
+            ss << delim;
+        }
+    }
+
+    return ss.str();
+}
+
+template <typename T>
 std::string to_string_n(const T a_value, const int n)
 {
     std::ostringstream out;
     out << std::fixed << std::setprecision(n) << a_value;
     return out.str();
 }
+
+template <typename T>
+T from_string(std::string s) {
+    std::stringstream ss(s);
+    T result;
+    ss >> result;
+    return result; 
+}
+

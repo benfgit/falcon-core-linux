@@ -4,9 +4,11 @@
 #include <string>
 #include <stdexcept>
 #include <functional>
+#include <regex>
 
 #include "yaml-cpp/yaml.h"
 
+#include "../utilities/string.hpp"
 #include "units/units.hpp"
 #include "validation.hpp"
 
@@ -52,20 +54,17 @@ public:
     using ToYAMLType = std::function<YAML::Node(const T&)>;
     using FromYAMLType = std::function<T(const YAML::Node &)>;
 
-    Value(const T& value, ValidatorType validator={},
-           ToYAMLType toyaml=generic_toyaml<T>, FromYAMLType fromyaml=generic_fromyaml<T>)
-    : ValueBase(), validator_(validator), toyaml_(toyaml), fromyaml_(fromyaml) {
+    Value(const T& value, ValidatorType validator={})
+    : ValueBase(), validator_(validator) {
         set_value(value);
     }
 
-    Value(ValidatorType validator={},
-           ToYAMLType toyaml=generic_toyaml<T>, FromYAMLType fromyaml=generic_fromyaml<T>)
-    : ValueBase(), validator_(validator), toyaml_(toyaml), fromyaml_(fromyaml) {
+    Value(ValidatorType validator={})
+    : ValueBase(), validator_(validator) {
         if constexpr (!Nullable) {
             set_value(T());
         }
     }
-
 
     T validate(T value) {
         if (validator_) {
@@ -74,33 +73,21 @@ public:
         return value;
     } 
 
-    virtual void from_yaml(const YAML::Node & node) override final {
-        try {
-            set_value(fromyaml_(node));
-        } catch (YAML::BadConversion &e) {
-            throw ConversionError("Could not convert yaml to value (incorrect value type).");
-        } catch (YAML::Exception &e) {
-            throw ConversionError("Could not convert yaml to value.");
-        }
+    virtual void from_yaml(const YAML::Node & node) override {
+        set_value(generic_fromyaml<T>(node));
     }
 
-    virtual YAML::Node to_yaml() const override final {
+    virtual YAML::Node to_yaml() const override {
         YAML::Node node;
 
         if (is_nullable() && is_null()) {
             return node;
         }
 
-        try {
-            node = toyaml_(value_);
-        } catch (YAML::Exception &e) {
-            throw ConversionError("Could not convert value to yaml.");
-        }
+        node = generic_toyaml(value_);
 
         return node;
     }
-
-    virtual 
 
     const T & get_value() const {
         return value_;
@@ -156,13 +143,6 @@ public:
         }
     }
 
-    void set_toyaml(const ToYAMLType & toyaml) {
-        toyaml_ = toyaml;
-    }
-
-    void set_fromyaml(const FromYAMLType & fromyaml) {
-        fromyaml_ = fromyaml;
-    }
 
 protected:
     virtual void unset_null() override final {
@@ -176,8 +156,6 @@ protected:
 private:
     T value_;
     ValidatorType validator_;
-    ToYAMLType toyaml_;
-    FromYAMLType fromyaml_;
     bool value_is_null_ = true;
 };
 
@@ -192,41 +170,6 @@ using NullableInt = Value<int, true>;
 
 using String = Value<std::string, false>;
 using NullableString = Value<std::string, true>;
-
-template <typename T, bool Nullable=false>
-class ConstrainedValue : public Value<T, Nullable> {
-
-static_assert(std::is_arithmetic<T>::value, "ConstrainedValue only supports numerical types.");
-
-public:
-    ConstrainedValue(T min, T max, T value)
-    : Value<T,Nullable>(value, inrange<T>(min, max)) {}
-
-    ConstrainedValue(T min, T max)
-    : Value<T,Nullable>(inrange<T>(min, max)) {}
-
-    ConstrainedValue<T,Nullable>& operator=(const T & value) {
-        return static_cast<ConstrainedValue<T,Nullable>&>(Value<T,Nullable>::operator=(value));
-    }
-
-};
-
-template <typename T, bool Nullable=false>
-class ClampedValue : public Value<T, Nullable> {
-
-static_assert(std::is_arithmetic<T>::value, "ClampedValue only supports numerical types.");
-
-public:
-    ClampedValue(T min, T max, T value)
-    : Value<T,Nullable>(value, clamped<T>(min, max)) {}
-
-    ClampedValue(T min, T max)
-    : Value<T,Nullable>(clamped<T>(min, max)) {}
-
-    ClampedValue<T,Nullable>& operator=(const T & value) {
-        return static_cast<ClampedValue<T,Nullable>&>(Value<T,Nullable>::operator=(value));
-    }
-};
 
 template <typename T>
 std::vector<T> vector_fromyaml(const YAML::Node & node) {
@@ -244,11 +187,12 @@ class Vector : public Value<std::vector<T>, Nullable> {
 public:
 
     Vector(const std::vector<T> & value={}, ValidatorFunc<std::vector<T>> validator={}) :
-    Value<std::vector<T>,Nullable>(
-        value,
-        validator,
-        &generic_toyaml<std::vector<T>>,
-        &vector_fromyaml<T>) {}
+    Value<std::vector<T>,Nullable>(value, validator) {}
+
+    virtual void from_yaml(const YAML::Node & node) override {
+        this->set_value(vector_fromyaml<T>(node));
+    }
+    
 };
 
 
@@ -296,96 +240,114 @@ protected:
 };
 
 template <typename T, bool Nullable=false>
-class Measurement : public Value<T, Nullable> {
+class Measurement : public Value<T,Nullable> {
 public:
-    Measurement(T value, units::precise_unit u=units::precise::one, ValidatorFunc<T> validator={})
-    : Value<T, Nullable>(
-        value,
-        validator,
-        measurement_toyaml<T>(u),
-        measurement_fromyaml<T>(u)), units_(u) {}
+    Measurement(T value, std::string u, ValidatorFunc<T> validator={}, std::vector<std::string> alt={})
+    : Value<T,Nullable>(value, validator), index_(0) {
 
-    void set_units(const units::precise_unit & u) {
-        units_ = u;
-        this->set_fromyaml(measurement_fromyaml<T>(u));
-        this->set_toyaml(measurement_toyaml<T>(u));
+        all_unit_repr_.reserve(1+alt.size());
+        all_unit_repr_.push_back(u);
+        all_unit_repr_.insert(all_unit_repr_.end(), alt.begin(), alt.end());
+
+        for (auto & k : all_unit_repr_) {
+            if (k.size()==0) {
+                all_unit_.push_back(units::precise::one);
+            } else 
+                all_unit_.push_back(units::unit_from_string(k));
+        }
+
+        repr_unit_ = all_unit_[0];
+        repr_unit_str_ = all_unit_repr_[0];
+
+    }
+    
+    void set_repr_unit(std::string s) {
+
+        if (s.size()==0) {
+            return;
+        }
+
+        // check that it is the same base units
+        auto u = units::unit_from_string(s);
+        if (!u.equivalent_non_counting(all_unit_[index_])) {
+            throw std::runtime_error("Representation unit (" + units::to_string(u) + ") are not compatible with base unit (" + units::to_string(all_unit_[index_]) + ").");
+        }
+        repr_unit_ = u;
+        repr_unit_str_ = s;
     }
 
     units::precise_unit unit() const {
-        return units_;
+        return all_unit_[index_];
     }
 
-    std::string to_string(std::string dest_unit="") {
-        if (!dest_unit.size()==0) {
-            auto du = units::unit_from_string(dest_unit);
-            T v = units::precise_measurement(this->get_value(), units_).value_as(du);
-            return (std::to_string(v) + " " + dest_unit);
-        } else {
-            return (std::to_string(this->get_value()) + " " + units::to_string(units_));
+    std::string to_string() const {
+        double factor = units::convert(repr_unit_, all_unit_[index_]);
+        std::ostringstream out;
+        out << T(this->get_value()/factor);
+        return (out.str() + " " + repr_unit_str_);
+    }
+
+    virtual void from_yaml(const YAML::Node & node) override {
+        
+        std::string s = node.as<std::string>();
+
+        // split number from unit
+        std::regex re("^\\s*([+-]?[0-9,.]*(?:e[+-]?[0-9]*)?)\\s*(.*)?$");
+        std::smatch m;
+        if (!std::regex_match(s, m, re)) {
+            throw std::runtime_error("Could not convert yaml to value.");
         }
+
+        size_t idx = 0;
+        bool matched = false;
+        double factor = 1.;
+
+        if (m.size()>2 && m[2].str().size()>0) {
+            auto u = units::unit_from_string(m[2].str());
+
+            for (idx=0; idx<all_unit_.size(); ++idx) {
+                if ((matched=u.equivalent_non_counting(all_unit_[idx]))) {
+                    factor = units::convert(u, all_unit_[idx]);
+                    break;
+                }
+            }
+
+            if (!matched) {
+                throw std::runtime_error("Representation unit (" + units::to_string(u) + ") are not compatible with any permissable unit.");
+            }
+        }
+
+        this->set_value(from_string<T>(m[1].str())*factor);
+        
+        this->index_ = idx;
+        this->set_repr_unit(m[2].str());
+        
+    }
+
+    virtual YAML::Node to_yaml() const override {
+        YAML::Node node;
+        node = this->to_string();
+        return node;
+    }
+
+    Measurement<T,Nullable>& operator=(const T & value) {
+        this->set_value(value);
+        return (*this);
+    }
+
+    Measurement<T,Nullable>& operator=(const Value<T> & value) {
+        this->set_value(value());
+        return (*this);
     }
 
 protected:
-    units::precise_unit units_;
-
+    size_t index_;
+    units::precise_unit repr_unit_;
+    std::string repr_unit_str_;
+    std::vector<std::string> all_unit_repr_;
+    std::vector<units::precise_unit> all_unit_;
 };
 
-template <typename T, bool Nullable>
-class MultiMeasurement : public Measurement<T,Nullable> {
-public:
-    MultiMeasurement(T value, units::precise_unit u, std::vector<units::precise_unit> alt_u={}, ValidatorFunc<T> validator={})
-    : Measurement<T,Nullable>(value, u, validator), default_units_(u), alt_units_(alt_u) {
-        this->set_fromyaml([this](const YAML::Node & node){return this->fromyaml_impl(node);});
-        //this->set_fromyaml(&this->fromyaml_impl);
-    }
-
-    T fromyaml_impl(const YAML::Node & node) {
-        std::string s = node.as<std::string>();
-        auto m = units::measurement_from_string(s);
-
-        if (m.units()==units::precise::invalid || m.units()==units::precise::error) {
-            throw std::runtime_error("Could not parse measurement.");
-        }
-
-        if (m.units().has_same_base(units::precise::one) ||
-            m.units().has_same_base(default_units_)) {
-            // default unit
-            this->set_units(default_units_);
-            return T(m.value_as(default_units_));
-        } else {
-
-            double value = std::nan("");
-            bool units_matched = false;
-
-            for (auto & u : alt_units_) {
-                if (!u.has_same_base(m.units())) {
-                    continue;
-                }
-
-                units_matched = true;
-
-                value = m.value_as(u);
-                this->set_units(u);
-
-                //if (std::isnan(value)) {
-                //    throw std::runtime_error("Incorrect units: NaN");
-                //}
-                break;
-            }   
-
-            if (!units_matched) {
-                throw std::runtime_error("Measurement in unsupported units " + units::to_string(m.units()) + ".");
-            }      
-
-            return T(value);
-        }
-    }
-
-
-protected:
-    units::precise_unit default_units_;
-    std::vector<units::precise_unit> alt_units_;
-}; 
 
 }
 
