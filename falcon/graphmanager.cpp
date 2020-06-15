@@ -47,7 +47,7 @@ void GraphManager::HandleCommand( std::string command, std::deque<std::string>& 
         }
         ParseGraph(node);
         // save YAML to global_context_.resolve_path( "graphs://_last_graph" )
-        std::ofstream fout( global_context_->resolve_path( "graphs://_last_graph" ) );
+        std::ofstream fout( global_context_->resolve_path( "graphs://_last_graph.yaml" ) );
         fout << node;
 
     } else if (command == "destroy") {
