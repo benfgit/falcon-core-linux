@@ -57,7 +57,7 @@ protected:
 
 class GlobalContext : public StorageContext {
 public:
-    GlobalContext( bool test_flag, std::map<std::string,std::string> & uri ) : StorageContext(""), default_test_flag_(test_flag) { 
+    GlobalContext( bool test_flag, const std::map<std::string,std::string> & uri ) : StorageContext(""), default_test_flag_(test_flag) { 
         
         zmq_context_ = zmq::context_t(1);
         for (auto & it : uri ) {

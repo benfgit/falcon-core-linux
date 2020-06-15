@@ -17,28 +17,57 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-#include "utilities/configuration.hpp"
-#include <map>
+#include <string>
 
-class FalconConfiguration : public configuration::Configuration {
+#include "options/options.hpp"
 
+class Configuration {
 public:
+
+    void load(std::string filename);
+    void save(std::string filename);
     
-    std::string graph_file = "";
-    bool debug_enabled = false;
-    bool testing_enabled = false;
-    bool graph_autostart = false;
-    int network_port = 5555;
-    std::string logging_path = "./";
-    bool logging_screen_enabled = true;
-    bool logging_cloud_enabled = true;
-    int logging_cloud_port = 5556;
-    std::string server_side_storage_environment = "./";
-    std::string server_side_storage_resources = "$HOME/.falcon";
-    std::map<std::string,std::string> server_side_storage_custom;
-    
-public:
-    virtual void from_yaml( const YAML::Node & node ) override;
-    virtual void to_yaml( YAML::Node & node ) const override;
+    template <typename TValue>
+    void add_option(std::string name, TValue & value, std::string description="", bool required=false) {
+        options_.add(name, value, description, required);
+    }
+
+protected:
+    options::OptionList options_;
 };
+
+class FalconConfiguration : public Configuration {
+public:
+    FalconConfiguration() : Configuration() {
+        add_option("graph/file", graph_file, "");
+        add_option("graph/autostart", graph_autostart, "");
+        add_option("debug/enabled", debug_enabled, "");
+        add_option("testing/enabled", testing_enabled, "");
+        add_option("network/port", network_port, "");
+        add_option("logging/path", logging_path, "");
+        add_option("logging/screen/enabled", logging_screen_enabled, "");
+        add_option("logging/cloud/enabled", logging_cloud_enabled, "");
+        add_option("logging/cloud/port", logging_cloud_port, "");
+        add_option("server_side_storage/environment", server_side_storage_environment, "");
+        add_option("server_side_storage/resources", server_side_storage_resources, "");
+        add_option("server_side_storage/custom", server_side_storage_custom, "");
+    }
+
+// CONFIG OPTIONS
+public:
+    options::String graph_file{""};
+    options::Bool debug_enabled{false};
+    options::Bool testing_enabled{false};
+    options::Bool graph_autostart{false};
+    options::Int network_port{5555};
+    options::String logging_path{"./"};
+    options::Bool logging_screen_enabled{true};
+    options::Bool logging_cloud_enabled{true};
+    options::Int logging_cloud_port{5556};
+    options::String server_side_storage_environment{"./"};
+    options::String server_side_storage_resources{"$HOME/.falcon"};
+    options::ValueMap<options::String> server_side_storage_custom;
+};
+
+
 
