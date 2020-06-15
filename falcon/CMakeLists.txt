@@ -18,19 +18,18 @@ set(PLATFORM_LINK_LIBRARIES rt dl)
 
 add_definitions(-DG2_DYNAMIC_LOGGING)
 
+#
+Set( RESOURCES_PATH ${rootproject_BINARY_DIR} CACHE STRING "")
+mark_as_advanced( RESOURCES_PATH )
+configure_file(configuration.hpp.in configuration.hpp)
+
+
 # list of source files
 file(GLOB sources *.cpp)
 include_directories( "../resources" )
 include_directories( "../lib" )
 include_directories(".")
-
-
-Set( RESOURCES_PATH ${rootproject_BINARY_DIR} CACHE STRING "")
-mark_as_advanced( RESOURCES_PATH )
-configure_file(configuration.hpp configuration.hpp)
-
-
-
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 set( DATATYPE_LIBS )
 set( PROCESSOR_LIBS )
@@ -184,12 +183,12 @@ install(TARGETS falcon RUNTIME DESTINATION bin)
 
 # add all resources
 MESSAGE("install files from  ${FALCON_PATH}/resources in  ${RESOURCES_PATH}")
-ADD_CUSTOM_COMMAND(TARGET falcon
-          POST_BUILD
-          COMMAND cp -r ${rootproject_SOURCE_DIR}/resources ${RESOURCES_PATH}
-        )
 
 if (COMPILE_EXTENSIONS)
+    ADD_CUSTOM_COMMAND(TARGET falcon
+              POST_BUILD
+              COMMAND mkdir -p ${RESOURCES_PATH}/resources
+            )
     foreach( FALCON_PATH ${REAL_FALCON_PATHS} )
             SUBDIRLIST( RESOURCES "${FALCON_PATH}/resources" )
 
@@ -201,4 +200,12 @@ if (COMPILE_EXTENSIONS)
                     )
             endforeach()
     endforeach()
+
+    # install in the installation folder
+    install(DIRECTORY ${RESOURCES_PATH}/resources DESTINATION bin)
+
+
 endif()
+
+
+
