@@ -34,7 +34,7 @@ public:
     bool logging_cloud_enabled = true;
     int logging_cloud_port = 5556;
     std::string server_side_storage_environment = "./";
-    std::string server_side_storage_resources = "$HOME/.falcon";
+    std::string server_side_storage_resources = "@RESOURCES_PATH@";
     std::map<std::string,std::string> server_side_storage_custom;
     
 public:
