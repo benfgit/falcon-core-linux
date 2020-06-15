@@ -7,6 +7,20 @@ set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
 
 project (rootproject)
 
+set(_build_version "unknown")
+find_package(Git)
+if(GIT_FOUND)
+    execute_process(COMMAND ${GIT_EXECUTABLE} describe --tags
+                    WORKING_DIRECTORY "${local_dir}"
+                    OUTPUT_VARIABLE _build_version
+                    ERROR_QUIET
+                    OUTPUT_STRIP_TRAILING_WHITESPACE
+                    )
+endif()
+string(TIMESTAMP _time_stamp)
+
+configure_file(falcon/version.hpp.in falcon/version.hpp @ONLY)
+
 ############################
 # Add the basic libraries  #
 ############################
