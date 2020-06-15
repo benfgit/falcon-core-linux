@@ -123,10 +123,23 @@ protected: // callable by derived processors, but not others
     void remove_option(std::string name);
 
     template <typename DATATYPE>
+    PortOut<DATATYPE>* create_output_port(
+        const typename DATATYPE::Capabilities & capabilities,
+        const typename DATATYPE::Parameters & parameters,
+        const PortOutPolicy& policy ) {
+        
+        return create_output_port<DATATYPE>(
+            DATATYPE::dataname(), capabilities, parameters, policy);
+    }
+
+    template <typename DATATYPE>
     PortOut<DATATYPE>* create_output_port( std::string name,
                                            const typename DATATYPE::Capabilities & capabilities,
                                            const typename DATATYPE::Parameters & parameters,
                                            const PortOutPolicy& policy ) {
+        
+        if (name.size()==0) { name = DATATYPE::dataname(); }
+
         if (output_ports_.count( name )==1 || !is_valid_name(name)) {
             throw std::runtime_error( "Output port name \"" + name + "\" is invalid or already exists." );
         }
@@ -143,9 +156,21 @@ protected: // callable by derived processors, but not others
     }
     
     template <typename DATATYPE>
+    PortIn<DATATYPE>* create_input_port( 
+        const typename DATATYPE::Capabilities & capabilities,
+        const PortInPolicy & policy) {
+        
+        return create_input_port<DATATYPE>(
+            DATATYPE::dataname(), capabilities, policy);
+    }
+
+    template <typename DATATYPE>
     PortIn<DATATYPE>* create_input_port( std::string name,
                                          const typename DATATYPE::Capabilities & capabilities,
                                          const PortInPolicy & policy ) {
+        
+        if (name.size()==0) { name = DATATYPE::dataname(); }
+
         if (input_ports_.count( name )==1 || !is_valid_name(name)) {
             throw std::runtime_error( "Input port name \"" + name + "\" is invalid or already exists." );
         }
@@ -234,6 +259,27 @@ protected: // callable by derived processors, but not others
         return ((FollowerState<T>*) create_readable_shared_state(state, default_value, Permission::WRITE, external, description));
     }
 
+    
+    template <typename T>
+    ReadableState<T>* create_readable_shared_state(
+      std::string state, Permission peers = Permission::WRITE,
+      Permission external = Permission::NONE, std::string description = "" ) {
+        
+        T default_value = T();
+
+        if (!options_.has_option(state)) {
+            // use default constructed value
+        } else {
+            try {
+                default_value = dynamic_cast<options::Option<T>&>(options_[state]).get_value();
+            } catch (std::runtime_error & e) {
+                throw ProcessorInternalError("Could not set state value from option: " + std::string(e.what()));
+            }
+        }
+
+        return create_readable_shared_state<T>(state, default_value, peers, external, description);
+    }
+
     template <typename T>
     ReadableState<T>* create_readable_shared_state(
       std::string state, T default_value, Permission peers = Permission::WRITE,
@@ -247,6 +293,27 @@ protected: // callable by derived processors, but not others
         return ((ReadableState<T>*) shared_states_[state].get());
     }
     
+    template <typename T>
+    WritableState<T>* create_writable_shared_state(
+      std::string state, Permission peers = Permission::READ,
+      Permission external = Permission::NONE, std::string description = "" ) {
+        
+        T default_value = T();
+
+        if (!options_.has_option(state)) {
+            // use default constructed value
+        } else {
+            try {
+                default_value = dynamic_cast<options::Option<T>&>(options_[state]).get_value();
+            } catch (std::runtime_error & e) {
+                throw ProcessorInternalError("Could not set state value from option: " + std::string(e.what()));
+            }
+        }
+
+        return create_writable_shared_state<T>(state, default_value, peers, external, description);
+    
+    }
+
     template <typename T>
     WritableState<T>* create_writable_shared_state(
       std::string state, T default_value, Permission peers = Permission::READ,
