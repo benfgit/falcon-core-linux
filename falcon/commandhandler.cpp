@@ -25,6 +25,8 @@
 #include "g3log/src/g2log.hpp"
 #include "utilities/zmqutil.hpp"
 #include "yaml-cpp/yaml.h"
+#include "version.hpp"
+
 
 using namespace commands;
 
@@ -94,10 +96,12 @@ bool CommandHandler::HandleCommand( std::deque<std::string>& command, std::deque
         
         YAML::Emitter out;
         out << YAML::BeginMap;
+        out << YAML::Key << "Falcon version" << YAML::Value << GIT_REVISION;
         out << YAML::Key << "run_environment_root" << YAML::Value << global_context_->storage_context("runroot");
         out << YAML::Key << "resource_root" << YAML::Value << global_context_->storage_context("resources");
         out << YAML::Key << "graph_state" << YAML::Value << local_reply[0];
         out << YAML::Key << "default_test_flag" << YAML::Value << global_context_->test();
+
         
         reply.push_back( std::string( out.c_str() ) );
     } else {

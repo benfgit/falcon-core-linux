@@ -42,6 +42,7 @@
 
 #include "configuration.hpp"
 #include "utilities/time.hpp"
+#include "version.hpp"
 
 using namespace std;
 
@@ -62,13 +63,19 @@ int main(int argc, char** argv) {
     parser.add("noscreenlog", '\0', "disable logging to screen");
     parser.add("nocloudlog", '\0', "disable logging to cloud");
     parser.add("test", 't', "turn testing on by default");
+    parser.add("version", 'v', "Show the falcon version number and exit.");
     parser.footer("[graph file] ...");
     // Run parser
     // It returns only if command line arguments are valid.
     // If arguments are invalid, a parser output error msgs then exit program.
     // If help flag ('--help' or '-?') is specified, a parser output usage message then exit program.
     parser.parse_check(argc, argv);
-    
+
+    if (parser.exist("version")) {
+        std::cout << "Falcon " << GIT_REVISION  << std::endl;
+        std::cout << "Last build: " << BUILD_TIMESTAMP  << std::endl;
+        return EXIT_SUCCESS;
+    }
     // create default configuration
     FalconConfiguration config;
     
