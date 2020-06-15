@@ -51,9 +51,7 @@ class Value : public ValueBase {
 public:
     using ValueType = T;
     using ValidatorType = ValidatorFunc<T>;
-    using ToYAMLType = std::function<YAML::Node(const T&)>;
-    using FromYAMLType = std::function<T(const YAML::Node &)>;
-
+    
     Value(const T& value, ValidatorType validator={})
     : ValueBase(), validator_(validator) {
         set_value(value);
@@ -195,6 +193,79 @@ public:
     
 };
 
+
+template <typename VT> // 
+class ValueMap : public ValueBase {
+public:
+    using ValueType = typename VT::ValueType;
+
+    ValueMap(const VT & value = VT(), const std::map<std::string,ValueType> map={})
+    : ValueBase(), default_(value) {
+        set_map(map);
+    }
+
+    void set_map(std::map<std::string,ValueType> m) {
+        std::map<std::string, VT> tmp;
+        
+        for (auto & k : m) {
+            tmp.emplace(k.first, default_);
+            tmp[k.first] = k.second;
+        }
+
+        map_ = tmp;
+    }
+
+    virtual void from_yaml(const YAML::Node & node) {
+        if (!node.IsMap()) {
+            throw std::runtime_error("Not a map");
+        }
+
+        set_map(node.as<std::map<std::string,ValueType>>());
+    }
+    
+    virtual YAML::Node to_yaml() const {
+        YAML::Node node = YAML::Node(YAML::NodeType::Map);
+        
+        for (auto & k : map_) {
+            node[k.first] = k.second.to_yaml();
+        }
+        return node;
+    }
+
+    VT& operator[](const std::string & key) {
+        // if key is not in map
+        if (!map_.count(key)) {
+            map_.emplace(key, default_);
+        }
+        return map_[key];
+    }
+
+    std::map<std::string,ValueType> get_map() const {
+        std::map<std::string,ValueType> m;
+
+        for (auto & k : map_) {
+            m[k.first] = k.second();
+        }
+
+        return m;
+    }
+
+    std::map<std::string,ValueType> operator() () const {
+        return get_map();
+    }
+
+    virtual bool is_nullable() const {return false;}
+    
+    virtual bool is_null() const {throw std::runtime_error("Not nullable.");}
+    virtual void set_null() {throw std::runtime_error("Not nullable.");}
+
+protected:
+    virtual void unset_null() {throw std::runtime_error("Not nullable.");}
+
+protected:
+    std::map<std::string, VT> map_;
+    VT default_;
+};
 
 template <typename T>
 class measurement_toyaml {
