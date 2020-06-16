@@ -4,8 +4,11 @@
 #include <string>
 #include <stdexcept>
 #include <limits>
+#include <regex>
 
 #include "units/units.hpp"
+
+#include "../utilities/filesystem.hpp"
 
 namespace options {
 
@@ -169,6 +172,33 @@ public:
 protected:
     bool strict_;
 };
+
+class isfile : public validator<std::string> {
+public:
+    isfile(bool exists=false) : exists_(exists) {}
+
+    std::string operator() (const std::string & x) const {
+        return parse_file(x, exists_).string();
+    }
+
+protected:
+    bool exists_;
+};
+
+class isdir : public validator<std::string> {
+public:
+    isdir(bool exists=true, bool create=false)
+    : exists_(exists), create_(create) {}
+
+    std::string operator() (const std::string & x) const {
+        return parse_directory(x, exists_, create_).string();
+    }
+
+protected:
+    bool exists_;
+    bool create_;
+};
+
 
 }
 
