@@ -17,86 +17,39 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
+#include <stdexcept>
+#include <string>
+#include <regex>
+#include <iostream>
+
+#include "yaml-cpp/yaml.h"
+
 #include "configuration.hpp"
+#include "filesystem.hpp"
 
-#include <stdlib.h>
-#include <sys/stat.h>
-#include <fstream>
+void Configuration::load(std::string filename) {
 
+    auto p = parse_file(filename);
 
-bool configuration::validate_bool_option( const YAML::Node & node, std::string option, bool default_value ) {
-    
-    bool value = default_value;
-    if (node) {
-        try { value = node.as<bool>(); }
-        catch ( YAML::TypedBadConversion<bool> & e ) {
-            throw ValidationError( "Invalid value for configuration option " + option + ". Should be either true or false." );
+    try {
+        YAML::Node node;
+        node = YAML::LoadFile(p.string());
+        options_.from_yaml(node);
+        std::cout << "Default configuration loaded from " << p.string() << std::endl;
+    } catch (YAML::BadFile & e ) { // config file does not exist, save default configuration
+        try {
+            // create parent path if it doesn't exist
+            parse_directory(p.parent_path().string(), true, true);
+            // save default config
+            save( p.string() );
+            std::cout << "Default configuration saved to " << p.string() << "." << std::endl;
+        } catch ( std::runtime_error & e ) {
+            std::cout << "Warning: could not save configuration file: " << e.what() << std::endl;
         }
     }
-    return value;
+
 }
 
-std::string configuration::validate_path_option( std::string filename, std::string option, bool create ) {
-    
-    char *home = getenv("HOME");
-    std::regex re ("(\\$HOME|~)");
-    
-    // load configuration file
-    std::string value = std::regex_replace( filename, re, home );
-    char *abs_path = realpath( value.c_str(), NULL);
-    
-    if (abs_path == NULL) {
-        if (!create) {
-            throw ValidationError( "Invalid value for configuration option " + option + ". Should be an existing path." );
-        } else {
-            
-            if ( mkdir( value.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH )!=0 ) {
-                if (errno != EEXIST) {
-                    throw ValidationError( "Error processing configuration option " + option + ". Cannot create path." );
-                }
-            }
-        }
-    } else {
-        value = abs_path;
-        free(abs_path);
-    }
-    
-    return value;
+void Configuration::save(std::string filename) {
+    options_.save_yaml(filename);
 }
-
-std::string configuration::validate_path_option( const YAML::Node & node, std::string option, bool create, std::string default_value ) {
-    
-    std::string value = default_value;
-    if (node) { value = node.as<std::string>(); }
-    return validate_path_option( value, option, create );
-}
-
-void configuration::Configuration::save( std::string config_file ) const {
-    
-    YAML::Node config;
-    to_yaml( config );
-    
-    YAML::Emitter yaml_emitter;
-    yaml_emitter << config;
-
-    std::ofstream out(config_file);
-    out << yaml_emitter.c_str();
-}
-    
-void configuration::Configuration::load( std::string config_file ) {
-    
-    YAML::Node node = YAML::LoadFile( config_file );
-    validate( node );
-}
-
-void configuration::Configuration::validate () {
-    
-    YAML::Node node;
-    from_yaml( node );
-}
-
-void configuration::Configuration::validate ( const YAML::Node & node ) {
-    
-    from_yaml( node );
-}
-

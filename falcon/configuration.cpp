@@ -17,42 +17,22 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-#include <stdexcept>
-#include <string>
-#include <regex>
-#include <iostream>
-
-#include "yaml-cpp/yaml.h"
-
 #include "configuration.hpp"
 
-#include "utilities/filesystem.hpp"
-
-void Configuration::load(std::string filename) {
-
-    auto p = parse_file(filename);
-
-    try {
-        YAML::Node node;
-        node = YAML::LoadFile(p.string());
-        options_.from_yaml(node);
-        std::cout << "Default configuration loaded from " << p.string() << std::endl;
-    } catch (YAML::BadFile & e ) { // config file does not exist, save default configuration
-        try {
-            // create parent path if it doesn't exist
-            parse_directory(p.parent_path().string(), true, true);
-            // save default config
-            save( p.string() );
-            std::cout << "Default configuration saved to " << p.string() << "." << std::endl;
-        } catch ( std::runtime_error & e ) {
-            std::cout << "Warning: could not save configuration file: " << e.what() << std::endl;
-        }
-    }
-
+FalconConfiguration::FalconConfiguration() : Configuration() {
+    add_option("graph/file", graph_file, "");
+    add_option("graph/autostart", graph_autostart, "");
+    add_option("debug/enabled", debug_enabled, "");
+    add_option("testing/enabled", testing_enabled, "");
+    add_option("network/port", network_port, "");
+    add_option("logging/path", logging_path, "");
+    add_option("logging/screen/enabled", logging_screen_enabled, "");
+    add_option("logging/cloud/enabled", logging_cloud_enabled, "");
+    add_option("logging/cloud/port", logging_cloud_port, "");
+    add_option("server_side_storage/environment", server_side_storage_environment, "");
+    add_option("server_side_storage/resources", server_side_storage_resources, "");
+    add_option("server_side_storage/custom", server_side_storage_custom, "");
 }
 
-void Configuration::save(std::string filename) {
-    options_.save_yaml(filename);
-}
 
 
