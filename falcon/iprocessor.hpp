@@ -77,17 +77,56 @@ public: // called by anyone
 
     ~IProcessor() { internal_Stop(); }
 
+    /**
+     * Get processor's name.
+     * 
+     * The processor's name is set during the graph build phase *after*
+     * construction.
+     */
     const std::string name() const { return name_; }
+
+    /**
+     * Get processor's class name.
+     * 
+     * The processor's class name is set during the graph build phase
+     * *after* construction.
+     */
     const std::string type() const { return type_; }
     
+    /**
+     * Get number of input ports on the processor.
+     */ 
     unsigned int n_input_ports() const { return input_ports_.size(); }
+
+    /**
+     * Get number of output ports on the processor.
+     */
     unsigned int n_output_ports() const { return output_ports_.size(); }
     
+    /**
+     * Get set of all input port names.
+     */
     const std::set<std::string> input_port_names() const; 
+
+    /**
+     * Get set of all output port names.
+     */
     const std::set<std::string> output_port_names() const;
 
+    /**
+     * Check if input port with given name exists.
+     * 
+     * @param port The name of the port.
+     */
     bool has_input_port( std::string port ) { return input_ports_.count( port )==1; }
+
+    /**
+     * Check if output port with given name exists.
+     * 
+     * @param port The name of the port.
+     */
     bool has_output_port( std::string port ) { return output_ports_.count( port )==1; }
+    
     
     virtual bool issource() const { return n_input_ports()==0; }
     virtual bool issink() const { return n_output_ports()==0; }
@@ -115,28 +154,57 @@ protected: // need to be removed??
 
 protected: // callable by derived processors, but not others
     
+    /**
+     * Add an option to the processor.
+     * 
+     * A static state can only be read by the owning processor. If `shared`
+     * is true, then the state can be read by other processors as well
+     * (if their states are connected). Otherwise, a non-shared static state is
+     * created that is not accessible from other processors. The main use of
+     * static states is to expose the state value to clients by
+     * setting the `external` permissions to `Permission::READ` or `Permission::WRITE`.
+     * 
+     * @tparam TValue The type of the option value.
+     *  
+     * @param name The name of the option that is unique within the processor.
+     * @param value A reference to the linked Value object (should be derived from
+     *    ValueBase).
+     * @param description A brief description of the option.
+     * @param required Makes it a required option that clients need to specify in
+     *    the graph definition
+     * 
+     */
     template <typename TValue>
     void add_option(std::string name, TValue & value, std::string description="", bool required=false) {
         options_.add(name, value, description, required);
     }
 
+    /**
+     * Remove an existing processor option.
+     * 
+     * @param name The name of the existing option.
+     * 
+     */
     void remove_option(std::string name);
 
+    
+    /**
+     * Create an data output port on the processor.
+     * 
+     * @tparam DATATYPE The type of data that will be streamed through the port.
+     * 
+     * @param capabilities The data type specific capabilities of the port.
+     * @param parameters The data type specific parameters of the port.
+     * @param policy The output port policy.
+     * 
+     * @returns An observing pointer to the output port.
+     */
     template <typename DATATYPE>
     PortOut<DATATYPE>* create_output_port(
+        std::string name,
         const typename DATATYPE::Capabilities & capabilities,
         const typename DATATYPE::Parameters & parameters,
         const PortOutPolicy& policy ) {
-        
-        return create_output_port<DATATYPE>(
-            DATATYPE::dataname(), capabilities, parameters, policy);
-    }
-
-    template <typename DATATYPE>
-    PortOut<DATATYPE>* create_output_port( std::string name,
-                                           const typename DATATYPE::Capabilities & capabilities,
-                                           const typename DATATYPE::Parameters & parameters,
-                                           const PortOutPolicy& policy ) {
         
         if (name.size()==0) { name = DATATYPE::dataname(); }
 
@@ -154,20 +222,39 @@ protected: // callable by derived processors, but not others
         
         return ((PortOut<DATATYPE>*) output_ports_[name].get());
     }
-    
+
+    /**
+     * Create an output port on the processor.
+     * 
+     * The port name is set to the default data type name.
+     * 
+     * @overload
+     */ 
     template <typename DATATYPE>
-    PortIn<DATATYPE>* create_input_port( 
+    PortOut<DATATYPE>* create_output_port(
         const typename DATATYPE::Capabilities & capabilities,
-        const PortInPolicy & policy) {
+        const typename DATATYPE::Parameters & parameters,
+        const PortOutPolicy& policy ) {
         
-        return create_input_port<DATATYPE>(
-            DATATYPE::dataname(), capabilities, policy);
+        return create_output_port<DATATYPE>(
+            DATATYPE::dataname(), capabilities, parameters, policy);
     }
 
+    /**
+     * Create an data input port on the processor.
+     * 
+     * @tparam DATATYPE The type of data that will be streamed through the port.
+     * 
+     * @param capabilities The data type specific capabilities of the port.
+     * @param policy The input port policy.
+     * 
+     * @returns An observing pointer to the input port.
+     */
     template <typename DATATYPE>
-    PortIn<DATATYPE>* create_input_port( std::string name,
-                                         const typename DATATYPE::Capabilities & capabilities,
-                                         const PortInPolicy & policy ) {
+    PortIn<DATATYPE>* create_input_port(
+        std::string name,
+        const typename DATATYPE::Capabilities & capabilities,
+        const PortInPolicy & policy ) {
         
         if (name.size()==0) { name = DATATYPE::dataname(); }
 
@@ -185,13 +272,62 @@ protected: // callable by derived processors, but not others
         return ((PortIn<DATATYPE>*) input_ports_[name].get());
     }
     
+    /**
+     * Create an input port on the processor.
+     * 
+     * The port name is set to the default data type name.
+     * 
+     * @overload
+     */ 
+    template <typename DATATYPE>
+    PortIn<DATATYPE>* create_input_port( 
+        const typename DATATYPE::Capabilities & capabilities,
+        const PortInPolicy & policy) {
+        
+        return create_input_port<DATATYPE>(
+            DATATYPE::dataname(), capabilities, policy);
+    }
+
+    /**
+     * Retrieve observing pointer to input port.
+     * 
+     * @param port The name of the input port.
+     */ 
     IPortIn* input_port( std::string port ) { return input_ports_.at(port).get(); }
+
+    /**
+     * Retrieve observing pointer to output port.
+     * 
+     * @param port The name of the output port.
+     */ 
     IPortOut* output_port( std::string port ) { return output_ports_.at(port).get(); }
 
+    /**
+     * Retrieve observing pointer to input port.
+     * 
+     * @param port The address of the input port.
+     */ 
     IPortIn* input_port( const PortAddress & address );
+
+    /**
+     * Retrieve observing pointer to output port.
+     * 
+     * @param port The address of the output port.
+     */ 
     IPortOut* output_port( const PortAddress & address );    
 
+    /**
+     * Retrieve observing pointer to input slot.
+     * 
+     * @param port The address of the input slot.
+     */ 
     ISlotIn* input_slot( const SlotAddress & address );
+
+    /**
+     * Retrieve observing pointer to output slot.
+     * 
+     * @param port The address of the output slot.
+     */ 
     ISlotOut* output_slot( const SlotAddress & address );
 
 
@@ -224,62 +360,207 @@ protected: // callable by derived processors, but not others
 
     */
 
+    /**
+     * Create a static state on the processor.
+     * 
+     * A static state can only be read by the owning processor. If `shared`
+     * is true, then the state can be read by other processors as well
+     * (if their states are connected). Otherwise, a non-shared static state is
+     * created that is not accessible from other processors. The main use of
+     * static states is to expose the state value to clients by
+     * setting the `external` permissions to `Permission::READ` or `Permission::WRITE`.
+     * 
+     * @tparam T The type of the state value.
+     *  
+     * @param state The name of the state that is unique within the processor.
+     * @param default_value The initial value of the state.
+     * @param cooperative Creates a cooperative or isolated producer state.
+     * @param external The external read/write permissions.
+     * @param description A brief description of the state's purpose.
+     * 
+     * @returns An observing pointer to the static state.
+     * 
+     */
     template <typename T>
     StaticState<T>* create_static_state(
       std::string state, T default_value, bool shared = true,
-      Permission external = Permission::READ, std::string description = "" ) {
+      Permission external = Permission::WRITE, std::string description = "" ) {
         if( shared ){
-            return ((StaticState<T>*) create_readable_shared_state(state, default_value, Permission::READ, external, description));
+            return ((StaticState<T>*) create_readable_shared_state<T>(state, default_value, Permission::READ, external, description));
         }
         else {
-            return ((StaticState<T>*) create_readable_shared_state(state, default_value, Permission::NONE, external, description));
+            return ((StaticState<T>*) create_readable_shared_state<T>(state, default_value, Permission::NONE, external, description));
         }
     }
 
+    /**
+     * Create a static state.
+     * 
+     * The initial state value is taken from the processor option with the same name.
+     * If no option with the same name exists, then an exception is thrown.
+     * 
+     * @overload
+     */
+    template <typename T>
+    StaticState<T>* create_static_state(
+      std::string state, bool shared = true,
+      Permission external = Permission::WRITE, std::string description = "" ) {
+        if( shared ){
+            return ((StaticState<T>*) create_readable_shared_state<T>(state, Permission::READ, external, description));
+        }
+        else {
+            return ((StaticState<T>*) create_readable_shared_state<T>(state, Permission::NONE, external, description));
+        }
+    }
+
+    /**
+     * Create a producer state on the processor.
+     * 
+     * A producer state can be written by the owning processor. If `cooperative`
+     * is true, then the state can be written to by other processors as well
+     * (if their states are connected). Otherwise, an isolated producer is created
+     * that is not accessible from other processors. The main use of isolated
+     * producers is to expose the state value to clients by setting the `external`
+     * permissions to `Permission::READ` or `Permission::WRITE`.
+     * 
+     * @tparam T The type of the state value.
+     *  
+     * @param state The name of the state that is unique within the processor.
+     * @param default_value The initial value of the state.
+     * @param cooperative Creates a cooperative or isolated producer state.
+     * @param external The external read/write permissions.
+     * @param description A brief description of the state's purpose.
+     * 
+     * @returns An observing pointer to the producer state.
+     * 
+     */
     template <typename T>
     ProducerState<T>* create_producer_state(
       std::string state, T default_value, bool cooperative = false, Permission external = Permission::READ, std::string description = "" ) {
         if( cooperative ){
-            return ((ProducerState<T>*) create_writable_shared_state(state, default_value, Permission::WRITE, external, description));
+            return ((ProducerState<T>*) create_writable_shared_state<T>(state, default_value, Permission::WRITE, external, description));
         }
         else{
-            return ((ProducerState<T>*) create_writable_shared_state(state, default_value, Permission::NONE, external, description));
+            return ((ProducerState<T>*) create_writable_shared_state<T>(state, default_value, Permission::NONE, external, description));
         }
     }
 
+    /**
+     * Create a producer state.
+     * 
+     * The initial state value is taken from the processor option with the same name.
+     * If no option with the same name exists, then an exception is thrown.
+     * 
+     * @overload
+     */
+    template <typename T>
+    ProducerState<T>* create_producer_state(
+      std::string state, bool cooperative = false, Permission external = Permission::READ, std::string description = "" ) {
+        if( cooperative ){
+            return ((ProducerState<T>*) create_writable_shared_state<T>(state, Permission::WRITE, external, description));
+        }
+        else{
+            return ((ProducerState<T>*) create_writable_shared_state<T>(state, Permission::NONE, external, description));
+        }
+    }
+
+
+    /**
+     * Create a broadcaster state on the processor.
+     * 
+     * A broadcaster state can be written by the owning processor and can only 
+     * be read by other processors (if their states are connected).
+     * If `external` permissions are set to `Permission::READ` or `Permission::WRITE`,
+     * then the state value can also accessed by clients.
+     * 
+     * @tparam T The type of the state value.
+     *  
+     * @param state The name of the state that is unique within the processor.
+     * @param default_value The initial value of the state.
+     * @param external The external read/write permissions.
+     * @param description A brief description of the state's purpose.
+     * 
+     * @returns An observing pointer to the broadcaster state.
+     * 
+     */
     template <typename T>
     BroadcasterState<T>* create_broadcaster_state(
       std::string state, T default_value, Permission external = Permission::NONE, std::string description = "" ) {
-        return ((BroadcasterState<T>*)  create_writable_shared_state(state, default_value, Permission::READ, external, description));
+        return ((BroadcasterState<T>*)  create_writable_shared_state<T>(state, default_value, Permission::READ, external, description));
     }
 
+    /**
+     * Create a broadcaster state.
+     * 
+     * The initial state value is taken from the processor option with the same name.
+     * If no option with the same name exists, then an exception is thrown.
+     * 
+     * @overload
+     */
+    template <typename T>
+    BroadcasterState<T>* create_broadcaster_state(
+      std::string state, Permission external = Permission::NONE, std::string description = "" ) {
+        return ((BroadcasterState<T>*)  create_writable_shared_state<T>(state, Permission::READ, external, description));
+    }
+    
+    /**
+     * Create a follower state on the processor.
+     * 
+     * A follower state can only be read the owning processor and can be written
+     * to by other processors (if their states are connected). The initial value
+     * of the state is only used if the state is not connected to any other state.
+     * If `external` permissions are set to `Permission::READ` or `Permission::WRITE`,
+     * then the state value can also accessed by clients.
+     * 
+     * @tparam T The type of the state value.
+     *  
+     * @param state The name of the state that is unique within the processor.
+     * @param default_value The initial value of the state.
+     * @param external The external read/write permissions.
+     * @param description A brief description of the state's purpose.
+     * 
+     * @returns An observing pointer to the follower state.
+     * 
+     */
     template <typename T>
     FollowerState<T>* create_follower_state(
       std::string state, T default_value, Permission external = Permission::NONE, std::string description = "" ) {
-        return ((FollowerState<T>*) create_readable_shared_state(state, default_value, Permission::WRITE, external, description));
+        return ((FollowerState<T>*) create_readable_shared_state<T>(state, default_value, Permission::WRITE, external, description));
     }
 
-    
+    /**
+     * Create a follower state.
+     * 
+     * The initial state value is taken from the processor option with the same name.
+     * If no option with the same name exists, then an exception is thrown.
+     * 
+     * @overload
+     */
     template <typename T>
-    ReadableState<T>* create_readable_shared_state(
-      std::string state, Permission peers = Permission::WRITE,
-      Permission external = Permission::NONE, std::string description = "" ) {
-        
-        T default_value = T();
-
-        if (!options_.has_option(state)) {
-            // use default constructed value
-        } else {
-            try {
-                default_value = dynamic_cast<options::Option<T>&>(options_[state]).get_value();
-            } catch (std::runtime_error & e) {
-                throw ProcessorInternalError("Could not set state value from option: " + std::string(e.what()));
-            }
-        }
-
-        return create_readable_shared_state<T>(state, default_value, peers, external, description);
+    FollowerState<T>* create_follower_state(
+      std::string state, Permission external = Permission::NONE, std::string description = "" ) {
+        return ((FollowerState<T>*) create_readable_shared_state<T>(state, Permission::WRITE, external, description));
     }
 
+
+    /**
+     * Create a readable shared state on the processor.
+     * 
+     * A readable state can only be read the owning processor. Access permissions
+     * for other processors (if their states are linked) and clients can be set by
+     * the `peers` and `external` parameters.
+     * 
+     * @tparam T The type of the state value.
+     *  
+     * @param state The name of the state that is unique within the processor.
+     * @param default_value The initial value of the state.
+     * @param peers The state access permissions for other processors.
+     * @param external The external read/write permissions.
+     * @param description A brief description of the state's purpose.
+     * 
+     * @returns An observing pointer to the readable state.
+     * 
+     */
     template <typename T>
     ReadableState<T>* create_readable_shared_state(
       std::string state, T default_value, Permission peers = Permission::WRITE,
@@ -293,15 +574,23 @@ protected: // callable by derived processors, but not others
         return ((ReadableState<T>*) shared_states_[state].get());
     }
     
+    /**
+     * Create a readable state.
+     * 
+     * The initial state value is taken from the processor option with the same name.
+     * If no option with the same name exists, then an exception is thrown.
+     * 
+     * @overload
+     */
     template <typename T>
-    WritableState<T>* create_writable_shared_state(
-      std::string state, Permission peers = Permission::READ,
+    ReadableState<T>* create_readable_shared_state(
+      std::string state, Permission peers = Permission::WRITE,
       Permission external = Permission::NONE, std::string description = "" ) {
         
-        T default_value = T();
+        T default_value;
 
         if (!options_.has_option(state)) {
-            // use default constructed value
+            throw ProcessorInternalError("Could not set state value from option: no option named " + state);
         } else {
             try {
                 default_value = dynamic_cast<options::Option<T>&>(options_[state]).get_value();
@@ -310,10 +599,27 @@ protected: // callable by derived processors, but not others
             }
         }
 
-        return create_writable_shared_state<T>(state, default_value, peers, external, description);
-    
+        return create_readable_shared_state<T>(state, default_value, peers, external, description);
     }
 
+    /**
+     * Create a writable shared state on the processor.
+     * 
+     * A writable state can be written to by the owning processor. Access permissions
+     * for other processors (if their states are linked) and clients can be set by
+     * the `peers` and `external` parameters.
+     * 
+     * @tparam T The type of the state value.
+     *  
+     * @param state The name of the state that is unique within the processor.
+     * @param default_value The initial value of the state.
+     * @param peers The state access permissions for other processors.
+     * @param external The external read/write permissions.
+     * @param description A brief description of the state's purpose.
+     * 
+     * @returns An observing pointer to the writable state.
+     * 
+     */
     template <typename T>
     WritableState<T>* create_writable_shared_state(
       std::string state, T default_value, Permission peers = Permission::READ,
@@ -327,6 +633,40 @@ protected: // callable by derived processors, but not others
         return ((WritableState<T>*) shared_states_[state].get());
     }
     
+    /**
+     * Create a writable state.
+     * 
+     * The initial state value is taken from the processor option with the same name.
+     * If no option with the same name exists, then an exception is thrown.
+     * 
+     * @overload
+     */
+    template <typename T>
+    WritableState<T>* create_writable_shared_state(
+      std::string state, Permission peers = Permission::READ,
+      Permission external = Permission::NONE, std::string description = "" ) {
+        
+        T default_value;
+
+        if (!options_.has_option(state)) {
+            throw ProcessorInternalError("Could not set state value from option: no option named " + state);
+        } else {
+            try {
+                default_value = dynamic_cast<options::Option<T>&>(options_[state]).get_value();
+            } catch (std::runtime_error & e) {
+                throw ProcessorInternalError("Could not set state value from option: " + std::string(e.what()));
+            }
+        }
+
+        return create_writable_shared_state<T>(state, default_value, peers, external, description);
+    
+    }
+
+    /**
+     * Retrieve a pointer to a state.
+     * 
+     * @param state The name of the state.
+     */
     std::shared_ptr<IState> shared_state(std::string state) {
         if (this->shared_states_.count(state)==0) {
             throw ProcessorInternalError( "Shared state \"" + state + "\" does not exist.", name() );
