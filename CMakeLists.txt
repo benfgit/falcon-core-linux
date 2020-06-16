@@ -178,7 +178,6 @@ else()
 endif()
 
 ## External extensions ##
-
 add_subdirectory(lib)
 add_subdirectory(falcon)
 

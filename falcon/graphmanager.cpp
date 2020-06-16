@@ -33,38 +33,22 @@ GraphManager::GraphManager( GlobalContext& context ) : global_context_(&context)
 void GraphManager::HandleCommand( std::string command, std::deque<std::string>& extra, std::deque<std::string>& reply ) {
     
     if (command == "build") {
-        if (extra.size()<1) { throw std::runtime_error( "Missing YAML graph definition." ); }
-        
-        auto node = YAML::Load( extra[0] );        
-        graph_.Build( node );
-        
-        // save YAML to global_context_.resolve_path( "graphs://_last_graph" )
-        std::ofstream fout( global_context_->resolve_path( "graphs://_last_graph" ) );
-        fout << extra[0];
-            
-    } else if (command == "buildfile") {
-        if (extra.size()<1) { throw std::runtime_error( "Missing YAML graph definition file." ); }
 
-        std::string file = global_context_->resolve_path(extra[0], "graphs");
-        
-        try {
-            auto node = YAML::LoadFile( file );
-            
-            graph_.Build( node );
-            
-            // save YAML to global_context_.resolve_path( "graphs://_last_graph" )
-            // copy file
-            std::ifstream source(file, std::ios::binary);
-            std::ofstream dest(global_context_->resolve_path( "graphs://_last_graph" ), std::ios::binary);
-            dest << source.rdbuf();
-            
-            
-        } catch (YAML::BadFile& e) {
-            throw std::runtime_error( "Cannot open YAML graph definition file "
-                + file + ". Check if file actually exists.");
+        if (extra.size()<1) { throw std::runtime_error( "Missing YAML graph definition." ); }
+        YAML::Node node = YAML::Load(extra[0]);
+
+        if (!node.IsMap()) {
+            std::string file = node.as<std::string>();
+            try {
+                node = YAML::LoadFile(file);
+            } catch (YAML::BadFile& e) {
+                throw std::runtime_error( "Cannot open YAML graph definition file " + file + ". Check if file actually exists.");
+            }
         }
-        
-        
+        ParseGraph(node);
+        // save YAML to global_context_.resolve_path( "graphs://_last_graph" )
+        std::ofstream fout( global_context_->resolve_path( "graphs://_last_graph.yaml" ) );
+        fout << node;
 
     } else if (command == "destroy") {
         graph_.Destroy();
@@ -108,6 +92,68 @@ void GraphManager::HandleCommand( std::string command, std::deque<std::string>& 
     }
     
 }
+
+void GraphManager::ParseGraph(YAML::Node& node){
+
+    if (node["graph"]){
+        if (node["processors"]){
+            LOG(WARNING) << "Detected mixed use of old and new style graph definition."
+                            " Only the new style graph definition will be used and top-level processors, connections"
+                            " and states maps will be ignored.";
+        }
+
+        if( !node["graph"].IsMap()){
+             std::string graph_template_path =  global_context_->resolve_path(node["graph"].as<std::string>());
+             try{
+                node["graph"] = YAML::LoadFile( graph_template_path );
+             } catch (YAML::BadFile& e) {
+                throw std::runtime_error( "Cannot open YAML graph template definition file "
+                       + graph_template_path + ". Check if file actually exists.");
+             }
+        }
+
+        if (node["options"]){
+             YAML::Node options_node;
+             if( !node["options"].IsMap()){
+                std::string graph_options_path =  global_context_->resolve_path(node["options"].as<std::string>());
+
+                try{
+                     options_node = YAML::LoadFile( graph_options_path );
+                } catch (YAML::BadFile& e) {
+                     throw std::runtime_error( "Cannot open YAML graph options definition file "
+                           + graph_options_path + ". Check if file actually exists.");
+                }
+
+            }
+            else{
+             options_node = node["options"];
+            }
+
+            for(YAML::const_iterator it=options_node.begin();it!=options_node.end();++it) {
+                  std::string processor_name = it->first.as<std::string>();
+
+                  if ( !node["graph"]["processors"][processor_name] ){throw std::runtime_error( "Mismatch between the options graph and the template graph."); }
+
+                  for(YAML::const_iterator options_type_it=it->second.begin();options_type_it!=it->second.end();++options_type_it) {
+
+                        for(YAML::const_iterator options_it=options_type_it->second.begin();options_it!=options_type_it->second.end();++options_it) {
+                            std::string processor_option_name = options_it->first.as<std::string>();
+                            node["graph"]["processors"][processor_name][options_type_it->first.as<std::string>()][processor_option_name]  = options_it->second;
+                        }
+                  }
+            }
+        }
+        graph_.Build( node["graph"] );
+    }
+    else if (node["processors"] ){
+        LOG(WARNING) << "The graph definition seems to follow the old format. "
+                            "Consider updating to the new-style graph definition - see ... (add later link to the description)";
+        graph_.Build( node );
+    }
+    else {throw std::runtime_error( "Invalid graph description.");}
+
+}
+
 
 void GraphManager::Run() {
     
