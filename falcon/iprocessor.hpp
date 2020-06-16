@@ -50,7 +50,7 @@ GRAPHERROR( ProcessingStreamInfoError );
 GRAPHERROR( ProcessingPrepareError );
 GRAPHERROR( ProcessingPreprocessingError );
 
-bool is_valid_name( std::string s );
+void convert_name( std::string &s );
 
 namespace graph {
 class ProcessorGraph;
@@ -63,7 +63,7 @@ friend class graph::ProcessorGraph;
 
 public: // called by anyone
     IProcessor( ThreadPriority priority = PRIORITY_NONE ) :
-    running_(false), thread_() 
+    running_(false), thread_()
     {
         // add test option
         add_option("test", new_test_flag_);
@@ -92,7 +92,7 @@ public: // called by anyone
      * *after* construction.
      */
     const std::string type() const { return type_; }
-    
+
     /**
      * Get number of input ports on the processor.
      */ 
@@ -126,18 +126,17 @@ public: // called by anyone
      * @param port The name of the port.
      */
     bool has_output_port( std::string port ) { return output_ports_.count( port )==1; }
-    
-    
+
     virtual bool issource() const { return n_input_ports()==0; }
     virtual bool issink() const { return n_output_ports()==0; }
     virtual bool isfilter() const { return (!issource() && !issink()); }
     virtual bool isautonomous() const { return (issource() && issink()); }
-    
+
     ThreadPriority thread_priority() const { return thread_priority_(); }
     ThreadCore thread_core() const { return thread_core_(); }
-    
+
     bool running() const { return running_.load(); };
-   
+
     YAML::Node ExportYAML();
 
 protected: // need to be removed??
@@ -148,12 +147,12 @@ protected: // need to be removed??
     fullpath is prefix.filename.extension*/
     void create_file( std::string prefix, std::string variable_name,
         std::string extension="bin" );
-    
+
     void prepare_latency_test( ProcessingContext& context );
     void save_source_timestamps_to_disk( std::uint64_t n_timestamps );
 
 protected: // callable by derived processors, but not others
-    
+
     /**
      * Add an option to the processor.
      * 
@@ -205,13 +204,13 @@ protected: // callable by derived processors, but not others
         const typename DATATYPE::Capabilities & capabilities,
         const typename DATATYPE::Parameters & parameters,
         const PortOutPolicy& policy ) {
-        
-        if (name.size()==0) { name = DATATYPE::dataname(); }
 
-        if (output_ports_.count( name )==1 || !is_valid_name(name)) {
+        if (name.size()==0) { name = DATATYPE::dataname(); }
+        convert_name(name);
+        if (output_ports_.count( name )==1) {
             throw std::runtime_error( "Output port name \"" + name + "\" is invalid or already exists." );
         }
-        
+
         output_ports_[name] = std::move(
             std::unique_ptr<IPortOut>(
                 (IPortOut*) new PortOut<DATATYPE>( this,
@@ -219,9 +218,10 @@ protected: // callable by derived processors, but not others
                                                    capabilities,
                                                    parameters,
                                                    policy ) ) );
-        
+
         return ((PortOut<DATATYPE>*) output_ports_[name].get());
     }
+
 
     /**
      * Create an output port on the processor.
@@ -251,24 +251,25 @@ protected: // callable by derived processors, but not others
      * @returns An observing pointer to the input port.
      */
     template <typename DATATYPE>
+
     PortIn<DATATYPE>* create_input_port(
         std::string name,
         const typename DATATYPE::Capabilities & capabilities,
         const PortInPolicy & policy ) {
-        
-        if (name.size()==0) { name = DATATYPE::dataname(); }
 
-        if (input_ports_.count( name )==1 || !is_valid_name(name)) {
+        if (name.size()==0) { name = DATATYPE::dataname(); }
+        convert_name(name);
+        if (input_ports_.count( name )==1) {
             throw std::runtime_error( "Input port name \"" + name + "\" is invalid or already exists." );
         }
-        
+
         input_ports_[name] = std::move(
             std::unique_ptr<IPortIn>(
                 (IPortIn*) new PortIn<DATATYPE>( this,
                                                  PortAddress(this->name(),name),
                                                  capabilities,
                                                  policy ) ) );
-        
+
         return ((PortIn<DATATYPE>*) input_ports_[name].get());
     }
     
@@ -308,6 +309,7 @@ protected: // callable by derived processors, but not others
      * @param port The address of the input port.
      */ 
     IPortIn* input_port( const PortAddress & address );
+
 
     /**
      * Retrieve observing pointer to output port.
@@ -565,7 +567,8 @@ protected: // callable by derived processors, but not others
     ReadableState<T>* create_readable_shared_state(
       std::string state, T default_value, Permission peers = Permission::WRITE,
       Permission external = Permission::NONE, std::string description = "" ) {
-        if (shared_states_.count( state)==1 || !is_valid_name(state)) {
+        convert_name(state);
+        if (shared_states_.count( state)==1) {
             throw ProcessorInternalError( "Shared state \"" + state + "\" is invalid or already exists.", name() );
         }
 
@@ -586,9 +589,7 @@ protected: // callable by derived processors, but not others
     ReadableState<T>* create_readable_shared_state(
       std::string state, Permission peers = Permission::WRITE,
       Permission external = Permission::NONE, std::string description = "" ) {
-        
         T default_value;
-
         if (!options_.has_option(state)) {
             throw ProcessorInternalError("Could not set state value from option: no option named " + state);
         } else {
@@ -624,7 +625,8 @@ protected: // callable by derived processors, but not others
     WritableState<T>* create_writable_shared_state(
       std::string state, T default_value, Permission peers = Permission::READ,
       Permission external = Permission::NONE, std::string description = "" ) {
-        if (shared_states_.count( state)==1 || !is_valid_name(state)) {
+        convert_name(state);
+        if (shared_states_.count( state)==1) {
             throw ProcessorInternalError( "Shared state \"" + state + "\" is invalid or already exists.", name() );
         }
         
@@ -632,7 +634,7 @@ protected: // callable by derived processors, but not others
         
         return ((WritableState<T>*) shared_states_[state].get());
     }
-    
+
     /**
      * Create a writable state.
      * 
@@ -645,9 +647,10 @@ protected: // callable by derived processors, but not others
     WritableState<T>* create_writable_shared_state(
       std::string state, Permission peers = Permission::READ,
       Permission external = Permission::NONE, std::string description = "" ) {
-        
+
         T default_value;
 
+        state = convert_name(state);
         if (!options_.has_option(state)) {
             throw ProcessorInternalError("Could not set state value from option: no option named " + state);
         } else {
@@ -659,8 +662,9 @@ protected: // callable by derived processors, but not others
         }
 
         return create_writable_shared_state<T>(state, default_value, peers, external, description);
-    
+
     }
+
 
     /**
      * Retrieve a pointer to a state.
@@ -668,15 +672,17 @@ protected: // callable by derived processors, but not others
      * @param state The name of the state.
      */
     std::shared_ptr<IState> shared_state(std::string state) {
+        convert_name(state);
         if (this->shared_states_.count(state)==0) {
             throw ProcessorInternalError( "Shared state \"" + state + "\" does not exist.", name() );
         }
         return shared_states_[state];
     }
-    
+
     template <class T>
     void expose_method( std::string methodname, YAML::Node (T::*method)(const YAML::Node&) ) {
-        if (exposed_methods_.count( methodname )==1 || !is_valid_name(methodname)) {
+        convert_name(methodname);
+        if (exposed_methods_.count( methodname )==1) {
             throw ProcessorInternalError( "Exposed method \"" + methodname + "\" is invalid or already exists.", name() );
         }
         exposed_methods_[methodname] = std::bind( method, static_cast<T*>(this), std::placeholders::_1 );

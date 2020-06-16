@@ -25,9 +25,14 @@
 
 #include "utilities/general.hpp"
 
-bool is_valid_name( std::string s ) {
-    
-    return std::regex_match(s, std::regex("^\\w+$"));
+void convert_name( std::string& s ) {
+
+    if (std::regex_match(s, std::regex("^\\w(?:(?:[ -][\\w])|\\w)*$"))){
+        s = std::regex_replace(s, std::regex("[ _]"), "-");
+    }
+    else{
+        throw ProcessorInternalError(s + " is not a valid name." );
+    }
 }
 
 const std::set<std::string> IProcessor::input_port_names() const {
