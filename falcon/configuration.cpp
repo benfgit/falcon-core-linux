@@ -26,23 +26,26 @@
 
 #include "configuration.hpp"
 
+#include "utilities/filesystem.hpp"
+
 void Configuration::load(std::string filename) {
 
-    char *home = getenv("HOME");
-    std::regex re ("(\\$HOME|~)");
-    filename = std::regex_replace( filename, re, home );
+    auto p = parse_file(filename);
 
-    YAML::Node node;
     try {
-        node = YAML::LoadFile( filename );
+        YAML::Node node;
+        node = YAML::LoadFile(p.string());
         options_.from_yaml(node);
-    }
-    catch (YAML::BadFile & e ) { // config file does not exist, save default configuration
+        std::cout << "Default configuration loaded from " << p.string() << std::endl;
+    } catch (YAML::BadFile & e ) { // config file does not exist, save default configuration
         try {
-            save( filename );
-            std::cout << "Default configuration saved to " << filename << "." << std::endl;
-        } catch ( std::exception & e ) {
-            std::cout << "Warning: could not save configuration file." << std::endl;
+            // create parent path if it doesn't exist
+            parse_directory(p.parent_path().string(), true, true);
+            // save default config
+            save( p.string() );
+            std::cout << "Default configuration saved to " << p.string() << "." << std::endl;
+        } catch ( std::runtime_error & e ) {
+            std::cout << "Warning: could not save configuration file: " << e.what() << std::endl;
         }
     }
 

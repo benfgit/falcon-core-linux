@@ -26,7 +26,7 @@ public:
 
     void load(std::string filename);
     void save(std::string filename);
-    
+
     template <typename TValue>
     void add_option(std::string name, TValue & value, std::string description="", bool required=false) {
         options_.add(name, value, description, required);
@@ -60,12 +60,12 @@ public:
     options::Bool testing_enabled{false};
     options::Bool graph_autostart{false};
     options::Int network_port{5555};
-    options::String logging_path{"./"};
+    options::String logging_path{"./", options::isdir()};
     options::Bool logging_screen_enabled{true};
     options::Bool logging_cloud_enabled{true};
     options::Int logging_cloud_port{5556};
-    options::String server_side_storage_environment{"./"};
-    options::String server_side_storage_resources{"$HOME/.falcon"};
+    options::String server_side_storage_environment{"./", options::isdir()};
+    options::String server_side_storage_resources{"./", options::isdir()};
     options::ValueMap<options::String> server_side_storage_custom;
 };
 
