@@ -24,7 +24,6 @@
 #include "connectionparser.hpp"
 #include "utilities/string.hpp"
 
-
 ConnectionRule parseConnectionRule( std::string rulestring ) {
     
     // rule
@@ -37,7 +36,7 @@ ConnectionRule parseConnectionRule( std::string rulestring ) {
     ConnectionRule rule;
     SingleConnectionRule single_rules[2];
     
-    std::string expr("(?:(f|p|s)\\:)?(\\w+[a-zA-Z -]*)?((?:\\d+)|(?:\\([\\d,\\-]+\\)))?");
+    std::string expr("^(?:(f|p|s)\\:)?([a-zA-Z]+(?:[ -_][a-zA-Z]+)*)[ ]*((?:\\d+)|(?:\\([\\d,\\-]+\\)))?$");
     std::regex re(expr);
     std::smatch match;
     
@@ -57,7 +56,7 @@ ConnectionRule parseConnectionRule( std::string rulestring ) {
         rule_part = std::regex_replace(rule_part, std::regex("^ +| +$"), std::string(""));
         // split on "."
         auto connection_parts = split( rule_part, '.' );
-        
+
         if (connection_parts.size()>3) { throw std::runtime_error("Error parsing connection rule."); }
         
         current_connection_part = 0;
@@ -66,11 +65,10 @@ ConnectionRule parseConnectionRule( std::string rulestring ) {
         NodePart specifier;
         
         for ( auto &connection_part : connection_parts ) {
-            
+
             // match regular expression
             if ( !std::regex_match(connection_part, match, re) )
             { throw std::runtime_error("Error parsing connection rule."); }
-
             // parse part specifier
             if ( !match[1].matched ){
                 //get next available specifier
@@ -102,13 +100,13 @@ ConnectionRule parseConnectionRule( std::string rulestring ) {
 
             // parse part identifiers
             std::vector<int> identifiers;
-            if (!match[3].matched) {
+            if (!match[4].matched) {
                 //match all or default
                 if (specifier == SLOT)
                 { identifiers.push_back( -1 ); }
                 else { identifiers.push_back( MATCH_NONE ); }
             } else {
-                std::string piece = match[3].str();
+                std::string piece = match[4].str();
 
                 if (piece[0]=='(') {
                     //match ID range vector
