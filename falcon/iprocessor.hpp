@@ -37,7 +37,7 @@
 
 #include <functional>
 #include "sharedstate.hpp"
-
+#include "buildconstant.hpp"
 #include "options/options.hpp"
 
 
@@ -77,6 +77,14 @@ public: // called by anyone
 
     ~IProcessor() { internal_Stop(); }
 
+    /**
+     * Get processor's doc.
+     *
+     * The processor's doc is reading from the doc.txt file placed next to this file. It is a static method and can be
+     * called without instantiate the class itself.
+     */
+
+    const static std::string documentation(std::string name);
     /**
      * Get processor's name.
      * 
@@ -796,7 +804,7 @@ public:
 
 template <class PROCESSOR>
 ProcessorRegistrar<PROCESSOR>::ProcessorRegistrar(std::string name) {
-    ProcessorFactory::instance().registerClass( name, factory::createInstance<IProcessor, PROCESSOR> );
+    ProcessorFactory::instance().registerClass( name, factory::createInstance<IProcessor, PROCESSOR>, PROCESSOR::documentation(name) );
 }
 
 #define REGISTERPROCESSOR(PROCESSOR) \

@@ -24,6 +24,7 @@
 #include "g3log/src/g2log.hpp"
 
 #include "utilities/general.hpp"
+#include "utilities/filesystem.hpp"
 
 void convert_name( std::string& s ) {
 
@@ -33,6 +34,26 @@ void convert_name( std::string& s ) {
     else{
         throw ProcessorInternalError(s + " is not a valid name." );
     }
+}
+
+
+const std::string IProcessor::documentation(std::string name){
+    std::string doc;
+    std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+    std::string filename = DOC_PATH  + name + "/doc.txt";
+
+    std::ifstream processor_doc(filename, std::fstream::in);
+
+    if (processor_doc.is_open()){
+        std::ostringstream ss;
+        ss << processor_doc.rdbuf();
+        doc = ss.str();
+        processor_doc.close();
+    }else{
+        doc = "No available documentation.";
+    }
+
+    return doc;
 }
 
 const std::set<std::string> IProcessor::input_port_names() const {

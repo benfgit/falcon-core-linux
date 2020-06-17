@@ -25,7 +25,7 @@
 #include "g3log/src/g2log.hpp"
 #include "utilities/zmqutil.hpp"
 #include "yaml-cpp/yaml.h"
-#include "version.hpp"
+#include "buildconstant.hpp"
 
 
 using namespace commands;

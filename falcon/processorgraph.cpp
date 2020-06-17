@@ -185,6 +185,12 @@ ProcessorGraph::ProcessorGraph( GlobalContext& context ) : global_context_(conte
     for (auto item : processors ) {
         LOG(INFO) << "Registered processor " << item;
     }
+
+    std::vector<std::string> docs = ProcessorFactory::instance().listDocs();
+    for (auto item : docs ) {
+        LOG(INFO) << "Registered processor documentation " << item;
+    }
+
 }
 
 std::string ProcessorGraph::state_string() const {
@@ -391,6 +397,7 @@ void ProcessorGraph::Build( const YAML::Node& node ) {
             LOG(DEBUG) << "Successfully prepared processor " << it.first;
         }
         LOG(INFO) << "All processors have been prepared.";
+
     } catch ( ... ) {
         
         Destroy();
@@ -400,7 +407,6 @@ void ProcessorGraph::Build( const YAML::Node& node ) {
     yaml_ = node;
     
     LOG(INFO) << "Graph was successfully constructed.";
-    
     set_state(GraphState::READY);
 }
 

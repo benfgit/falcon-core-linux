@@ -42,7 +42,7 @@
 #include "options/units.hpp"
 #include "configuration.hpp"
 #include "utilities/time.hpp"
-#include "version.hpp"
+#include "buildconstant.hpp"
 
 
 using namespace std;

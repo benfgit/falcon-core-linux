@@ -33,7 +33,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 set( DATATYPE_LIBS )
 set( PROCESSOR_LIBS )
-
+set( PROCESSOR_DOC )
 option(COMPILE_EXTENSIONS "compile all extensions" ON)
 
 if (COMPILE_EXTENSIONS)
@@ -131,7 +131,7 @@ if (COMPILE_EXTENSIONS)
         if (EXISTS ${FALCON_PATH}/processors/exclude.txt)
           FILE(STRINGS ${FALCON_PATH}/processors/exclude.txt EXCLUDED_ITEMS)
         endif()
-        
+
         FOREACH( PROCESSOR ${PROCESSORS} )
           LIST(FIND EXCLUDED_ITEMS ${PROCESSOR} DO_EXCLUDE)
           if(DO_EXCLUDE GREATER -1)
@@ -143,6 +143,10 @@ if (COMPILE_EXTENSIONS)
               add_subdirectory(${FALCON_PATH}/processors/${PROCESSOR} ${CMAKE_CURRENT_BINARY_DIR}/processors/${PROCESSOR})
               if( TARGET ${PROCESSOR} )
                 LIST( APPEND PROCESSOR_LIBS ${PROCESSOR} )
+              endif()
+              if ( EXISTS "${FALCON_PATH}/processors/${PROCESSOR}/doc.txt" )
+                configure_file(${FALCON_PATH}/processors/${PROCESSOR}/doc.txt
+                            ${CMAKE_CURRENT_BINARY_DIR}/processors/${PROCESSOR} COPYONLY)
               endif()
             endif()
           endif()
@@ -165,17 +169,21 @@ if (COMPILE_EXTENSIONS)
       math(EXPR ITER "${ITER} + 1")
       
     endforeach()
-    
+
 endif()
 
+set(_processor_doc_path ${CMAKE_CURRENT_BINARY_DIR}/processors/ )
+configure_file(buildconstant.hpp.in buildconstant.hpp @ONLY)
 # falcon executable
-add_executable(falcon ${sources})
+
+add_executable(falcon ${sources} )
 
 target_link_libraries (falcon logging yaml-cpp zmq ${PLATFORM_LINK_LIBRARIES})
 
 # here we have to use --whole-archive linker option, otherwise the data type and processor libs are not
 # linked at all because none of their exported symbols are explicitly used in falcon. Same is true for (part of)
 # the disruptor and utilities libraries
+
 SET (WHOLELIBS -Wl,--whole-archive units-static utilities options disruptor ${DATATYPE_LIBS} ${PROCESSOR_LIBS} -Wl,--no-whole-archive)
 target_link_libraries (falcon ${WHOLELIBS} )
 
