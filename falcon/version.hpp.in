@@ -1,4 +1,7 @@
-#pragma once
+#ifndef VERSION_HPP
+#define VERSION_HPP
 
 #define GIT_REVISION "@_build_version@"
 #define BUILD_TIMESTAMP "@_time_stamp@"
+
+#endif 
