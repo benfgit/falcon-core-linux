@@ -49,11 +49,12 @@ ConnectionRule parseConnectionRule( std::string rulestring ) {
 
     // split on "="
     auto rule_parts = split( rulestring, '=' );
+
     if (rule_parts.size()!=2 || rule_parts[0].length()==0 || rule_parts[1].length()==0)
     { throw std::runtime_error("Error parsing connection rule."); }
     
     for ( auto &rule_part : rule_parts ) {
-        
+        rule_part = std::regex_replace(rule_part, std::regex("^ +| +$"), std::string(""));
         // split on "."
         auto connection_parts = split( rule_part, '.' );
         
