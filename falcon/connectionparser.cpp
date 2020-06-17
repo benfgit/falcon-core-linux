@@ -24,6 +24,7 @@
 #include "connectionparser.hpp"
 #include "utilities/string.hpp"
 
+
 ConnectionRule parseConnectionRule( std::string rulestring ) {
     
     // rule
@@ -36,7 +37,7 @@ ConnectionRule parseConnectionRule( std::string rulestring ) {
     ConnectionRule rule;
     SingleConnectionRule single_rules[2];
     
-    std::string expr("(?:(f|p|s)\\:)?(\\w+[a-zA-Z])?((?:\\d+)|(?:\\([\\d,\\-]+\\)))?");
+    std::string expr("(?:(f|p|s)\\:)?(\\w+[a-zA-Z -]*)?((?:\\d+)|(?:\\([\\d,\\-]+\\)))?");
     std::regex re(expr);
     std::smatch match;
     
@@ -45,10 +46,7 @@ ConnectionRule parseConnectionRule( std::string rulestring ) {
     
     int current_rule_part = 0;
     int current_connection_part = 0;
-    
-    // remove all spaces
-    rulestring.erase( std::remove_if( rulestring.begin(), rulestring.end(), [](char x){ return std::isspace(x); } ), rulestring.end() );
-    
+
     // split on "="
     auto rule_parts = split( rulestring, '=' );
     if (rule_parts.size()!=2 || rule_parts[0].length()==0 || rule_parts[1].length()==0)
@@ -71,15 +69,17 @@ ConnectionRule parseConnectionRule( std::string rulestring ) {
             // match regular expression
             if ( !std::regex_match(connection_part, match, re) )
             { throw std::runtime_error("Error parsing connection rule."); }
-            
+
             // parse part specifier
             if ( !match[1].matched ){
                 //get next available specifier
                 specifier = available_specifiers.front();
+
                 available_specifiers.pop_front();
             } else {
                 //check if specifier is available
                 std::string piece = match[1].str();
+
                 if (piece=="f") { specifier = PROCESSOR; }
                 else if (piece=="p") { specifier = PORT; }
                 else { specifier = SLOT; }
@@ -92,13 +92,15 @@ ConnectionRule parseConnectionRule( std::string rulestring ) {
             }
             
             // parse part name
+
             if (!match[2].matched && specifier!=SLOT)
             { throw std::runtime_error("Error parsing connection rule."); }
+
             std::string name = match[2].str();
-            
+            name = std::regex_replace(name, std::regex("[ _]"), "-");
+
             // parse part identifiers
             std::vector<int> identifiers;
-            
             if (!match[3].matched) {
                 //match all or default
                 if (specifier == SLOT)
@@ -106,6 +108,7 @@ ConnectionRule parseConnectionRule( std::string rulestring ) {
                 else { identifiers.push_back( MATCH_NONE ); }
             } else {
                 std::string piece = match[3].str();
+
                 if (piece[0]=='(') {
                     //match ID range vector
                     //remove brackets and spaces
