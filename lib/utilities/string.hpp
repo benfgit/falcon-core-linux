@@ -39,6 +39,9 @@ std::vector<std::string> &split(
 
 std::vector<std::string> split(const std::string &s, char delim);
 
+template <typename T>
+std::string join(const std::vector<T> &s, std::string delim=",");
+
 std::string resolve_server_path(
     std::string p,
     const std::map<std::string,
@@ -47,6 +50,9 @@ std::string resolve_server_path(
 
 template <typename T>
 std::string to_string_n(const T a_value, const int n = 1);
+
+template <typename T>
+T from_string(std::string s);
 
 // removes the appended (complete or incomplete) filename from the path
 // and returns the path to the folder;

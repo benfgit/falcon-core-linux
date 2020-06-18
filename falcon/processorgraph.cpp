@@ -49,28 +49,32 @@ std::vector<std::string> expandProcessorName( std::string s ) {
     int startid, endid;
     
     // name# or name[#, #-#]
-    std::regex re("(\\w+[a-zA-Z])((?:\\d+)|(?:\\([\\d,\\-]+\\)))?");
+    std::regex re("^([a-zA-Z]+(?:[ -_][a-zA-Z]+)*)[ ]*((?:\\d+)|(?:\\([\\d,\\-]+\\)))?$");
+
     std::smatch match;
-    
-    // remove all spaces
-    s.erase( std::remove_if( s.begin(), s.end(), [](char x){ return std::isspace(x); } ), s.end() );
-    
+
     // match regular expression
     if ( !std::regex_match(s, match, re) )
     { throw std::runtime_error("Invalid processor name: \"" + s + "\""); }
-    
+
     //get base name
     if (!match[1].matched)
     { throw std::runtime_error("Invalid processor name (no base name): \"" + s + "\""); }
     std::string name = match[1].str();
+    // remove trimming spaces
+
+    name = std::regex_replace(name, std::regex("^ +| +$"), std::string(""));
+    name = std::regex_replace(name, std::regex("[ _]"), "-");
     
     // parse part identifiers
     std::vector<int> identifiers;
-    
-    if (!match[2].matched) {
+
+    if (!match[3].matched) {
         result.push_back( name );
     } else {
-        std::string piece = match[2].str();
+        std::string piece = match[3].str();
+        // remove trimming spaces
+        piece = std::regex_replace(piece, std::regex("^ +| +$"), std::string(""));
         if (piece[0]=='(') {
             //match ID range vector
             //remove brackets and spaces

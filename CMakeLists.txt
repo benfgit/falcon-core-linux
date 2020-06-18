@@ -40,6 +40,12 @@ FetchContent_Declare(
 		GIT_TAG v4.6.0
 	)
 
+FetchContent_Declare(
+	units
+	GIT_REPOSITORY https://github.com/LLNL/units.git
+	GIT_SHALLOW ON
+	GIT_TAG v0.4.0
+)
 
 FetchContent_GetProperties(yaml-cpp)
 if(NOT yaml-cpp_POPULATED)
@@ -66,6 +72,29 @@ endif()
 
 include_directories(BEFORE SYSTEM "${cppzmq_SOURCE_DIR}")
 target_link_libraries(${ZMQ} cppzmq)
+
+FetchContent_GetProperties(units)
+if(NOT units_POPULATED)
+	message(STATUS "Populating LLNL units...")
+	FetchContent_Populate(units)
+	# Add here options for units building
+	set(CMAKE_CXX_STANDARD 17)
+	set(USE_LIBCXX OFF CACHE INTERNAL "")
+	set(UNITS_HEADER_ONLY OFF CACHE INTERNAL "")
+	set(UNITS_ENABLE_TESTS OFF CACHE BOOL "Whether or not to build the tests")
+	set(UNITS_INSTALL OFF CACHE INTERNAL "")
+	set(UNITS_BUILD_OBJECT_LIBRARY OFF CACHE INTERNAL "")
+	set(UNITS_BUILD_STATIC_LIBRARY ON CACHE INTERNAL "")
+	set(UNITS_BUILD_SHARED_LIBRARY OFF CACHE INTERNAL "")
+	set(UNITS_BUILD_WEBSERVER OFF CACHE INTERNAL "")
+	add_subdirectory(${units_SOURCE_DIR} ${units_BINARY_DIR})
+	message(STATUS "Done.")
+endif()
+
+include_directories(BEFORE SYSTEM "${units_SOURCE_DIR}")
+target_link_libraries(${UNITS} units-static)
+
+
 
 ## External extensions ##
 

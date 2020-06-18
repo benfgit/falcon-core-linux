@@ -29,7 +29,7 @@ const ThreadPriority PRIORITY_LOW = 0;
 const ThreadPriority PRIORITY_MEDIUM = 50;
 const ThreadPriority PRIORITY_HIGH = 100;
 
-typedef int16_t ThreadCore;
+typedef int ThreadCore;
 
 const ThreadCore CORE_NOT_PINNED = -1;
 

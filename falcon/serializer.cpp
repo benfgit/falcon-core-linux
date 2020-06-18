@@ -105,12 +105,14 @@ bool Serialization::YAMLSerializer::Serialize( std::ostream & stream, typename A
 
 
 Serializer* serializer_from_string( std::string s, Serialization::Format fmt ) {
-    
-    if (s=="binary") { return new Serialization::BinarySerializer( fmt); }
-    if (s=="yaml") { return new Serialization::YAMLSerializer( fmt); }
+    return serializer(Serialization::string_to_encoding(s), fmt);
+}
+
+Serializer* serializer( Serialization::Encoding enc, Serialization::Format fmt) {
+    if (enc==Serialization::Encoding::BINARY) { return new Serialization::BinarySerializer( fmt); }
+    if (enc==Serialization::Encoding::YAML) { return new Serialization::YAMLSerializer( fmt); }
     
     throw std::runtime_error("Unknown serializer.");
-
 }
 
 } // namespace Serialization

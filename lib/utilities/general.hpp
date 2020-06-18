@@ -30,9 +30,9 @@ typedef Range<unsigned int> ChannelRange;
 
 // basic event counter
 struct EventCounter {
-    uint64_t all_received;
-    uint64_t target;
-    uint64_t non_target;
+    uint64_t all_received = 0;
+    uint64_t target = 0;
+    uint64_t non_target = 0;
     
     inline bool consistent_counters() {
         

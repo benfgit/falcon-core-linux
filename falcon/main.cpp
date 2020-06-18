@@ -39,10 +39,11 @@
 #include "graphmanager.hpp"
 
 #include "context.hpp"
-
+#include "options/units.hpp"
 #include "configuration.hpp"
 #include "utilities/time.hpp"
 #include "version.hpp"
+
 
 using namespace std;
 
@@ -79,10 +80,14 @@ int main(int argc, char** argv) {
     // create default configuration
     FalconConfiguration config;
     
+    // add custom units
+    units::addUserDefinedUnit("sample", units::precise::sample_units);
+    units::addUserDefinedUnit("spike", units::precise::spike_units);
+
     // load configuration file
     try {
-        configuration::load_config_file<FalconConfiguration>( parser.get<std::string>("config"), config );
-    } catch ( configuration::ValidationError & e ) {
+        config.load(parser.get<std::string>("config"));
+    } catch ( std::runtime_error & e ) {
         std::cout << e.what() << std::endl;
         std::cout << "Falcon terminated." << std::endl;
         return EXIT_FAILURE;
@@ -96,37 +101,37 @@ int main(int argc, char** argv) {
     if (parser.exist("test")) { config.testing_enabled = true; }
         
     // add default URIs
-    config.server_side_storage_custom["resources"] = config.server_side_storage_resources;
-    config.server_side_storage_custom["graphs"] = config.server_side_storage_resources + "/graphs";
-    config.server_side_storage_custom["filters"] = config.server_side_storage_resources + "/filters";
-    config.server_side_storage_custom["runroot"] = config.server_side_storage_environment;
+    config.server_side_storage_custom["resources"] = config.server_side_storage_resources();
+    config.server_side_storage_custom["graphs"] = config.server_side_storage_resources() + "/graphs";
+    config.server_side_storage_custom["filters"] = config.server_side_storage_resources() + "/filters";
+    config.server_side_storage_custom["runroot"] = config.server_side_storage_environment();
     
-    GlobalContext context( config.testing_enabled, config.server_side_storage_custom );
+    GlobalContext context( config.testing_enabled(), config.server_side_storage_custom() );
     
     // set up loggers
     // file logger
     char *home = getenv("HOME");
     std::regex re ("(\\$HOME|~)");
-    std::string logpath = std::regex_replace( config.logging_path, re, home );
+    std::string logpath = std::regex_replace( config.logging_path(), re, home );
     auto logger = g2::LogWorker::createWithDefaultLogger("falcon", logpath );
     
     // initialize logging before creating additional loggers
     g2::initializeLogging(logger.worker.get());
     
     // enable DEBUG logging
-    g2::setLogLevel( DEBUG, config.debug_enabled );
+    g2::setLogLevel( DEBUG, config.debug_enabled() );
     
     // screen logger
-    if (config.logging_screen_enabled) {
+    if (config.logging_screen_enabled()) {
         logger.worker->addSink(std2::make_unique<ScreenSink>(), &ScreenSink::ReceiveLogMessage);
         LOG(INFO) << "Enabled logging to screen.";
     }
     // cloud logger
-    if (config.logging_cloud_enabled) {
-        logger.worker->addSink(std2::make_unique<ZMQSink>( context.zmq(), config.logging_cloud_port ), &ZMQSink::ReceiveLogMessage);
+    if (config.logging_cloud_enabled()) {
+        logger.worker->addSink(std2::make_unique<ZMQSink>( context.zmq(), config.logging_cloud_port() ), &ZMQSink::ReceiveLogMessage);
          //wait so that any existing subscriber has a change to connect before we send out first messages
         std::this_thread::sleep_for( std::chrono::milliseconds(200) );
-        LOG(INFO) << "Enabled logging to cloud on port " << std::to_string(config.logging_cloud_port);
+        LOG(INFO) << "Enabled logging to cloud on port " << std::to_string(config.logging_cloud_port());
     }
     
     LOG(INFO) << "Logging initialized. Log file saved to " << logpath;
@@ -147,12 +152,12 @@ int main(int argc, char** argv) {
     // keyboard commands
     commands::KeyboardCommands kb;
     // cloud commands   
-    commands::ZMQCommands zc(context.zmq(), config.network_port );
+    commands::ZMQCommands zc(context.zmq(), config.network_port() );
     // command line commands
     commands::CommandLineCommands cl;
     
     
-    std::string graph_file = config.graph_file;
+    std::string graph_file = config.graph_file();
     if ( parser.rest().size()>0 ) {
         graph_file = parser.rest().back();
     }
@@ -169,7 +174,7 @@ int main(int argc, char** argv) {
         
         command.clear();
         
-        if (config.graph_autostart) {
+        if (config.graph_autostart()) {
             command.push_back( "graph" );
             command.push_back( "start" );
             
