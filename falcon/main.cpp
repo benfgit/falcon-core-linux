@@ -39,10 +39,10 @@
 #include "graphmanager.hpp"
 
 #include "context.hpp"
-
+#include "options/units.hpp"
 #include "configuration.hpp"
 #include "utilities/time.hpp"
-#include "options/units.hpp"
+
 
 using namespace std;
 
