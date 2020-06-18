@@ -88,15 +88,15 @@ public:
     }
 
     const T & get_value() const {
+        if constexpr (Nullable) {
+            if (is_null()) {
+                throw std::runtime_error("Value has not been set.");
+            }
+        }
         return value_;
     }
 
     const T & operator() () const {
-        if constexpr (Nullable) {
-            if (!is_null()) {
-                throw std::runtime_error("Value has not been set.");
-            }
-        }
         return get_value();
     }
 

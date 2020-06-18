@@ -50,14 +50,25 @@ ConnectionRule parseConnectionRule( std::string rulestring ) {
     auto rule_parts = split( rulestring, '=' );
 
     if (rule_parts.size()!=2 || rule_parts[0].length()==0 || rule_parts[1].length()==0)
-    { throw std::runtime_error("Error parsing connection rule."); }
+    {
+        throw std::runtime_error(
+            "Error parsing connection rule. Use the following pattern: "
+            "[upstream] = [downstream]."
+        );
+    }
     
     for ( auto &rule_part : rule_parts ) {
         rule_part = std::regex_replace(rule_part, std::regex("^ +| +$"), std::string(""));
         // split on "."
         auto connection_parts = split( rule_part, '.' );
 
-        if (connection_parts.size()>3) { throw std::runtime_error("Error parsing connection rule."); }
+        if (connection_parts.size()>3) {
+            throw std::runtime_error(
+                "Error parsing connection rule. "
+                "Port/slot address can have at most 3 parts "
+                "(given: " + rule_part + ")."
+            );
+        }
         
         current_connection_part = 0;
         
@@ -68,7 +79,12 @@ ConnectionRule parseConnectionRule( std::string rulestring ) {
 
             // match regular expression
             if ( !std::regex_match(connection_part, match, re) )
-            { throw std::runtime_error("Error parsing connection rule."); }
+            { 
+                throw std::runtime_error(
+                    "Error parsing connection rule. "
+                    "Cannot parse part of address: " + connection_part + "."
+                );
+            }
             // parse part specifier
             if ( !match[1].matched ){
                 //get next available specifier
@@ -84,7 +100,11 @@ ConnectionRule parseConnectionRule( std::string rulestring ) {
                 else { specifier = SLOT; }
                 
                 auto it = std::find( available_specifiers.begin(), available_specifiers.end(), specifier );
-                if (it == available_specifiers.end()) { throw std::runtime_error("Error parsing connection rule: duplicate specifier."); }
+                if (it == available_specifiers.end()) {
+                    throw std::runtime_error(
+                        "Error parsing connection rule. Duplicate address specifier."
+                    );
+                }
                 
                 available_specifiers.remove( specifier );
                 
@@ -93,7 +113,12 @@ ConnectionRule parseConnectionRule( std::string rulestring ) {
             // parse part name
 
             if (!match[2].matched && specifier!=SLOT)
-            { throw std::runtime_error("Error parsing connection rule."); }
+            {
+                throw std::runtime_error(
+                    "Error parsing connection rule. "
+                    "Invalid processor or port name: " + connection_part + "."
+                );
+            }
 
             std::string name = match[2].str();
             name = std::regex_replace(name, std::regex("[ _]"), "-");
@@ -128,14 +153,24 @@ ConnectionRule parseConnectionRule( std::string rulestring ) {
                             else { endid = startid; }
                             for (auto kk = startid; kk<=endid; kk++ )
                             { identifiers.push_back( kk ); }
-                        } else { throw std::runtime_error("Error parsing connection rule."); }
+                        } else {
+                            throw std::runtime_error(
+                                "Error parsing connection rule. "
+                                "Cannot parse range: " + q + "."
+                            );
+                        }
                     }
                 } else {
                     //try to convert to int
                     try {
                         identifiers.push_back( stoi( piece ) );
                     } catch ( std::invalid_argument &e )
-                    { throw std::runtime_error("Error parsing connection rule."); }
+                    {
+                        throw std::runtime_error(
+                            "Error parsing connection rule. "
+                            "Cannot parse range: " + piece + "."
+                        );
+                    }
                 }
             }
             
@@ -149,7 +184,10 @@ ConnectionRule parseConnectionRule( std::string rulestring ) {
         // go through available specifiers
         for (auto &k : available_specifiers) {
             if ( k==PROCESSOR ) {
-                throw std::runtime_error("Error parsing connection rule: no processor specified");
+                throw std::runtime_error(
+                    "Error parsing connection rule. "
+                    "No processor specified"
+                );
             } else if ( k==PORT ) {
                 single_rules[current_rule_part][current_connection_part] = std::make_tuple( PORT, std::string(""), std::vector<int>(1,MATCH_NONE) );
             } else if ( k==SLOT ) {
