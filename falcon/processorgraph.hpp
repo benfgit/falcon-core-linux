@@ -34,9 +34,12 @@
 #include "connectionparser.hpp"
 #include "runinfo.hpp"
 
+void DisplayProcessorDoc(YAML::Node& node, std::string processor, bool short_description);
+
 namespace graph {
 
 enum class GraphState { NOGRAPH, CONSTRUCTING, PREPARING, READY, STARTING, PROCESSING, STOPPING, ERROR };
+
 
 class ProcessorGraph {
 
@@ -73,7 +76,7 @@ public:
     }
     
     void ConstructProcessorEngines( const YAML::Node& node );
-    
+    YAML::Node GraphDocumentation();
     void Build( const YAML::Node& node);
     void Destroy();
     void StartProcessing( std::string run_group_id, std::string run_id, std::string template_id, bool test_flag );

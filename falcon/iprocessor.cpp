@@ -37,20 +37,15 @@ void convert_name( std::string& s ) {
 }
 
 
-const std::string IProcessor::documentation(std::string name){
-    std::string doc;
+const YAML::Node IProcessor::documentation(std::string name){
+
     std::transform(name.begin(), name.end(), name.begin(), ::tolower);
-    std::string filename = DOC_PATH  + name + "/doc.txt";
-
-    std::ifstream processor_doc(filename, std::fstream::in);
-
-    if (processor_doc.is_open()){
-        std::ostringstream ss;
-        ss << processor_doc.rdbuf();
-        doc = ss.str();
-        processor_doc.close();
-    }else{
-        doc = "No available documentation.";
+    std::string filename = DOC_PATH  + name + "/doc.yaml";
+    YAML::Node doc;
+    try{
+        doc = YAML::LoadFile(filename);
+    } catch (YAML::BadFile & e ) { // config file does not exist, save default configuration
+        doc = YAML::Load("No available documentation.\n");
     }
 
     return doc;

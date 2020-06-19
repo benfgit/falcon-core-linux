@@ -84,7 +84,7 @@ public: // called by anyone
      * called without instantiate the class itself.
      */
 
-    const static std::string documentation(std::string name);
+    const static YAML::Node documentation(std::string name);
     /**
      * Get processor's name.
      * 

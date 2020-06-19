@@ -42,7 +42,7 @@ public:
     options::Int logging_cloud_port{5556};
     options::String server_side_storage_environment{"./", options::isdir()};
     options::String server_side_storage_resources{
-        "@RESOURCES_PATH@", 
+        "@RESOURCES_PATH@/resources",
         options::isdir(true, true)};
     options::ValueMap<options::String> server_side_storage_custom;
 };

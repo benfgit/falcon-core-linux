@@ -179,20 +179,43 @@ void ParseConnectionRules( const YAML::Node& node, StreamConnections& connection
 }
 
 ProcessorGraph::ProcessorGraph( GlobalContext& context ) : global_context_(context), terminate_signal_(false) {
-    
+
     // log list of registered processors
     std::vector<std::string> processors = ProcessorFactory::instance().listEntries();
     for (auto item : processors ) {
+        YAML::Node docs;
         LOG(INFO) << "Registered processor " << item;
+        DisplayProcessorDoc(docs, item, true);
+        LOG(INFO) << docs;
     }
-
-    std::vector<std::string> docs = ProcessorFactory::instance().listDocs();
-    for (auto item : docs ) {
-        LOG(INFO) << "Registered processor documentation " << item;
-    }
-
 }
 
+YAML::Node ProcessorGraph::GraphDocumentation(){
+    YAML::Node docs;
+    if (state_string() != "NOGRAPH"){
+        for (auto &imap : processors() ) {
+            DisplayProcessorDoc(docs, imap.second.first, false);
+        }
+    }
+    else{
+        std::vector<std::string> processors = ProcessorFactory::instance().listEntries();
+        for (auto item : processors ) {
+            DisplayProcessorDoc(docs, item, false);
+        }
+    }
+    return docs;
+}
+
+void DisplayProcessorDoc(YAML::Node& node, std::string processor, bool short_description){
+        YAML::Node docs = ProcessorFactory::instance().listDocs(processor);
+        if(short_description and docs.IsMap() and docs["Description"]){
+            node[processor] = docs["Description"];
+        }
+        else{
+            node[processor] = docs;
+        }
+
+}
 std::string ProcessorGraph::state_string() const {
     
     return graph_state_string( state_ );

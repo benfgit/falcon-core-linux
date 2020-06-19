@@ -144,8 +144,8 @@ if (COMPILE_EXTENSIONS)
               if( TARGET ${PROCESSOR} )
                 LIST( APPEND PROCESSOR_LIBS ${PROCESSOR} )
               endif()
-              if ( EXISTS "${FALCON_PATH}/processors/${PROCESSOR}/doc.txt" )
-                configure_file(${FALCON_PATH}/processors/${PROCESSOR}/doc.txt
+              if ( EXISTS "${FALCON_PATH}/processors/${PROCESSOR}/doc.yaml" )
+                configure_file(${FALCON_PATH}/processors/${PROCESSOR}/doc.yaml
                             ${CMAKE_CURRENT_BINARY_DIR}/processors/${PROCESSOR} COPYONLY)
               endif()
             endif()

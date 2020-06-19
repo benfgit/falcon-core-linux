@@ -85,6 +85,13 @@ void GraphManager::HandleCommand( std::string command, std::deque<std::string>& 
             out << node;
             reply.push_back(std::string( out.c_str() ));
         }
+    } else if (command == "docs"){
+
+        YAML::Node docs = graph_.GraphDocumentation();
+        YAML::Emitter out;
+        out << docs;
+        reply.push_back( std::string(out.c_str()));
+
     } else if (command == "yaml") {
         reply.push_back( graph_.ExportYAML() );
     } else {

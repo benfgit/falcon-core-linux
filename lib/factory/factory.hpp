@@ -7,6 +7,7 @@
 //#include <stdexcept>
 #include <exception>
 #include <iostream>
+#include "yaml-cpp/yaml.h"
 
 namespace factory {
     
@@ -45,7 +46,7 @@ public:
         return this->objectmap_.find(id) != this->objectmap_.end();
     } 
     
-    bool registerClass(const IdentifierType & id, ObjectCreator<AbstractObject, Args...> creator, std::string doc) {
+    bool registerClass(const IdentifierType & id, ObjectCreator<AbstractObject, Args...> creator, YAML::Node doc) {
         if (this->objectmap_.find(id) != this->objectmap_.end()) { 
             throw DuplicateClass( "Cannot register the same class twice." );
         }
@@ -66,17 +67,15 @@ public:
         return entries;
     }
 
-    std::vector<std::string> listDocs( ) const {
-        std::vector<std::string> docs;
-        for (auto imap: docmap_ ) {
-            docs.push_back( imap.second );
-        }
-        return docs;
+    YAML::Node listDocs(std::string id) const {
+        std::vector<YAML::Node> docs;
+        auto imap = docmap_.find(id);
+        return imap->second;
     }
 
 private:
     typedef std::map<IdentifierType, ObjectCreator<AbstractObject,Args...>> ObjectMap;
-    typedef std::map<IdentifierType, std::string> DocMap;
+    typedef std::map<IdentifierType, YAML::Node> DocMap;
     ObjectMap objectmap_;
     DocMap docmap_;
 };
