@@ -86,6 +86,8 @@ template<>
 inline std::string get_type_string<int64_t>() { return "int64"; }
 template<>
 inline std::string get_type_string<uint64_t>() { return "uint64"; }
+template<>
+inline std::string get_type_string<char>() { return "char"; }
 
 #include "string.ipp"
 
