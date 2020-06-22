@@ -33,8 +33,18 @@
 #include "graphexceptions.hpp"
 #include "connectionparser.hpp"
 #include "runinfo.hpp"
+#include "buildconstant.hpp"
 
-void DisplayProcessorDoc(YAML::Node& node, std::string processor, bool short_description);
+/**
+* Get processor's doc.
+*
+* The processor's doc is reading from the doc.yaml file placed in the processor folder. if not existing, it will return
+* a default value: "No documentation found"
+*
+*@param processor string name of the processor targeted
+*@param long_description when true return the description of the processor and its options, states and exposed methods.
+*/
+YAML::Node GetProcessorDoc(std::string processor, bool long_description);
 
 namespace graph {
 
@@ -76,7 +86,8 @@ public:
     }
     
     void ConstructProcessorEngines( const YAML::Node& node );
-    YAML::Node GraphDocumentation();
+    YAML::Node GraphProcessorDocumentation();
+    YAML::Node AllProcessorDocumentation();
     void Build( const YAML::Node& node);
     void Destroy();
     void StartProcessing( std::string run_group_id, std::string run_id, std::string template_id, bool test_flag );

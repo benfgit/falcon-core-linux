@@ -85,9 +85,18 @@ void GraphManager::HandleCommand( std::string command, std::deque<std::string>& 
             out << node;
             reply.push_back(std::string( out.c_str() ));
         }
-    } else if (command == "docs"){
+    } else if (command == "fulldocumentation"){
 
-        YAML::Node docs = graph_.GraphDocumentation();
+        YAML::Node docs = graph_.AllProcessorDocumentation();
+        YAML::Emitter out;
+        out << docs;
+        reply.push_back( std::string(out.c_str()));
+    } else if (command == "documentation"){
+
+        YAML::Node docs = graph_.GraphProcessorDocumentation();
+        if(!docs.IsMap()){
+            reply.push_back("ERR");
+        }
         YAML::Emitter out;
         out << docs;
         reply.push_back( std::string(out.c_str()));

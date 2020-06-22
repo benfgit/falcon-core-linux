@@ -24,7 +24,6 @@
 #include "g3log/src/g2log.hpp"
 
 #include "utilities/general.hpp"
-#include "utilities/filesystem.hpp"
 
 void convert_name( std::string& s ) {
 
@@ -34,21 +33,6 @@ void convert_name( std::string& s ) {
     else{
         throw ProcessorInternalError(s + " is not a valid name." );
     }
-}
-
-
-const YAML::Node IProcessor::documentation(std::string name){
-
-    std::transform(name.begin(), name.end(), name.begin(), ::tolower);
-    std::string filename = DOC_PATH  + name + "/doc.yaml";
-    YAML::Node doc;
-    try{
-        doc = YAML::LoadFile(filename);
-    } catch (YAML::BadFile & e ) { // config file does not exist, save default configuration
-        doc = YAML::Load("No available documentation.\n");
-    }
-
-    return doc;
 }
 
 const std::set<std::string> IProcessor::input_port_names() const {

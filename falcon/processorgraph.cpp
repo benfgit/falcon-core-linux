@@ -183,37 +183,44 @@ ProcessorGraph::ProcessorGraph( GlobalContext& context ) : global_context_(conte
     // log list of registered processors
     std::vector<std::string> processors = ProcessorFactory::instance().listEntries();
     for (auto item : processors ) {
-        YAML::Node docs;
-        LOG(INFO) << "Registered processor " << item;
-        DisplayProcessorDoc(docs, item, true);
-        LOG(INFO) << docs;
+        LOG(INFO) << "Registered processor " << item << " - " << GetProcessorDoc(item, false);
     }
 }
 
-YAML::Node ProcessorGraph::GraphDocumentation(){
+YAML::Node ProcessorGraph::GraphProcessorDocumentation(){
     YAML::Node docs;
     if (state_string() != "NOGRAPH"){
         for (auto &imap : processors() ) {
-            DisplayProcessorDoc(docs, imap.second.first, false);
+            docs[imap.second.first] = GetProcessorDoc(imap.second.first, true);
         }
+        return docs;
     }
-    else{
-        std::vector<std::string> processors = ProcessorFactory::instance().listEntries();
-        for (auto item : processors ) {
-            DisplayProcessorDoc(docs, item, false);
-        }
+    return YAML::Load("No running graph.");
+}
+
+YAML::Node ProcessorGraph::AllProcessorDocumentation(){
+    YAML::Node docs;
+    std::vector<std::string> processors = ProcessorFactory::instance().listEntries();
+    for (auto item : processors ) {
+       docs[item] = GetProcessorDoc(item, true);
     }
     return docs;
 }
 
-void DisplayProcessorDoc(YAML::Node& node, std::string processor, bool short_description){
-        YAML::Node docs = ProcessorFactory::instance().listDocs(processor);
-        if(short_description and docs.IsMap() and docs["Description"]){
-            node[processor] = docs["Description"];
+YAML::Node GetProcessorDoc(std::string processor, bool long_description){
+        std::transform(processor.begin(), processor.end(), processor.begin(), ::tolower);
+        std::string filename = DOC_PATH  + processor + "/doc.yaml";
+        YAML::Node node;
+        try{
+            node = YAML::LoadFile(filename);
+        } catch (YAML::BadFile & e ) { // config file does not exist, save default configuration
+            return YAML::Load("No available documentation.\n");
         }
-        else{
-            node[processor] = docs;
+
+        if(!long_description and node.IsMap() and node["Description"]){
+            return node["Description"];
         }
+        return node;
 
 }
 std::string ProcessorGraph::state_string() const {

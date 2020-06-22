@@ -112,7 +112,8 @@ bool KeyboardCommands::getcommand( std::deque<std::string> & command ) {
             command.push_back( "graph" );
             command.push_back( "yaml" );
         } else if (c=='d' || c=='D') { // docs
-            command.push_back( "docs" );
+            command.push_back( "graph" );
+            command.push_back( "documentation" );
         } else {
             return false;
         }

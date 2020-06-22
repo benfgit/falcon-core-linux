@@ -54,7 +54,8 @@ bool CommandHandler::HandleCommand( std::deque<std::string>& command, std::deque
         command.pop_front();
         finished = DelegateGraphCommand( command, reply );
     } else if ( command[0] == "docs") {
-        finished = DelegateGraphCommand( command, reply );
+        local_command.push_back( "fulldocumentation" );
+        finished = DelegateGraphCommand( local_command, reply );
     } else if ( command[0]=="test" ) {
         if (command.size()>1) {
             if (command[1]=="true" || command[1]=="on") {
@@ -85,7 +86,8 @@ bool CommandHandler::HandleCommand( std::deque<std::string>& command, std::deque
                 local_command.back()="stop";
                 DelegateGraphCommand( local_command, local_reply );
             }
-            local_command.back() = "destroy";DelegateGraphCommand( local_command, local_reply );
+            local_command.back() = "destroy";
+            DelegateGraphCommand( local_command, local_reply );
             reply.push_back("OK");
             finished = true;
         }
