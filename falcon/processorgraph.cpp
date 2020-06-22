@@ -179,16 +179,48 @@ void ParseConnectionRules( const YAML::Node& node, StreamConnections& connection
 }
 
 ProcessorGraph::ProcessorGraph( GlobalContext& context ) : global_context_(context), terminate_signal_(false) {
-    
+
     // log list of registered processors
     std::vector<std::string> processors = ProcessorFactory::instance().listEntries();
     for (auto item : processors ) {
-        LOG(INFO) << "Registered processor " << item;
+        documentation_[item] = LoadProcessorDoc(item);
+        if (documentation_[item].IsMap() and documentation_[item]["Description"]){
+            LOG(INFO) << "Registered processor " << item << " - " << documentation_[item]["Description"];
+        }
+        else{
+            LOG(INFO) << "Registered processor " << item;
+        }
+
     }
 }
 
+YAML::Node LoadProcessorDoc(std::string processor){
+        std::transform(processor.begin(), processor.end(), processor.begin(), ::tolower);
+        std::string filename = DOC_PATH  + processor + "/doc.yaml";
+        YAML::Node node;
+        try{
+            return YAML::LoadFile(filename);
+        } catch (YAML::BadFile & e ) { // config file does not exist, save default configuration
+            return YAML::Load("No available documentation.\n");
+        }
+}
+
+YAML::Node ProcessorGraph::GetProcessorDocumentation(bool fulldoc){
+    YAML::Node docs;
+
+    if( fulldoc ){ return documentation_; }
+
+    if (state_string() != "NOGRAPH"){
+        for (auto &imap : processors() ) {
+            docs[imap.second.first] = documentation_[imap.second.first];
+        }
+        return docs;
+    }
+    return YAML::Load("No running graph.");
+}
+
+
 std::string ProcessorGraph::state_string() const {
-    
     return graph_state_string( state_ );
 }
 
@@ -391,6 +423,7 @@ void ProcessorGraph::Build( const YAML::Node& node ) {
             LOG(DEBUG) << "Successfully prepared processor " << it.first;
         }
         LOG(INFO) << "All processors have been prepared.";
+
     } catch ( ... ) {
         
         Destroy();
@@ -400,7 +433,6 @@ void ProcessorGraph::Build( const YAML::Node& node ) {
     yaml_ = node;
     
     LOG(INFO) << "Graph was successfully constructed.";
-    
     set_state(GraphState::READY);
 }
 

@@ -25,7 +25,7 @@
 #include "g3log/src/g2log.hpp"
 #include "utilities/zmqutil.hpp"
 #include "yaml-cpp/yaml.h"
-#include "version.hpp"
+#include "buildconstant.hpp"
 
 
 using namespace commands;
@@ -49,10 +49,13 @@ bool CommandHandler::HandleCommand( std::deque<std::string>& command, std::deque
     
     if (command.empty()) { return finished; }
     
-    if ( command[0] == "graph" ) {
+    if ( command[0] == "graph") {
         // delegate
         command.pop_front();
         finished = DelegateGraphCommand( command, reply );
+    } else if ( command[0] == "documentation") {
+        local_command.push_back( "fulldocumentation" );
+        finished = DelegateGraphCommand( local_command, reply );
     } else if ( command[0]=="test" ) {
         if (command.size()>1) {
             if (command[1]=="true" || command[1]=="on") {
@@ -83,10 +86,8 @@ bool CommandHandler::HandleCommand( std::deque<std::string>& command, std::deque
                 local_command.back()="stop";
                 DelegateGraphCommand( local_command, local_reply );
             }
-            
             local_command.back() = "destroy";
             DelegateGraphCommand( local_command, local_reply );
-            
             reply.push_back("OK");
             finished = true;
         }

@@ -19,8 +19,6 @@ if(GIT_FOUND)
 endif()
 string(TIMESTAMP _time_stamp)
 
-configure_file(falcon/version.hpp.in falcon/version.hpp @ONLY)
-
 ############################
 # Add the basic libraries  #
 ############################
