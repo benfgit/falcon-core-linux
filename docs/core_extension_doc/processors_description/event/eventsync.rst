@@ -1,10 +1,6 @@
-.. _EventLogger:
-
-EventLogger
+EventSource
 ===========
-
-Synchronize on the occurrence of a target event on all its input slots, before emitting the same target event
-
+synchronizes on the occurrence of a target event on all its input slots, before emitting the same target event
 
 .. list-table:: **Input ports**
    :header-rows: 1
@@ -30,9 +26,6 @@ Synchronize on the occurrence of a target event on all its input slots, before e
      - 1
      -
 
-Options
-.......
-
 .. list-table:: **Options**
    :header-rows: 1
 
@@ -40,7 +33,8 @@ Options
      - data type
      - default
      - description
-   * - **target_event**
-     - string
-     - none (default  value set in :ref:`EventData`)
-     -
+   * - **target event**
+     - list of string
+     - None
+     - The event to synchronize on.
+

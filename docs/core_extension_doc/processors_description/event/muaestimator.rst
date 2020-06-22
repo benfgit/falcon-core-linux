@@ -34,13 +34,13 @@ Compute the Multi-Unit Activity from the spike counts provided by the spike dete
      - data type
      - default
      - description
-   * - **bin_size_ms**
+   * - **bin size**
      - unsigned int
-     - 20
-     - target event to be filtered out
+     - 20 ms
+     -
 
 
-.. list-table:: **Readable states**
+.. list-table:: **Static states**
    :header-rows: 1
 
    * - name
@@ -49,25 +49,23 @@ Compute the Multi-Unit Activity from the spike counts provided by the spike dete
      - external access
      - peers access
      - description
-   * - **bin_size_ms**
+   * - **bin size**
      - unsigned int
-     - options:bin_size_md
+     - options:bin size
      - read-only
      - read/write
      -
 
-.. list-table:: **Writable states**
+.. list-table:: **Broadcaster states**
    :header-rows: 1
 
    * - name
      - data type
      - initial value
      - external access
-     - peers access
      - description
    * - **MUA**
      - double
      - 0.0
-     - read-only
      - read-only
      -

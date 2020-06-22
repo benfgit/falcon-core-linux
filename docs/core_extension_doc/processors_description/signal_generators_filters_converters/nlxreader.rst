@@ -13,7 +13,7 @@ based on a channel mapping
      - data type
      - slots
      - description
-   * - **(configurable) data_ports**
+   * - **(configurable) ports name from channelmap options**
      - :ref:`MultiChannelData` <double>
      - 1
      - create an output port for each channel in the channelmap
@@ -56,16 +56,20 @@ MultiChannelData buckets on that port. The channelmap option should be specified
    * - **nchannels**
      - unsigned int
      - 128
-     - number of channels in Digilynx system batch_size - how many samples to pack into single MultiChannelData bucket
-   * - **update_interval**
+     - number of channels in Digilynx system
+   * - **batch size**
+     - unsigned int
+     - 1
+     - The number of data packets to concatenate into single multi-channel data bucket.
+   * - **update interval**
      - unsigned int
      - 20
      - time interval (in seconds) between log updates
-   * - **hardware_trigger**
+   * - **hardware trigger**
      - bool
      - False
      - enable use of hardware triggered dispatching
-   * - **hardware_trigger_channel**
+   * - **hardware trigger channel**
      - uint8
      - 0
-     - which DIO channel to use as trigger
+     - Digital input channel to use as hardware trigger

@@ -37,20 +37,20 @@ Compute running statistics
      - data type
      - default
      - description
-   * - **integration_time**
+   * - **integration time**
      - double
      - 1.0
      - time window for exponential smoothing
-   * - **outlier_protection**
+   * - **outlier/protection**
      - bool
      - False
      - enable outlier protection. Outliers are values larger than a predefined z-score.
        The contribution of an outlier is reduced by an amount that depends on the magnitude of the outlier
-   * - **outlier_zscore**
+   * - **outlier/zscore**
      - double
      - 6.0
      - z-score that defines an outlier
-   * - **outlier_half_life**
+   * - **outlier/half life**
      - double
      - 2.0
      - the number of standard deviations above the outlier z-score at which the influence of the outlier is halved.

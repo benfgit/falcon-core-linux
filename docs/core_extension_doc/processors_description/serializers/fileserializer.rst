@@ -42,15 +42,15 @@ Serializes data streams to file
      - bool
      - False
      - overwrite existing file
-   * - **throttle**
+   * - **throttle/enabled**
      - bool
      - False
      - throttle saving if we can't keep up
-   * - **throttle_threshold**
+   * - **throttle/threshold**
      - double
      - 0.3
      - upstream ringbuffer fill fraction (between 0-1) at which throttling takes effect
-   * - **throttle_smooth**
+   * - **throttle/smooth**
      - double
      - 0.5
      - smooth level of throttle level (between 0-1)

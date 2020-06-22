@@ -27,15 +27,15 @@ Take an EventData stream and sets digital outputs according to an event-specific
      - bool
      - enabled state
      - enable/disable digital output
-   * - **lockout_period_ms**
+   * - **lockout period**
      - unsigned int
      - 300 ms
      - set the maximal stimulation frequency. If equal to zero, it disabled the feature.
-   * - **pulse_width**
+   * - **pulse width**
      - unsigned int
      - 300 ms
      - duration of digital output pulse in microseconds
-   * - **enable_saving**
+   * - **enable saving**
      - bool
      - enabled state
      - enable/disable saving stimulation events
@@ -44,7 +44,7 @@ Take an EventData stream and sets digital outputs according to an event-specific
      - no default type value - Always specify in the graph config file.
      - map specifying the digital output device. A required "type" key indicates which device should be used.
        Valid values are "dummy". The dummy device requires an additional "nchannels" key.
-   * - **protocols**
+   * - **print protocol execution updates**
      -
      -
      - maps events to digital output protocols.
@@ -67,7 +67,7 @@ Example configuration for protocols option:
           pulse: [2]
 
 .. tabularcolumns:: |p{3cm}|p{1cm}|p{4cm}|p{1.5cm}|p{1.8cm}|p{2cm}|
-.. list-table:: **Readable states**
+.. list-table:: **Static states**
    :header-rows: 1
 
    * - name
@@ -82,9 +82,9 @@ Example configuration for protocols option:
      - write/read
      - read-only
      -
-   * - **lockout_period_ms**
+   * - **lockout period**
      - bool
-     - option: lockout_period_ms
+     - option: lockout period
      - write/read
      - read-only
      -

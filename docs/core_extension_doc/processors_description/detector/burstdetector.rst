@@ -1,4 +1,3 @@
-
 BurstDetector
 -------------
 Detect population bursts using a threshold crossing algorithm.
@@ -48,28 +47,28 @@ Detect population bursts using a threshold crossing algorithm.
      - data type
      - default
      - description
-   * - **threshold_dev**
+   * - **threshold dev**
      - double
      - 6.0
      - for threshold multiplier. Units: signal standard deviations.
-   * - **smooth_time**
+   * - **smooth time**
      - double
-     - 10.0 sec
-     - integration time for signal statistics. Must be a positive number (sec).
-   * - **detection_lockout_time_ms**
+     - 10.0 seconds
+     - Integration time for estimating signal statistics. Must be a positive number (sec).
+   * - **detection lockout time**
      - double
      - 30 ms
      - refractory period after threshold crossing detection that is not considered for updating of statistics
        and for detecting events. Must greater than 0 ms.
-   * - **stream_events**
+   * - **stream events**
      - bool
      - True
      - enable/disable burst event output
-   * - **stream_statistics**
+   * - **stream statistics**
      - bool
      - True
      - enable/disable streaming of burst detection statistics
-   * - **statistics_buffer_size**
+   * - **statistics buffer size**
      - double
      - 0.5 sec
      - Buffer size (in seconds) for statistics output stream. This value determines
@@ -78,43 +77,38 @@ Detect population bursts using a threshold crossing algorithm.
 
 .. tabularcolumns:: |p{4cm}|p{1cm}|p{3cm}|p{1.5cm}|p{1.3cm}|p{3cm}|
 
-.. list-table:: **Writable States**
+.. list-table:: **Broadcaster States**
    :header-rows: 1
 
    * - name
      - data type
      - initial value
      - external access
-     - peers access
      - description
-   * - **threshold_uv2**
+   * - **threshold**
      - double
      - 0.0
-     - read-only
      - read-only
      - Current threshold that needs to be crossed
-   * - **mean_uv2**
+   * - **mean**
      - double
      - 0.0
-     - read-only
      - read-only
      - Current signal mean. Units: same as input signal.
-   * - **deviation_uv2**
+   * - **deviation**
      - double
      - 0.0
-     - read-only
      - read-only
      - Current signal deviation. Units: same as input signal.
    * - **burst**
      - bool
      - False
      - read-only
-     - read-only
      -
 
 .. tabularcolumns:: |p{4cm}|p{1cm}|p{3cm}|p{1.5cm}|p{1.3cm}|p{3cm}|
 
-.. list-table:: **Readable States**
+.. list-table:: **Static States**
    :header-rows: 1
 
    * - name
@@ -123,41 +117,48 @@ Detect population bursts using a threshold crossing algorithm.
      - external access
      - peers access
      - description
-   * - **bin_size**
+   * - **threshold deviation**
      - double
-     - 1.0
+     - option: threshold deviation
      - read-only
      - read/write
      -
-   * - **threshold_deviation**
+   * - **detection lockout time**
      - double
-     - option: threshold_deviation
-     - read-only
-     - read/write
-     -
-   * - **detection_lockout_time_ms**
-     - double
-     - option: detection_lockout_time_ms
+     - option: detection lockout time
      - read-only
      - read/write
      - Current refractory period following threshold crossing that is not
        considered for  updating signal statistics and for event detection.
-   * - **stream_events**
+   * - **stream events**
      - bool
-     - option: stream_events
+     - option: stream events
      - read-only
      - read/write
      -
-   * - **stream_statistics**
+   * - **stream statistics**
      - bool
-     - option: stream_statistics
+     - option: stream statistics
      - read-only
      - read/write
      -
 
 
 
+.. tabularcolumns:: |p{4cm}|p{1cm}|p{3cm}|p{1.5cm}|p{1.3cm}|p{3cm}|
 
+.. list-table:: **Follower State**
+   :header-rows: 1
 
+   * - name
+     - data type
+     - initial value
+     - external access
+     - description
 
+   * - **bin size**
+     - double
+     - 1.0
+     - read/write
+     -
 

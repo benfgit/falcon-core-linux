@@ -18,7 +18,7 @@ Detect a threshold crossing on any of the channels in the incoming MultiChannelD
      - 1
      -
 
-.. list-table:: **Input port**
+.. list-table:: **Output port**
    :header-rows: 1
 
    * - port name
@@ -47,7 +47,7 @@ Detect a threshold crossing on any of the channels in the incoming MultiChannelD
      - string
      - "threshold_crossing"
      - event to emit upon detection of threshold crossing
-   * - **post_detect_block**
+   * - **post detect block**
      - unsigned int
      - 2
      - refractory period after threshold crossing detection (in number of samples )
@@ -58,7 +58,7 @@ Detect a threshold crossing on any of the channels in the incoming MultiChannelD
 
 .. tabularcolumns:: |p{4cm}|p{1cm}|p{3cm}|p{1.5cm}|p{1.3cm}|p{3cm}|
 
-.. list-table:: **Readable states**
+.. list-table:: **Static states**
    :header-rows: 1
 
    * - name
@@ -73,9 +73,9 @@ Detect a threshold crossing on any of the channels in the incoming MultiChannelD
      - read-only
      - write/read
      - Current threshold that needs to be crossed
-   * - **post_detect_block**
+   * - **post detect block**
      - unsigned int
-     - option: post_detect_block
+     - option: post detect block
      - read-only
      - write/read
      -

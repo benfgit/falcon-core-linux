@@ -35,15 +35,11 @@ Rebuffer and downsample multiple MultiChannelData streams. No anti-aliasing filt
      - data type
      - default
      - description
-   * - **downsample_factor**
+   * - **downsample factor**
      - unsigned int
      - 1
      -
-   * - **buffer_unit**
-     - string
-     - "samples"
-     - 2 available keywords : "samples" or "seconds"
-   * - **buffer_size**
+   * - **buffer size**
      - unsigned int
      - 10 samples or equivalent in second based on the downsample factor depending of the buffer unit.
-     - output buffer size in samples or time
+     - Output buffer size in samples or seconds.

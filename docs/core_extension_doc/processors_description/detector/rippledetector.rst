@@ -17,7 +17,7 @@ Detect ripples in a MultiChannelData stream and emits a ripple event in response
      - 1
      -
 
-.. list-table:: **Input port**
+.. list-table:: **Output port**
    :header-rows: 1
 
    * - port name
@@ -42,42 +42,42 @@ Detect ripples in a MultiChannelData stream and emits a ripple event in response
      - data type
      - default
      - description
-   * - **threshold_dev**
+   * - **threshold dev**
      - double
      - 6.0
      - threshold that needs to be crossed
-   * - **smooth_time**
+   * - **smooth time**
      - double
-     - 10.0 ms
+     - 10.0 seconds
      - integration time for signal statistics. Must be a positive number.
-   * - **detection_lockout_time_ms**
+   * - **detection lockout time**
      - double
      - 30 ms
      - refractory period after threshold crossing detection that is not considered for updating of statistics
        and for detecting events. Must greater than 0 ms.
-   * - **statistics_buffer_size**
+   * - **statistics buffer size**
      - double
      - 0.5 sec
      - Buffer size (in seconds) for statistics output buffers. Should be equal larger than zero.
-   * - **statistics_downsample_factor**
+   * - **statistics downsample factor**
      - unsigned int
      - 1
      - downsample factor of streamed statistics signal. Should larger than zero..
-   * - **stream_events**
+   * - **stream events**
      - bool
      - True
      - enable/disable ripple event output
-   * - **stream_statistics**
+   * - **stream statistics**
      - bool
      - True
      - enable/disable streaming of ripple detection statistics
-   * - **use_power**
+   * - **use power**
      - bool
      - True
      -
 
 .. tabularcolumns:: |p{4cm}|p{1cm}|p{3cm}|p{1.5cm}|p{1.3cm}|p{3cm}|
-.. list-table:: **Writable states**
+.. list-table:: **Producer states**
    :header-rows: 1
 
    * - name
@@ -104,15 +104,9 @@ Detect ripples in a MultiChannelData stream and emits a ripple event in response
      - None
      - read-only
      - Current signal deviation. Units: same as input signal.
-   * - **ripple**
-     - bool
-     - False
-     - read-only
-     - read-only
-     -
 
 .. tabularcolumns:: |p{4cm}|p{1cm}|p{3cm}|p{1.5cm}|p{1.3cm}|p{3cm}|
-.. list-table:: **Readable states**
+.. list-table:: **Broadcaster states**
    :header-rows: 1
 
    * - name
@@ -121,34 +115,51 @@ Detect ripples in a MultiChannelData stream and emits a ripple event in response
      - external access
      - peers access
      - description
-   * - **threshold_dev**
+   * - **ripple**
+     - bool
+     - False
+     - read-only
+     - read-only
+     -
+
+.. tabularcolumns:: |p{4cm}|p{1cm}|p{3cm}|p{1.5cm}|p{1.3cm}|p{3cm}|
+.. list-table:: **Static states**
+   :header-rows: 1
+
+   * - name
+     - data type
+     - initial value
+     - external access
+     - peers access
+     - description
+   * - **threshold dev**
      - double
-     - option:threshold
+     - option:threshold dev
      - read-only
      - read/write
      -
-   * - **smooth_time**
+   * - **smooth time**
      - double
-     - option:smooth_time
+     - option:smooth time
      - read-only
      - read/write
      - integration time for signal statistics. Must be a positive number.
-   * - **detection_lockout_time_ms**
+   * - **detection lockout time**
      - double
-     - option: detection_lockout_time_ms
+     - option: detection lockout time
      - read-only
      - read/write
      - Current refractory period following threshold crossing that is not
        considered for  updating signal statistics and for event detection.
-   * - **stream_events**
+   * - **stream events**
      - bool
-     - option:stream_events
+     - option:stream events
      - read-only
      - read/write
      -
-   * - **stream_statistics**
+   * - **stream statistics**
      - bool
-     - option:stream_statistics
+     - option:stream statistics
      - read-only
      - read/write
      -

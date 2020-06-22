@@ -45,24 +45,24 @@ Detect spikes on any of the incoming MultiChannelData stream; sends SpikeData on
      - double
      - 60.0
      - threshold that a single channel must cross.
-   * - **invert_signal**
+   * - **invert signal**
      - bool
      - True
      - whether the signal does (true) or does not (false) need to be inverted when detecting spikes
-   * - **buffer_size**
+   * - **buffer size**
      - double
      - 0.5 ms
      - amount of data that will be used to look for spikes [ms]
-   * - **peak_lifetime**
+   * - **peak lifetime**
      - unsigned int
      - 8 samples
      - number of samples that will be used to look for a peak
-   * - **strict_time_bin_check**
+   * - **strict time bin check**
      - bool
      - True
      -
 
-.. list-table:: **Readable states**
+.. list-table:: **Static states**
    :header-rows: 1
 
    * - name
@@ -77,9 +77,9 @@ Detect spikes on any of the incoming MultiChannelData stream; sends SpikeData on
      - read/write
      - read-only
      -
-   * - **peak_lifetime**
+   * - **peak lifetime**
      - unsigned int
-     - option:peak_lifetime
+     - option:peak lifetime
      - read/write
      - read-only
      -

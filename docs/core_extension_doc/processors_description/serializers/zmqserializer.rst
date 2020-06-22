@@ -38,8 +38,7 @@ Serializes data streams to cloud
      - string
      - "full"
      - Only tree acceptable keyword: 'full', 'nodata', 'compact' (see serializer.hpp for more informations on this mode)
-   * - **interleaved**
+   * - **interleave**
      - bool
      - false
      - whether data streams from different input slots are interleaved
-

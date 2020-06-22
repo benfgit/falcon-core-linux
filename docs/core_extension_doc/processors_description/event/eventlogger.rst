@@ -1,6 +1,9 @@
-EventSink
-=========
-Takes an EventData stream and logs the arrival of a target event
+.. _EventLogger:
+
+EventLogger
+===========
+
+Synchronize on the occurrence of a target event on all its input slots, before emitting the same target event
 
 
 .. list-table:: **Input ports**
@@ -12,9 +15,11 @@ Takes an EventData stream and logs the arrival of a target event
      - description
    * - **events**
      - :ref:`EventData`
-     - 1
+     - 1-256
      -
 
+Options
+.......
 
 .. list-table:: **Options**
    :header-rows: 1
@@ -23,8 +28,7 @@ Takes an EventData stream and logs the arrival of a target event
      - data type
      - default
      - description
-   * - **target_event**
+   * - **target event**
      - string
      - none (default  value set in :ref:`EventData`)
      -
-
