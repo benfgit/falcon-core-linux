@@ -183,7 +183,7 @@ ProcessorGraph::ProcessorGraph( GlobalContext& context ) : global_context_(conte
     // log list of registered processors
     std::vector<std::string> processors = ProcessorFactory::instance().listEntries();
     for (auto item : processors ) {
-        documentation_[item] = GetProcessorDoc(item);
+        documentation_[item] = LoadProcessorDoc(item);
         if (documentation_[item].IsMap() and documentation_[item]["Description"]){
             LOG(INFO) << "Registered processor " << item << " - " << documentation_[item]["Description"];
         }
@@ -194,7 +194,7 @@ ProcessorGraph::ProcessorGraph( GlobalContext& context ) : global_context_(conte
     }
 }
 
-YAML::Node GetProcessorDoc(std::string processor){
+YAML::Node LoadProcessorDoc(std::string processor){
         std::transform(processor.begin(), processor.end(), processor.begin(), ::tolower);
         std::string filename = DOC_PATH  + processor + "/doc.yaml";
         YAML::Node node;
@@ -205,8 +205,11 @@ YAML::Node GetProcessorDoc(std::string processor){
         }
 }
 
-YAML::Node ProcessorGraph::GraphProcessorDocumentation(){
+YAML::Node ProcessorGraph::GetProcessorDocumentation(bool fulldoc){
     YAML::Node docs;
+
+    if( fulldoc ){ return documentation_; }
+
     if (state_string() != "NOGRAPH"){
         for (auto &imap : processors() ) {
             docs[imap.second.first] = documentation_[imap.second.first];

@@ -44,7 +44,7 @@
 *@param processor string name of the processor targeted
 *@return documentation
 */
-YAML::Node GetProcessorDoc(std::string processor);
+YAML::Node LoadProcessorDoc(std::string processor);
 
 namespace graph {
 
@@ -96,14 +96,9 @@ public:
     void ConstructProcessorEngines( const YAML::Node& node );
 
     /**
-    * Give the documentation only for the processor in the running graph
+    * Give the documentation of either all registered processor or only processors used in the running graph
     */
-    YAML::Node GraphProcessorDocumentation();
-
-    /**
-    * Give the documentation for all processors registered
-    */
-    YAML::Node AllProcessorDocumentation(){return documentation_;};
+    YAML::Node GetProcessorDocumentation(bool fulldoc);
 
     /**
     * Build the graph

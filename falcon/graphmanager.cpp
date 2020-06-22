@@ -87,13 +87,13 @@ void GraphManager::HandleCommand( std::string command, std::deque<std::string>& 
         }
     } else if (command == "fulldocumentation"){
 
-        YAML::Node docs = graph_.AllProcessorDocumentation();
+        YAML::Node docs = graph_.GetProcessorDocumentation(true);
         YAML::Emitter out;
         out << docs;
         reply.push_back( std::string(out.c_str()));
     } else if (command == "documentation"){
 
-        YAML::Node docs = graph_.GraphProcessorDocumentation();
+        YAML::Node docs = graph_.GetProcessorDocumentation(false);
         if(!docs.IsMap()){
             reply.push_back("ERR");
         }
