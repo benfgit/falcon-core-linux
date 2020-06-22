@@ -36,15 +36,15 @@
 #include "buildconstant.hpp"
 
 /**
-* Get processor's doc.
+* Get processor's documentation.
 *
 * The processor's doc is reading from the doc.yaml file placed in the processor folder. if not existing, it will return
 * a default value: "No documentation found"
 *
 *@param processor string name of the processor targeted
-*@param long_description when true return the description of the processor and its options, states and exposed methods.
+*@return documentation
 */
-YAML::Node GetProcessorDoc(std::string processor, bool long_description);
+YAML::Node GetProcessorDoc(std::string processor);
 
 namespace graph {
 
@@ -84,16 +84,54 @@ public:
         }
         return false;
     }
-    
+
+    /**
+    * Construct processors listed in the graph yaml description.
+    *
+    * Looping through the graph description to find every processor, expanded their name, create their instance
+    * and run the internal configuration for each.
+    *
+    *@param node graph description
+    */
     void ConstructProcessorEngines( const YAML::Node& node );
+
+    /**
+    * Give the documentation only for the processor in the running graph
+    */
     YAML::Node GraphProcessorDocumentation();
-    YAML::Node AllProcessorDocumentation();
+
+    /**
+    * Give the documentation for all processors registered
+    */
+    YAML::Node AllProcessorDocumentation(){return documentation_;};
+
+    /**
+    * Build the graph
+    *
+    *Construct all processors, parse and create connections between them and create shared state.
+    *@param node graph description
+    */
     void Build( const YAML::Node& node);
     void Destroy();
     void StartProcessing( std::string run_group_id, std::string run_id, std::string template_id, bool test_flag );
     void StopProcessing();
+    /**
+    *Update processor's shared state with input from the user
+    *
+    *@param node graph description
+    */
     void Update( YAML::Node& node );
+    /**
+    *Retrieve the state value for all shared state name given in the yaml node.
+    *
+    *@param node shared state description
+    */
     void Retrieve( YAML::Node& node );
+    /**
+    *Apply exposed methods with parameters given in the yaml node
+    *
+    *@param node exposed method description
+    */
     void Apply( YAML::Node& node );
     
     std::string ExportYAML();
@@ -115,7 +153,8 @@ protected:
 
 private:
     YAML::Node yaml_;
-    
+    YAML::Node documentation_;
+
     GlobalContext& global_context_;
     
     ProcessorMap processors_;

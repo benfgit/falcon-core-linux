@@ -183,31 +183,12 @@ ProcessorGraph::ProcessorGraph( GlobalContext& context ) : global_context_(conte
     // log list of registered processors
     std::vector<std::string> processors = ProcessorFactory::instance().listEntries();
     for (auto item : processors ) {
-        LOG(INFO) << "Registered processor " << item << " - " << GetProcessorDoc(item, false);
+        documentation_[item] = GetProcessorDoc(item);
+        LOG(INFO) << "Registered processor " << item;
     }
 }
 
-YAML::Node ProcessorGraph::GraphProcessorDocumentation(){
-    YAML::Node docs;
-    if (state_string() != "NOGRAPH"){
-        for (auto &imap : processors() ) {
-            docs[imap.second.first] = GetProcessorDoc(imap.second.first, true);
-        }
-        return docs;
-    }
-    return YAML::Load("No running graph.");
-}
-
-YAML::Node ProcessorGraph::AllProcessorDocumentation(){
-    YAML::Node docs;
-    std::vector<std::string> processors = ProcessorFactory::instance().listEntries();
-    for (auto item : processors ) {
-       docs[item] = GetProcessorDoc(item, true);
-    }
-    return docs;
-}
-
-YAML::Node GetProcessorDoc(std::string processor, bool long_description){
+YAML::Node GetProcessorDoc(std::string processor){
         std::transform(processor.begin(), processor.end(), processor.begin(), ::tolower);
         std::string filename = DOC_PATH  + processor + "/doc.yaml";
         YAML::Node node;
@@ -217,14 +198,23 @@ YAML::Node GetProcessorDoc(std::string processor, bool long_description){
             return YAML::Load("No available documentation.\n");
         }
 
-        if(!long_description and node.IsMap() and node["Description"]){
-            return node["Description"];
-        }
         return node;
 
 }
+
+YAML::Node ProcessorGraph::GraphProcessorDocumentation(){
+    YAML::Node docs;
+    if (state_string() != "NOGRAPH"){
+        for (auto &imap : processors() ) {
+            docs[imap.second.first] = documentation_[imap.second.first];
+        }
+        return docs;
+    }
+    return YAML::Load("No running graph.");
+}
+
+
 std::string ProcessorGraph::state_string() const {
-    
     return graph_state_string( state_ );
 }
 
