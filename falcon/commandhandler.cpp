@@ -53,7 +53,7 @@ bool CommandHandler::HandleCommand( std::deque<std::string>& command, std::deque
         // delegate
         command.pop_front();
         finished = DelegateGraphCommand( command, reply );
-    } else if ( command[0] == "docs") {
+    } else if ( command[0] == "documentation") {
         local_command.push_back( "fulldocumentation" );
         finished = DelegateGraphCommand( local_command, reply );
     } else if ( command[0]=="test" ) {

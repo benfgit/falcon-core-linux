@@ -184,7 +184,13 @@ ProcessorGraph::ProcessorGraph( GlobalContext& context ) : global_context_(conte
     std::vector<std::string> processors = ProcessorFactory::instance().listEntries();
     for (auto item : processors ) {
         documentation_[item] = GetProcessorDoc(item);
-        LOG(INFO) << "Registered processor " << item;
+        if (documentation_[item].IsMap() and documentation_[item]["Description"]){
+            LOG(INFO) << "Registered processor " << item << " - " << documentation_[item]["Description"];
+        }
+        else{
+            LOG(INFO) << "Registered processor " << item;
+        }
+
     }
 }
 
@@ -193,13 +199,10 @@ YAML::Node GetProcessorDoc(std::string processor){
         std::string filename = DOC_PATH  + processor + "/doc.yaml";
         YAML::Node node;
         try{
-            node = YAML::LoadFile(filename);
+            return YAML::LoadFile(filename);
         } catch (YAML::BadFile & e ) { // config file does not exist, save default configuration
             return YAML::Load("No available documentation.\n");
         }
-
-        return node;
-
 }
 
 YAML::Node ProcessorGraph::GraphProcessorDocumentation(){
