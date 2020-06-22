@@ -152,18 +152,19 @@ std::string SharedStateAlias::Retrieve() {
 }
 
 YAML::Node SharedStateAlias::ExportYAML() {
-    
+
     YAML::Node alias_description;
 
     for (auto& it : dependents_) {
         alias_description["states"].push_back(it.first);
-        if( it.second->permissions().external() == Permission::READ or it.second->permissions().external() == Permission::WRITE){
-            alias_description["value"] =  it.second->get_string();
-        }
-            alias_description["description"] = it.second->description();
-        }
+    }
+    if( external_ == Permission::READ or external_ == Permission::WRITE){
+      alias_description["value"] =  Retrieve();
+    }
+    alias_description["description"] = description_;
     
     return alias_description;
+
     
 }
 
