@@ -8,8 +8,8 @@ Overview
 Implementation
 --------------
 
-processors :
------------
+processors
+----------
 
 - source : :ref:`NlxReader`
 - ripple_filter_1 : :ref:`MultiChannelFilter`
@@ -49,4 +49,4 @@ There is two output data serialized in a yaml file:
 - ripple events : :ref:`EventData`
 - ripple statistics
 
-See the full  :ref:`ripple graph` definition.
+See the full  :ref:`ripple_graph` definition.

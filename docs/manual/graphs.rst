@@ -21,8 +21,8 @@ follows below.
       source:
         class: NlxReader
         options:
-          batch_size: 1
-          update_interval: 0
+          batch size: 1
+          update interval: 0
           npackets: 1000000
           channelmap:
             tt1: [1,2,3,4]
@@ -155,3 +155,5 @@ specified less verbosely with or without alias:
       - value: [processor1.state1, processor2.state2]
       - [processor3.state3, processor4.state4]
 
+.. note::
+    Processor name, shared state, options accept space, -, _ as equivalent. In internal, it is always replace by "-".

@@ -19,7 +19,7 @@ for more information on how the gui is working.
 
 Information specific to the build of falcon asked in the app :
 
-- repository path: https://bitbucket.org/kloostermannerflab/falcon-core.git
+- repository path: https://bitbucket.org/kloostermannerflab/falcon-core.git (the ssh path is also valable)
 - (last) version : 1.1.0   => See the changelog to see other available versions.
 
 A grid with available extensions will be display. You can add your own extensions if needed but note that falcon-core does
