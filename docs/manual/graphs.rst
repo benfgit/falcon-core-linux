@@ -15,6 +15,31 @@ is specified that the two sinks share their *tickle* state. More information
 about the syntax for specifying processor nodes, connections and shared states
 follows below.
 
+The graph is shared in 3 sections :
+- falcon : could contains in the future some generic options as the version
+- graph : either the graph path (in remote-side by using uri) or fully defined in this section
+- options : section to override some specific options in the graph.
+
+Graph - client side : (personalized for each experimentation)
+
+.. code-block:: yaml
+
+    falcon:  # could be used for generic falcon options
+        version : 1.0  # minimum required falcon version for this graph
+
+    graph : graphs://graph_file.yaml (see yaml block below)
+
+    options:
+        source:
+            class: NlxReader
+            options:
+              channelmap:
+                tt1: [1,2,3,4]
+                tt2: [5,6,7,8]
+
+
+Graph template - remote side : (template usable by everyone)
+
 .. code-block:: yaml
 
     processors:
@@ -38,6 +63,9 @@ follows below.
 
     states:
       - [sink1.tickle, sink2.tickle]
+
+We see in this example that the client-side graph will override the channelmap option in the source processor.
+
 
 Processor nodes
 ---------------

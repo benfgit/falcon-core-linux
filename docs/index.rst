@@ -99,6 +99,23 @@ Developer's guide
    internals/graph_system
    internals/utilities
 
+
+Falcon control client (separate repository)
+-------------------------------------------
+
+.. toctree::
+   :maxdepth: 2
+   :glob:
+
+   ui/generic_control
+
+Ripple detection client (separate repository)
+---------------------------------------------
+.. toctree::
+   :maxdepth: 2
+
+   examples/ripple_detection
+
 Falcon core extension (separate repository)
 -------------------------------------------
 
@@ -118,23 +135,6 @@ Falcon core extension (separate repository)
 
 Real-time decoding extension (separate repository)
 --------------------------------------------------
-
-Falcon control client (separate repository)
--------------------------------------------
-
-.. toctree::
-   :maxdepth: 2
-   :glob:
-
-   ui/generic_control
-
-Ripple detection client (separate repository)
----------------------------------------------
-.. toctree::
-   :maxdepth: 2
-
-   examples/ripple_detection
-
 
 Indices and tables
 ==================

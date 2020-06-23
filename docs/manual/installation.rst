@@ -1,3 +1,4 @@
+.. _installation:
 Installation using graphical installer
 ======================================
 
@@ -13,6 +14,7 @@ In parallel, we developed a cmake-client python gui to automatically create an i
     conda activate falcon
     python setup.py build_ext --inplace
     pip install -e . --no-deps
+    fklab-build
 
 This environment will install the needed dependencies in a conda environment. You can read the readme.md in the fklab-cmake-gui repository
 for more information on how the gui is working.
@@ -85,11 +87,42 @@ Compiling falcon has only been tested with GNU g++ compiler. You should use vers
 
 The falcon-core repository does not contains any extensions. You will have to add, at least, the core extension to the CMakeList.txt.
 
-.. toctree::
+How extensions are found and added to build ?
+---------------------------------------------
 
-   ../internals/build_system
+Extensions are added through the FetchContent feature of CMake. It allows to link in the Falcon CMake
+the different git repository (or local folder) containing the extension. This extension needs to contain
+a CMake.
+This solution allows to use a specific version of an extension by adding a tag version in the option.
+The core extension are listed in the extension.yaml at the root of the repository.
 
-Once your cmakefile is all configured, you can build the system.
+The CmakeList.txt will read the extension.txt file described below :
+
+.. code-block::
+
+    enable , extension name , extension path , extension version (optional)
+    1 , extensions , https://bitbucket.org/kloostermannerflab/falcon-fklab-extensions
+
+Enable can be 3 different values : 0 (not build)/ 1 (build)/ dev (develop mode)
+
+The build mode will import the repository in the commit state (when not specified, the commit is the last one on the master head).
+The dev mode will build the repository in its actual local state.
+
+
+Python install
+..............
+
+You can also used the fklab-build tool to build the app in fast mode without using the gui. See :ref:`installation`.
+
+.. code-block::
+
+    fklab-build --gui false
+
+.. note:: Cmake options are available to `configure <https://cmake.org/cmake/help/latest/manual/cmake.1.html>`_ the build.
+It can be added with the argument --build_options OPTIONS (without -)
+
+Command line build
+..................
 
 So, to compile issue the following commands while in the falcon root directory:
 
@@ -102,6 +135,7 @@ So, to compile issue the following commands while in the falcon root directory:
 
 For more information on how to integrate third party extension to the build, refer to the build system documentation.
 
+
 Installation instructions
 -------------------------
 
@@ -110,5 +144,4 @@ Installation instructions
     cd falcon
     sudo setcap 'cap_sys_nice=pe' ./falcon
 
-The last step is optional and will allow falcon to more finely control CPU
-core utilization.
+The last step is optional and will allow falcon to more finely control CPU core utilization.

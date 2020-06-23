@@ -56,6 +56,69 @@ Documentation :
 The documentation of your processor will need to specify what it is doing, its inputs and outputs but also how to describe it in
 the graph definition yaml file (available options ...etc.).
 
+To do this "doc.yaml" need to be added next to the .cpp with these entrees:
+
+.. code-block:: yaml
+
+    Description: short description
+
+    Long description: long description (e.g. explanation of algorithm)
+
+    Input ports:
+      - name: name
+        type: MultiChannelType
+        slots: # or [#, #]
+        description: description
+
+    Output ports: ... same as input ports ...
+
+    Options:
+      - name: name
+        type: double
+        default: ...
+        description: ...
+
+    Methods:
+      - name: name
+        arguments:
+          - name: default value
+          - ...
+        returns: ...
+        description: ...
+
+    States:
+      static:
+        - name: name
+          type: double
+          initial value: ...
+          shared: true/false
+          external access: read or write or none
+          description: ...
+
+      producer:
+        - name: name
+          type: double
+          initial value: ...
+          cooperative: true/false
+          external access: read or write or none
+          description: ...
+
+      broadcaster:
+        - name: name
+          type: double
+          initial value: ...
+          external access: read or write or none
+          description: ...
+
+      follower:
+        - name: name
+          type: double
+          initial value: ...
+          external access: read or write or none
+          description: ...
+
+To correctly build the documentation, this file needs to be in yaml format.
+
 Documentation useful for the development
 ----------------------------------------
 
@@ -65,12 +128,4 @@ Documentation useful for the development
 
 Development build
 -----------------
-While populating your extension in the falcon CMake, you can override the git location with the cache option:
-
-.. code-block:: console
-
-    FETCHCONTENT_BASE_DIR <local_path>
-
-More information `here <https://cmake.org/cmake/help/git-stage/module/FetchContent.html>`_
-
-GlobalContext => access to server side storage
+While populating your extension in the falcon CMake, you can override the git LOCAL location with the dev option in the extensions.txt file.
