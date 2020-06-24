@@ -102,6 +102,17 @@ that sets the weight of the new data sample, i.e.
 Detect spikes
 -------------
 
+This algorithm operates sample by sample and looks for upwards deflections in at least one of the channels above a certain threshold.
+
+A spike is detected if the signal of at least one channel crosses the threshold and a local maxima is found in at least
+one channel (not necessarily the same of that of threshold crossing) within a certain duration (determined by the peak lifetime)
+The timestamp of the detected spike corresponds to that one of the first sample that crossed the threshold first
+(independently on whether that sample belongs to the current or previous buffers)
+In case a proper maximum is found on all channels, the peak values are returned, together with the threshold-crossing
+timestamp; however, if on one or more channels no peaks were found, the values of the signals at the threshold-crossing
+sample will be returned.
+
+
 Filtering
 ---------
 
