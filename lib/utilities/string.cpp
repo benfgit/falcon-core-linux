@@ -96,7 +96,7 @@ std::string extract_path_to_folder( std::string path_to_file ) {
     return path_to_folder;
 }
     
-void complete_path( std::string& file_path, std::string processor_name, std::string extension  ) {
+std::string complete_path( std::string file_path, std::string processor_name, std::string extension  ) {
     
     auto path_len = file_path.size();
     
@@ -118,4 +118,5 @@ void complete_path( std::string& file_path, std::string processor_name, std::str
             file_path.append( dotted_extension );
         }
     }
+    return file_path;
 }

@@ -202,6 +202,8 @@ YAML::Node LoadProcessorDoc(std::string processor){
             return YAML::LoadFile(filename);
         } catch (YAML::BadFile & e ) { // config file does not exist, save default configuration
             return YAML::Load("No available documentation.\n");
+        } catch (YAML::ParserException & e ) { // config file does not exist, save default configuration
+            return YAML::Load("Error when parsing this documentation.\n");
         }
 }
 

@@ -60,7 +60,7 @@ T from_string(std::string s);
 std::string extract_path_to_folder( std::string path_to_file );
 
 // 
-void complete_path( std::string& file_path, std::string processor_name, std::string extension );
+std::string complete_path( std::string file_path, std::string processor_name, std::string extension );
 
 template<typename T>
 inline std::string get_type_string() { return "unknown"; }

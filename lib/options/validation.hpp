@@ -164,7 +164,10 @@ public:
 
     T operator() (const T & x) const {
         if ((strict_ && x<=0) || x<0) {
-            throw ValidationError("Value cannot be negative" + strict_ ? " or zero." : ".");
+
+            if (strict_){ throw ValidationError("Value cannot be negative or zero." ); }
+            else{ throw ValidationError("Value cannot be negative." ); }
+
         }
         return x;
     }
