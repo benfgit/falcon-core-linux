@@ -26,9 +26,9 @@ below [TODO].
 
 The data flow graph is specified in YAML text format and defines all the
 processor nodes and their interconnections. Falcon ships with a number of
-built-in processors that can be used to construct custom
-applications (see :ref:`processors`). Falcon can be easily extended with new kinds of processors,
-although this requires modern C++ programming skills (see :ref:`overview_extensions`).
+built-in processors that can be used to construct custom applications. Falcon can be
+easily extended with new kinds of processors, although this requires modern C++
+programming skills (see :ref:`overview_extensions`).
 
 By design, Falcon software is only concerned with the execution of data flow
 graphs and it does not include a graphical user interface. Rather, separate
@@ -100,8 +100,8 @@ Developer's guide
    internals/utilities
 
 
-Falcon control client (separate repository)
--------------------------------------------
+Falcon control client
+---------------------
 
 .. toctree::
    :maxdepth: 2
@@ -109,32 +109,13 @@ Falcon control client (separate repository)
 
    ui/generic_control
 
-Ripple detection client (separate repository)
----------------------------------------------
+Ripple detection client
+-----------------------
 .. toctree::
    :maxdepth: 2
 
    examples/ripple_detection
 
-Falcon core extension (separate repository)
--------------------------------------------
-
-.. toctree::
-   :maxdepth: 2
-   :glob:
-
-   core_extension_doc/overview
-   core_extension_doc/datatypes
-   core_extension_doc/processors
-   core_extension_doc/hardware
-   core_extension_doc/libs
-   core_extension_doc/tools
-   core_extension_doc/example
-   core_extension_doc/ressource
-
-
-Real-time decoding extension (separate repository)
---------------------------------------------------
 
 Indices and tables
 ==================
