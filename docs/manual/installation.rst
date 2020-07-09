@@ -1,4 +1,5 @@
 .. _installation:
+
 Installation using graphical installer
 ======================================
 
@@ -8,21 +9,16 @@ In parallel, we developed a cmake-client python gui to automatically create an i
 
 .. code-block:: console
 
-    git clone https://bitbucket.org/kloostermannerflab/fklab-cmake-gui
-    cd fklab-cmake-gui
-    conda env create -f falcon.yaml
+    conda env create KloostermanLab/falcon
     conda activate falcon
-    python setup.py build_ext --inplace
-    pip install -e . --no-deps
-    fklab-build
+    fklab-build --path https://bitbucket.org/kloostermannerflab/falcon-core.git --version alpha
 
-This environment will install the needed dependencies in a conda environment. You can read the readme.md in the fklab-cmake-gui repository
-for more information on how the gui is working.
+You can read the readme file in the `fklab-cmake-gui <https://bitbucket.org/kloostermannerflab/fklab-cmake-gui/src/master/>`_ repository for more information on how the gui is working.
 
 Information specific to the build of falcon asked in the app :
 
 - repository path: https://bitbucket.org/kloostermannerflab/falcon-core.git (the ssh path is also valable)
-- (last) version : 1.1.0   => See the changelog to see other available versions.
+- (last) version : alpha   => See the changelog to see other available versions.
 
 A grid with available extensions will be display. You can add your own extensions if needed but note that falcon-core does
 not contains any extensions. If you want to use the core extensions, you need to have the "falcon-fklab-extension" selected.
