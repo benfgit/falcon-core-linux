@@ -19,7 +19,7 @@ set(PLATFORM_LINK_LIBRARIES rt dl)
 add_definitions(-DG2_DYNAMIC_LOGGING)
 
 #
-Set( RESOURCES_PATH ${rootproject_BINARY_DIR} CACHE STRING "")
+Set( RESOURCES_PATH $HOME/.falcon CACHE STRING "")
 mark_as_advanced( RESOURCES_PATH )
 configure_file(configuration.hpp.in configuration.hpp)
 
@@ -204,13 +204,14 @@ if (COMPILE_EXTENSIONS)
                     MESSAGE("install files from  ${FALCON_PATH}/resources/${RESOURCE} in  ${RESOURCES_PATH}/resources")
                     ADD_CUSTOM_COMMAND(TARGET falcon
                       POST_BUILD
-                      COMMAND cp -r ${FALCON_PATH}/resources/${RESOURCE} ${RESOURCES_PATH}/resources
+                      COMMAND cp -r ${FALCON_PATH}/resources/${RESOURCE} ${rootproject_BINARY_DIR}/resources
                     )
             endforeach()
     endforeach()
 
     # install in the installation folder
-    install(DIRECTORY ${RESOURCES_PATH}/resources DESTINATION bin)
+
+    install(DIRECTORY ${rootproject_BINARY_DIR}/resources DESTINATION ${RESOURCES_PATH}/resources)
 
 
 endif()
