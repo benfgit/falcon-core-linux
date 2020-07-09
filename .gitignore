@@ -1,3 +1,5 @@
-_build/*
-.idea/
 extensions.txt
+build/
+_build/
+.idea
+
