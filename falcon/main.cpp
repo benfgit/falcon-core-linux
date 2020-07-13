@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
     // 3rd argument is description
     // 4th argument is mandatory (optional. default is false)
     // 5th argument is default value  (optional. it used when mandatory is false)
-    parser.add<string>("config", 'c', "configuration file", false, "$HOME/.falcon/config.yaml" );
+    parser.add<string>("config", 'c', "configuration file", false, "$HOME/.config/falcon/config.yaml" );
     parser.add("autostart", 'a', "auto start processing (needs graph)");
     parser.add("debug", 'd', "show debug messages");
     parser.add("noscreenlog", '\0', "disable logging to screen");
