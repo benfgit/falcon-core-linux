@@ -39,6 +39,7 @@ void GraphManager::HandleCommand( std::string command, std::deque<std::string>& 
 
         if (!node.IsMap()) {
             std::string file = node.as<std::string>();
+            file =  global_context_->resolve_path( file, "graphs" );
             try {
                 node = YAML::LoadFile(file);
             } catch (YAML::BadFile& e) {
