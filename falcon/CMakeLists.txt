@@ -19,7 +19,7 @@ set(PLATFORM_LINK_LIBRARIES rt dl)
 add_definitions(-DG2_DYNAMIC_LOGGING)
 
 #
-Set( RESOURCES_PATH $ENV{HOME}/.config/falcon CACHE STRING "")
+Set( RESOURCES_PATH ${CMAKE_INSTALL_PREFIX}/share CACHE STRING "")
 Set( BUILD_RESOURCES_PATH ${rootproject_BINARY_DIR})
 mark_as_advanced( RESOURCES_PATH )
 configure_file(configuration.hpp.in configuration.hpp)
@@ -190,13 +190,11 @@ target_link_libraries (falcon ${WHOLELIBS} )
 
 install(TARGETS falcon RUNTIME DESTINATION bin)
 
-# add all resources
-MESSAGE("install files from  ${FALCON_PATH}/resources in  ${RESOURCES_PATH}")
-
 if (COMPILE_EXTENSIONS)
 
     foreach( FALCON_PATH ${REAL_FALCON_PATHS} )
-            SUBDIRLIST( RESOURCES "${FALCON_PATH}/resources" )
+            FILE(GLOB RESOURCES RELATIVE ${FALCON_PATH}/resources ${FALCON_PATH}/resources/*)
+            MESSAGE(${RESOURCES})
             ADD_CUSTOM_COMMAND(TARGET falcon
               POST_BUILD
               COMMAND mkdir -p ${BUILD_RESOURCES_PATH}/resources/${RESOURCE}
@@ -212,7 +210,8 @@ if (COMPILE_EXTENSIONS)
     endforeach()
 
     # install in the installation folder
-    install(DIRECTORY ${BUILD_RESOURCES_PATH}/resources DESTINATION /${RESOURCES_PATH})
+    install(DIRECTORY ${BUILD_RESOURCES_PATH}/resources
+            DESTINATION ${RESOURCES_PATH})
 
 
 
