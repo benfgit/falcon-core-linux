@@ -194,13 +194,11 @@ if (COMPILE_EXTENSIONS)
 
     foreach( FALCON_PATH ${REAL_FALCON_PATHS} )
             FILE(GLOB RESOURCES RELATIVE ${FALCON_PATH}/resources ${FALCON_PATH}/resources/*)
-            MESSAGE(${RESOURCES})
             ADD_CUSTOM_COMMAND(TARGET falcon
               POST_BUILD
               COMMAND mkdir -p ${BUILD_RESOURCES_PATH}/resources/${RESOURCE}
             )
             foreach( RESOURCE ${RESOURCES} )
-                    MESSAGE("install files from  ${FALCON_PATH}/resources/${RESOURCE} in  ${RESOURCES_PATH}/resources")
                     ADD_CUSTOM_COMMAND(TARGET falcon
                       POST_BUILD
                       COMMAND cp -r ${FALCON_PATH}/resources/${RESOURCE} ${BUILD_RESOURCES_PATH}/resources/${RESOURCE}/

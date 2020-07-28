@@ -449,17 +449,19 @@ void ProcessorGraph::Destroy() {
     }
     
     if (state_!=GraphState::CONSTRUCTING) {
-        try {
-            // unprepare processors
-            for (auto &it : this->processors_) {
+
+        // unprepare processors
+        for (auto &it : this->processors_) {
+            try {
                 it.second.second->Unprepare(global_context_);
                 LOG(DEBUG) << "Successfully unprepared processor " << it.first;
+
+            } catch (...) {
+                connections_.clear();
+                processors_.clear();
+                set_state(GraphState::NOGRAPH);
+                throw InvalidGraphError("Error while unpreparing processors. Forced destruction of graph. Possible corruption of internal state.");
             }
-        } catch (...) {
-            connections_.clear();
-            processors_.clear();
-            set_state(GraphState::NOGRAPH);
-            throw InvalidGraphError("Error while unpreparing processors. Forced destruction of graph. Possible corruption of internal state.");
         }
     }
     
