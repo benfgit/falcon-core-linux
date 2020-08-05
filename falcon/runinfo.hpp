@@ -33,7 +33,7 @@
 #include <condition_variable>
 
 #include "context.hpp"
-#include "g3log/src/g2log.hpp"
+#include "g3log/g3log.hpp"
 #include "utilities/time.hpp"
 
 //forward declaration

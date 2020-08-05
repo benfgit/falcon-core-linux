@@ -20,7 +20,9 @@ endif()
 string(TIMESTAMP _time_stamp)
 
 ############################
-# Add the basic libraries  #
+# Add the basic libraries
+# to read on the use of fetch content :
+# https://android.googlesource.com/platform/external/cmake/+/refs/heads/upstream-release/Modules/FetchContent.cmake
 ############################
 
 include(FetchContent)
@@ -45,15 +47,18 @@ FetchContent_Declare(
 	GIT_TAG v0.4.0
 )
 
-FetchContent_GetProperties(yaml-cpp)
-if(NOT yaml-cpp_POPULATED)
-	message(STATUS "Populating yaml-cpp...")
-	FetchContent_Populate(yaml-cpp)
-	# Add here options for yaml-cpp building
-	set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "disable yaml tests")
-	add_subdirectory(${yaml-cpp_SOURCE_DIR} ${yaml-cpp_BINARY_DIR})
-	message(STATUS "Done.")
-endif()
+FetchContent_Declare(
+	g3log
+	GIT_REPOSITORY https://github.com/KjellKod/g3log.git
+	GIT_SHALLOW ON
+	GIT_TAG 1.3.3
+)
+
+set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "disable yaml tests")
+message(STATUS "Populating yaml-cpp...")
+FetchContent_MakeAvailable(yaml-cpp)
+message(STATUS "Done.")
+
 
 include_directories(BEFORE SYSTEM "${yaml-cpp_SOURCE_DIR}/include")
 target_link_libraries(${YAMLCPP} yaml-cpp)
@@ -92,6 +97,19 @@ endif()
 include_directories(BEFORE SYSTEM "${units_SOURCE_DIR}")
 target_link_libraries(${UNITS} units-static)
 
+message(STATUS "Populating g3log...")
+set(ADD_G3LOG_UNIT_TEST OFF CACHE INTERNAL "")
+set(ADD_FATAL_EXAMPLE OFF CACHE INTERNAL "")
+set(ADD_G3LOG_BENCH_PERFORMANCE OFF CACHE INTERNAL "")
+set(USE_DYNAMIC_LOGGING_LEVELS ON CACHE INTERNAL "")
+FetchContent_MakeAvailable(g3log)
+message(STATUS "Done.")
+FetchContent_GetProperties(g3log)
+
+
+include_directories(BEFORE SYSTEM "${g3log_SOURCE_DIR}/src")
+include_directories(BEFORE SYSTEM "${g3log_BINARY_DIR}/include")
+target_link_libraries(${LOGGER} g3logger)
 
 
 ## External extensions ##

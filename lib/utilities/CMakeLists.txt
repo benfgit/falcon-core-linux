@@ -1,5 +1,5 @@
 add_library( utilities keyboard.cpp general.cpp zmqutil.cpp time.cpp 
-             string.cpp math_numeric.cpp configuration.cpp filesystem.cpp )
+             string.cpp math_numeric.cpp configuration.cpp filesystem.cpp g3loglevels.hpp)
 
 # modified from https://stackoverflow.com/a/55783677
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")

@@ -179,7 +179,7 @@ configure_file(buildconstant.hpp.in buildconstant.hpp @ONLY)
 
 add_executable(falcon ${sources} )
 
-target_link_libraries (falcon logging yaml-cpp zmq ${PLATFORM_LINK_LIBRARIES})
+target_link_libraries (falcon g3logger yaml-cpp zmq ${PLATFORM_LINK_LIBRARIES})
 
 # here we have to use --whole-archive linker option, otherwise the data type and processor libs are not
 # linked at all because none of their exported symbols are explicitly used in falcon. Same is true for (part of)

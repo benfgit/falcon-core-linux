@@ -28,7 +28,7 @@
 #include <algorithm>
 #include <memory>
 
-#include "g3log/src/g2log.hpp"
+#include "g3log/g3log.hpp"
 #include "yaml-cpp/yaml.h"
 
 // a state wraps a value that is possibly shared between threads

@@ -22,7 +22,7 @@
 
 #include "commandhandler.hpp"
 
-#include "g3log/src/g2log.hpp"
+#include "g3log/g3log.hpp"
 #include "utilities/zmqutil.hpp"
 #include "yaml-cpp/yaml.h"
 #include "buildconstant.hpp"

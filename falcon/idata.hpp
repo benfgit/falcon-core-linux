@@ -29,7 +29,9 @@
 
 #include "ringbuffer.hpp"
 
-#include "g3log/src/g2log.hpp"
+#include "g3log/g3log.hpp"
+#include "utilities/g3loglevels.hpp"
+
 #include "utilities/time.hpp"
 
 #include "serialization.hpp"

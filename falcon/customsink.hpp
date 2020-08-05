@@ -20,16 +20,16 @@
 #include <zmq.hpp>
 #include <deque>
 
-#include "g3log/src/g2log.hpp"
-#include "g3log/src/g2logmessage.hpp" 
+#include "g3log/g3log.hpp"
+#include "g3log/logmessage.hpp"
 
 class ZMQSink {
 public:
    ZMQSink(zmq::context_t& context, int port);
    virtual ~ZMQSink();
    
-   std::deque<std::string> FormatMessage(g2::LogMessage &msg);
-   void ReceiveLogMessage(g2::LogMessageMover message);
+   std::deque<std::string> FormatMessage(g3::LogMessage &msg);
+   void ReceiveLogMessage(g3::LogMessageMover message);
 
 private:
 
@@ -45,8 +45,8 @@ public:
    ScreenSink() {};
    virtual ~ScreenSink() {};
    
-   std::string FormatMessage(g2::LogMessage &msg);
-   void ReceiveLogMessage(g2::LogMessageMover message);
+   std::string FormatMessage(g3::LogMessage &msg);
+   void ReceiveLogMessage(g3::LogMessageMover message);
 
 private:
 
