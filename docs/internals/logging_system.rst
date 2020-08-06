@@ -2,13 +2,13 @@ Logging system
 ==============
 
 Falcon's logging system is based on the
-`g3log <https://github.com/KjellKod/g3log>`_ library, which is included
-in the Falcon source tree.
+`g3log <https://github.com/KjellKod/g3log>`_ library - version 1.3.3,
+which is fetch from the repository at build time.
 
 The logging library is used to provide information about the internal
 state and operation to the user (or developer). There are a number of
 different types of log messages (i.e "log levels") defined, each with
-their own format and usage patter as listed below:
+their own format and usage pattern as listed below:
 
 :DEBUG: debug info
 :INFO: general info
@@ -19,7 +19,7 @@ their own format and usage patter as listed below:
 :ERROR: TBD
 :FATAL: TBD
 
-To log messages in the code, one needs to include the *g3log/src/g2log.hpp*
+To log messages in the code, one needs to include the *g3log/g3log.hpp*
 header file and then do for example:
 
 .. code-block:: c++
