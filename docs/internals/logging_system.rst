@@ -12,15 +12,14 @@ their own format and usage pattern as listed below:
 
 :DEBUG: debug info
 :INFO: general info
-:STATE: TBD
-:EVENT: TBD
-:UPDATE: TBD
-:WARNING: TBD
-:ERROR: TBD
-:FATAL: TBD
+:WARNING: general warning
+:FATAL: run-time errors info from falcon and other fatal errors info before killing the software.
 
-To log messages in the code, one needs to include the *g3log/g3log.hpp*
-header file and then do for example:
+:STATE: log the state of the graph
+:UPDATE: update info on the run-time processor parameters
+:ERROR: error info specific to the falcon process
+
+To log messages in the code, one needs to include the *g3log/g3log.hpp* header file and then do for example:
 
 .. code-block:: c++
 
@@ -28,6 +27,8 @@ header file and then do for example:
 
     LOG_IF(DEBUG, condition) << "If [true], then this text will be logged";
 
+Log level for falcon can be added in the utilities/g3loglevels. Other log levels specifics to an extension can be added
+in the extension repository in a similar way.
 
 In Falcon, three destinations ("sinks") for log messages are defined.
 First, log messages are always saved to a log file. The path of this file

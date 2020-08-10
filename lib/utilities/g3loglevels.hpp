@@ -6,7 +6,6 @@
 
 
 const LEVELS STATE {INFO.value + 1, {"STATE"}};
-const LEVELS EVENT {STATE.value +1, {"EVENT"}};
-const LEVELS UPDATE {EVENT.value + 1, {"UPDATE"}};
+const LEVELS UPDATE {STATE.value + 1, {"UPDATE"}};
 const LEVELS ERROR {WARNING.value + 1, {"ERROR"}};
 
