@@ -1,6 +1,7 @@
 Logging system
 ==============
 
+
 Falcon's logging system is based on the
 `g3log <https://github.com/KjellKod/g3log>`_ library - version 1.3.3,
 which is fetch from the repository at build time.
@@ -19,7 +20,8 @@ their own format and usage pattern as listed below:
 :UPDATE: update info on the run-time processor parameters
 :ERROR: error info specific to the falcon process
 
-To log messages in the code, one needs to include the *g3log/g3log.hpp* header file and then do for example:
+The actual implementation is in the falcon lib logging with the custom sinks and new logging levels.
+To log messages in the code, one needs to include the *logging/log.hpp* header file and then do for example:
 
 .. code-block:: c++
 
@@ -27,10 +29,12 @@ To log messages in the code, one needs to include the *g3log/g3log.hpp* header f
 
     LOG_IF(DEBUG, condition) << "If [true], then this text will be logged";
 
-Log level for falcon can be added in the utilities/g3loglevels. Other log levels specifics to an extension can be added
+Log level for falcon can be added in the logging/g3loglevels. Other log levels specifics to an extension can be added
 in the extension repository in a similar way.
 
 In Falcon, three destinations ("sinks") for log messages are defined.
+This custom sink are developped in logging/customsink.hpp.
+
 First, log messages are always saved to a log file. The path of this file
 is set using the *logging.path* configuration option
 (see :ref:`manual-configuration`). Second, log messages are displayed in

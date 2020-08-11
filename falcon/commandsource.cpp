@@ -24,7 +24,7 @@
 
 #include "utilities/keyboard.hpp"
 #include "utilities/general.hpp"
-#include "g3log/g3log.hpp"
+#include "logging/log.hpp"
 #include "utilities/zmqutil.hpp"
 
 using namespace commands;

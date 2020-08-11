@@ -1,56 +1,36 @@
 // ---------------------------------------------------------------------
 // This file is part of falcon-core.
-// 
+//
 // Copyright (C) 2015, 2016, 2017 Neuro-Electronics Research Flanders
-// 
+//
 // Falcon-server is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-// 
+//
 // Falcon-server is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-#include <zmq.hpp>
-#include <deque>
+#ifndef LOG_LEVEL_H
+#define LOG_LEVEL_H
 
-#include "g3log/g3log.hpp"
-#include "g3log/logmessage.hpp"
+#include <g3log/loglevels.hpp>
 
-class ZMQSink {
-public:
-   ZMQSink(zmq::context_t& context, int port);
-   virtual ~ZMQSink();
-   
-   std::deque<std::string> FormatMessage(g3::LogMessage &msg);
-   void ReceiveLogMessage(g3::LogMessageMover message);
+// all values with a + 1 higher than their closest equivalent
+// they could really have the same value as well.
 
-private:
 
-   zmq::socket_t *publisher;
+// Graph state level info
+const LEVELS STATE {INFO.value + 1, {"STATE"}};
+// Graph update of processors level info
+const LEVELS UPDATE {STATE.value + 1, {"UPDATE"}};
+// Error in relation with the graph
+const LEVELS ERROR {WARNING.value + 1, {"ERROR"}};
 
-   ZMQSink& operator=(const ZMQSink&) = delete;
-   ZMQSink(const ZMQSink& other) = delete;
-
-};
-
-class ScreenSink {
-public:
-   ScreenSink() {};
-   virtual ~ScreenSink() {};
-   
-   std::string FormatMessage(g3::LogMessage &msg);
-   void ReceiveLogMessage(g3::LogMessageMover message);
-
-private:
-
-   ScreenSink& operator=(const ScreenSink&) = delete;
-   ScreenSink(const ScreenSink& other) = delete;
-
-};
+#endif

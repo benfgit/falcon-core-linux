@@ -29,8 +29,7 @@
 
 #include "ringbuffer.hpp"
 
-#include "g3log/g3log.hpp"
-#include "utilities/g3loglevels.hpp"
+#include "logging/log.hpp"
 
 #include "utilities/time.hpp"
 

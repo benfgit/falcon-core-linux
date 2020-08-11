@@ -27,7 +27,7 @@
 #include <utility>
 
 #include "yaml-cpp/yaml.h"
-#include "g3log/g3log.hpp"
+#include "logging/log.hpp"
 #include "iprocessor.hpp"
 #include "graphexceptions.hpp"
 #include "connectionparser.hpp"

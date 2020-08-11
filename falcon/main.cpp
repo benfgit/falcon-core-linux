@@ -28,11 +28,9 @@
 
 #include "cmdline/cmdline.h"
 
-#include "g3log/logworker.hpp"
-#include "g3log/g3log.hpp"
 
-
-#include "customsink.hpp"
+#include "logging/log.hpp"
+#include "logging/customsink.hpp"
 #include "commandsource.hpp"
 #include "commandhandler.hpp"
 
