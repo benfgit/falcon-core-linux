@@ -5,4 +5,4 @@
 #define BUILD_TIMESTAMP "@_time_stamp@"
 #define DOC_PATH "@_processor_doc_path@"
 
-#endif 
+#endif

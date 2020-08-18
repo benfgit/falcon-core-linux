@@ -17,15 +17,13 @@
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
 
-#ifndef LOG_H
-#define LOG_H
-
-#include <zmq.hpp>
+#pragma once
+#include <string>
 #include <deque>
+#include <zmq.hpp>
 
 #include "g3log/g3log.hpp"
 #include "g3log/logmessage.hpp"
 #include "logging/g3loglevels.hpp"
 #include "g3log/logworker.hpp"
 
-#endif
