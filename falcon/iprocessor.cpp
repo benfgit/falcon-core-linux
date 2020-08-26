@@ -21,7 +21,7 @@
 #include <regex>
 #include <iostream>
 #include <fstream>
-#include "g3log/src/g2log.hpp"
+#include "logging/log.hpp"
 
 #include "utilities/general.hpp"
 

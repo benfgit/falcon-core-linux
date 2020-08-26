@@ -20,8 +20,8 @@
 #include <iostream>
 #include "customsink.hpp"
 
-std::string ScreenSink::FormatMessage(g2::LogMessage &msg) {
-    
+std::string ScreenSink::FormatMessage(g3::LogMessage &msg) {
+
     if ( msg.level()=="DEBUG" ) {
         std::string out;
         out.append("\n" + msg.timestamp()  +  "\t" + msg.level() + " [" + msg.file() + " L: " + msg.line() + "]\t");
@@ -37,7 +37,7 @@ std::string ScreenSink::FormatMessage(g2::LogMessage &msg) {
     }
 }
 
-void ScreenSink::ReceiveLogMessage(g2::LogMessageMover message) {
+void ScreenSink::ReceiveLogMessage(g3::LogMessageMover message) {
     
    std::cout << FormatMessage( message.get() ) << std::flush;
 }
@@ -60,7 +60,7 @@ ZMQSink::~ZMQSink() {
     delete publisher;
 }
 
-std::deque<std::string> ZMQSink::FormatMessage(g2::LogMessage &msg) {
+std::deque<std::string> ZMQSink::FormatMessage(g3::LogMessage &msg) {
     
     std::deque<std::string> out;
     out.push_back( msg.level() );
@@ -76,7 +76,7 @@ std::deque<std::string> ZMQSink::FormatMessage(g2::LogMessage &msg) {
     return out;
 }
 
-void ZMQSink::ReceiveLogMessage(g2::LogMessageMover message) {
+void ZMQSink::ReceiveLogMessage(g3::LogMessageMover message) {
     
     std::deque<std::string> msg = FormatMessage( message.get() );
     
