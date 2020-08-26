@@ -28,11 +28,9 @@
 
 #include "cmdline/cmdline.h"
 
-#include "g3log/src/g2logworker.hpp"
-#include "g3log/src/g2log.hpp"
-#include "g3log/src/g2loglevels.hpp"
 
-#include "customsink.hpp"
+#include "logging/log.hpp"
+#include "logging/customsink.hpp"
 #include "commandsource.hpp"
 #include "commandhandler.hpp"
 
@@ -113,22 +111,24 @@ int main(int argc, char** argv) {
     char *home = getenv("HOME");
     std::regex re ("(\\$HOME|~)");
     std::string logpath = std::regex_replace( config.logging_path(), re, home );
-    auto logger = g2::LogWorker::createWithDefaultLogger("falcon", logpath );
+
+    auto worker = g3::LogWorker::createLogWorker();
+    auto defaultHandler = worker->addDefaultLogger("falcon", logpath );
     
     // initialize logging before creating additional loggers
-    g2::initializeLogging(logger.worker.get());
-    
+    g3::initializeLogging(worker.get());
+
     // enable DEBUG logging
-    g2::setLogLevel( DEBUG, config.debug_enabled() );
-    
+    g3::log_levels::set(DEBUG, config.debug_enabled() );
+
     // screen logger
     if (config.logging_screen_enabled()) {
-        logger.worker->addSink(std2::make_unique<ScreenSink>(), &ScreenSink::ReceiveLogMessage);
+        worker->addSink(std::make_unique<ScreenSink>(), &ScreenSink::ReceiveLogMessage);
         LOG(INFO) << "Enabled logging to screen.";
     }
     // cloud logger
     if (config.logging_cloud_enabled()) {
-        logger.worker->addSink(std2::make_unique<ZMQSink>( context.zmq(), config.logging_cloud_port() ), &ZMQSink::ReceiveLogMessage);
+        worker->addSink(std::make_unique<ZMQSink>( context.zmq(), config.logging_cloud_port() ), &ZMQSink::ReceiveLogMessage);
          //wait so that any existing subscriber has a change to connect before we send out first messages
         std::this_thread::sleep_for( std::chrono::milliseconds(200) );
         LOG(INFO) << "Enabled logging to cloud on port " << std::to_string(config.logging_cloud_port());
