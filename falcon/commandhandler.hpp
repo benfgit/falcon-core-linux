@@ -32,13 +32,37 @@ class CommandHandler {
  public:
   CommandHandler(GlobalContext &context) { global_context_ = &context; }
 
+  /**
+   * Add a source to receive commands from it (example: cloud/zmq, command line, keyboard)
+   *
+   * @param source class defining the source of commands derived from CommandSource
+   */
   void addSource(CommandSource &source) { sources_.push_back(&source); }
 
+  /**
+   * Receive commands and delegate to the graph thread in case of a graph command
+   * or handle it directly
+   *
+   * @param command
+   * @param reply  buffer for the answer from the graph socket
+   * @return if falcon should be safely (closing all threads) terminated
+   */
   bool HandleCommand(std::deque<std::string> &command,
                      std::deque<std::string> &reply);
+  /**
+   * Send commands to the graph thread via it graph socket
+   *
+   * @param command keyword send to the graph thread
+   * @param reply  buffer for the answer from the graph socket
+   * @return always false - no command to the graph can terminate the main thread
+   */
   bool DelegateGraphCommand(std::deque<std::string> &command,
                             std::deque<std::string> &reply);
 
+  /**
+   * Once start is launched the main thread is busy only listening, processing
+   * and replying to messages coming from listed sources
+   */
   void start();
 
  private:
