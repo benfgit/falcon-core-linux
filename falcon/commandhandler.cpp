@@ -16,13 +16,15 @@
 // You should have received a copy of the GNU General Public License
 // along with falcon-core. If not, see <http://www.gnu.org/licenses/>.
 // ---------------------------------------------------------------------
-#include <unistd.h>
 #include <deque>
-#include "yaml-cpp/yaml.h"
-#include "commandhandler.hpp"
-#include "buildconstant.hpp"
-#include "utilities/zmqutil.hpp"
+#include <regex>
+#include <unistd.h>
 
+#include "buildconstant.hpp"
+#include "commandhandler.hpp"
+#include "utilities/filesystem.hpp"
+#include "utilities/zmqutil.hpp"
+#include "yaml-cpp/yaml.h"
 
 using namespace commands;
 
@@ -46,11 +48,32 @@ bool CommandHandler::HandleCommand(std::deque<std::string> &command,
   if (command.empty()) {
     return finished;
   }
-
   if (command[0] == "graph") {
     // delegate
     command.pop_front();
     finished = DelegateGraphCommand(command, reply);
+  } else if (command[0] == "resources") {
+    if (command[1] == "list") {
+      std::string resource_path = global_context_->resolve_path("resources://");
+      std::vector<std::string> list_files = getAllFilesInDir(resource_path);
+      for (auto const &file : list_files) {
+        std::regex e(resource_path);
+        reply.push_back(std::regex_replace(file, e, "resources://") + "\n");
+      }
+    } else if (command[1] == "graphs") {
+      std::string graph_path =
+          global_context_->resolve_path("graphs://" + command[2]);
+      try {
+        YAML::Node node;
+        node = YAML::LoadFile(graph_path);
+        YAML::Emitter out;
+        out << node;
+        reply.push_back(std::string(out.c_str()));
+      } catch (YAML::BadFile &e) {
+        reply.push_back("ERR");
+        reply.push_back("Invalid graph file");
+      }
+    }
   } else if (command[0] == "documentation") {
     local_command.push_back("fulldocumentation");
     finished = DelegateGraphCommand(local_command, reply);
@@ -132,7 +155,7 @@ void CommandHandler::start() {
   std::deque<std::string> reply;
 
   while (!finished) {
-    usleep(100000);  // 0.1 second
+    usleep(100000); // 0.1 second
 
     // iterate through sources
     for (auto &it : sources_) {

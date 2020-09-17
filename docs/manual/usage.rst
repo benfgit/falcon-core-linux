@@ -50,5 +50,4 @@ Falcon-client gui
 .................
 
 The graph is also controllable from a (remote) client. See this section for more details : :ref:`generic_client`
-
-
+Commands are send from the client via zmq communication. See :ref:`zmq_command`

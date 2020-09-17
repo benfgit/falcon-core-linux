@@ -23,8 +23,6 @@
 #include <regex>
 
 std::string expand_home(const std::string &x) {
-  // LINUX specific
-  // expand $HOME or ~ to HOME environment variable
   char *home = getenv("HOME");
   if (home != NULL) {
     std::regex re("(\\$HOME|~)");
@@ -67,4 +65,30 @@ fs::path parse_file(const std::string &x, bool exists) {
     throw std::runtime_error("Not an existing file: " + p.string());
   }
   return p;
+}
+
+std::vector<std::string> getAllFilesInDir(const std::string &dirPath) {
+
+  std::vector<std::string> listOfFiles;
+
+  if (fs::exists(dirPath) && fs::is_directory(dirPath)) {
+
+    fs::recursive_directory_iterator iter(dirPath);
+    fs::recursive_directory_iterator end;
+
+    while (iter != end) {
+
+      if (fs::is_regular_file(iter->path())) {
+
+        listOfFiles.push_back(iter->path().string());
+      }
+      std::error_code ec;
+      iter.increment(ec);
+      if (ec) {
+        throw std::runtime_error("Error While Accessing : " +
+                                 iter->path().string() + " :: " + ec.message());
+      }
+    }
+  }
+  return listOfFiles;
 }
