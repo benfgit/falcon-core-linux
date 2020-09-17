@@ -32,7 +32,7 @@ An example configuration file is shown below:
        port: 5556
    server_side_storage:
      environment: "./"
-     resources: "$HOME/.falcon"
+     resources: installation path /share/resources  # default path
 
 network
 .......
@@ -75,7 +75,7 @@ option).
 
     During the build of the app, these resources are gathered and copied in the build folder, then in the
     installation folder (if make install). Falcon will automatically generate the resource path.
-    Be careful if it is override in the config file, it will lose access to this resource folder.
+    Be careful if it is overrided in the config file, Falcon will lose access to this resource folder.
 
 Users can also specify custom URIs that point to paths on the computer running
 Falcon. In the *server_side_storage* section of the configuration, the

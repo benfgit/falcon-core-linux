@@ -16,9 +16,10 @@ about the syntax for specifying processor nodes, connections and shared states
 follows below.
 
 The graph is shared in 3 sections :
-- falcon : could contains in the future some generic options as the version
-- graph : either the graph path (in remote-side by using uri) or fully defined in this section
-- options : section to override some specific options in the graph.
+
+- **falcon** : could contains in the future some generic options as the version
+- **graph** : either the graph path (in remote-side by using uri) or fully defined in this section
+- **options** : section to override some specific options in the graph.
 
 Graph - client side : (personalized for each experimentation)
 
@@ -27,15 +28,15 @@ Graph - client side : (personalized for each experimentation)
     falcon:  # could be used for generic falcon options
         version : 1.0  # minimum required falcon version for this graph
 
-    graph : graphs://graph_file.yaml (see yaml block below)
+    graph : graphs://graph_file.yaml
 
     options:
         source:
             class: NlxReader
             options:
               channelmap:
-                tt1: [1,2,3,4]
-                tt2: [5,6,7,8]
+                cp: [1,2,3,4]
+                hp: [5,6,7,8]
 
 
 Graph template - remote side : (template usable by everyone)
@@ -50,8 +51,8 @@ Graph template - remote side : (template usable by everyone)
           update interval: 0
           npackets: 1000000
           channelmap:
-            tt1: [1,2,3,4]
-            tt2: [5,6,7,8]
+            cp: [1,2,3,4]
+            hp: [5,6,7,8]
         advanced:
           threadpriority: 100
           threadcore: 4
@@ -59,7 +60,8 @@ Graph template - remote side : (template usable by everyone)
         class: DummySink
 
     connections:
-      - source.tt(1-2)=p:data.f:sink(1-2)
+      - source.cp=p:data.f:sink1
+      - source.hp=p:data.f:sink2
 
     states:
       - [sink1.tickle, sink2.tickle]
@@ -77,10 +79,12 @@ be created and processor type specific options. In the example above, the
 first entry in the *processors* section specified a node with the name
 *source* that is of type *NlxReader*. In addition, a number of options are set
 that are specific to the NlxReader processor (i.e. *batch_size*, *channelmap*,
-etc.). See TODO for more information about the specific options for each of
-the processor classes that are shipped with Falcon. (Note: a number of
-advanced options are available for each processor to control low-level
-execution  parameters - see TODO for more information)
+etc.). 
+
+See the corresponding documentation of each extension for more information 
+about the specific options for each of the processor classes that are shipped with Falcon. 
+(Note: a number of advanced options are available for each processor to control low-level
+execution  parameters)
 
 Sometimes, one needs to define multiple processor nodes of the same class and
 with the same options. In that case, a short hand notation is available to
@@ -184,4 +188,5 @@ specified less verbosely with or without alias:
       - [processor3.state3, processor4.state4]
 
 .. note::
+
     Processor name, shared state, options accept space, -, _ as equivalent. In internal, it is always replace by "-".

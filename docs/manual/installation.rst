@@ -72,16 +72,16 @@ In order to install it type in a terminal:
 
 - **External libraries included in source tree** (just for information, you don't need to do anything normally)
 
-g3log
-cmdline (header only library)
-disruptor
+
+- cmdline (header only library)
+- disruptor
 
 Build instructions
 ------------------
 
 Compiling falcon has only been tested with GNU g++ compiler. You should use version 5 or upper.
 
-The falcon-core repository does not contains any extensions. You will have to add, at least, the core extension to the CMakeList.txt.
+The falcon-core repository does not contains any extensions. You will have to add, at least, the core extension to the extensions.txt.
 
 How extensions are found and added to build ?
 ---------------------------------------------
@@ -90,9 +90,8 @@ Extensions are added through the FetchContent feature of CMake. It allows to lin
 the different git repository (or local folder) containing the extension. This extension needs to contain
 a CMake.
 This solution allows to use a specific version of an extension by adding a tag version in the option.
-The core extension are listed in the extension.yaml at the root of the repository.
 
-The CmakeList.txt will read the extension.txt file described below :
+The CmakeList.txt will read the extensions.txt file described below :
 
 .. code-block::
 
@@ -115,7 +114,7 @@ You can also used the fklab-build tool to build the app in fast mode without usi
     fklab-build --gui false
 
 .. note:: Cmake options are available to `configure <https://cmake.org/cmake/help/latest/manual/cmake.1.html>`_ the build.
-It can be added with the argument --build_options OPTIONS (without -)
+It can be added with the argument ``--build_options OPTIONS`` (without -)
 
 Command line build
 ..................

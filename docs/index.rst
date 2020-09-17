@@ -21,8 +21,7 @@ multiple connected nodes (processors) that perform computations on one or more
 streams of input data and produce one or more streams of output data. Some
 types of processors produce output data without accepting input data
 (sources), whereas other types of processors consume input data without
-produce output data (sinks). An example data flow graph is shown in the figure
-below [TODO].
+produce output data (sinks).
 
 The data flow graph is specified in YAML text format and defines all the
 processor nodes and their interconnections. Falcon ships with a number of
@@ -37,6 +36,9 @@ communication. In this way, dedicated  user interfaces may be built in any
 programming language for particular user applications (as determined by the
 data flow graph). A generic Python control client is shipped with Falcon (see
 :ref:`generic_client`) and serves as an example for how to build a user interface.
+
+
+.. image:: images/falcon_environment.png
 
 
 Installation
@@ -57,9 +59,6 @@ User guide
    manual/graphs
    manual/configuration
    manual/troubleshoot
-   testing/debug
-   testing/test_mode
-   testing/test_graphs
 
 
 Extending Falcon
@@ -109,12 +108,6 @@ Falcon control client
 
    ui/generic_control
 
-Ripple detection client
------------------------
-.. toctree::
-   :maxdepth: 2
-
-   examples/ripple_detection
 
 
 Indices and tables

@@ -8,20 +8,11 @@ Installation
 
 The falcon-client ui is used to remote control of the falcon system.
 
-Clone the python repository :
-
-.. code-block:: console
-
-    git clone https://user@bitbucket.org/kloostermannerflab/falcon-client.git
-
 Install in your python path :
 
 .. code-block:: console
 
-    cd falcon-client
-    python setup.py build_ext --inplace
-    pip install -e . --no-deps
-
+    conda install -c kloostermanlab falcon-clients 
 
 The ui can be launched when the falcon program is already running.
 

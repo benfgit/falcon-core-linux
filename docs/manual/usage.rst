@@ -12,16 +12,16 @@ Command-line
 
 .. code-block:: bash
 
-usage: falcon [options] ... [graph file] ...
-options:
-  -c, --config         configuration file (string [=$HOME/.falcon/config.yaml])
-  -a, --autostart      auto start processing (needs graph)
-  -d, --debug          show debug messages
-      --noscreenlog    disable logging to screen
-      --nocloudlog     disable logging to cloud
-  -t, --test           turn testing on by default
-  -v, --version        Show the falcon version number and exit.
-  -?, --help           print this message
+    usage: falcon [options] ... [graph file] ...
+    options:
+    -c, --config         configuration file (string [=$HOME/.falcon/config.yaml])
+    -a, --autostart      auto start processing (needs graph)
+    -d, --debug          show debug messages
+        --noscreenlog    disable logging to screen
+        --nocloudlog     disable logging to cloud
+    -t, --test           turn testing on by default
+    -v, --version        Show the falcon version number and exit.
+    -?, --help           print this message
 
 A configuration file can be used to specify automatically this options + others used to affine the control in the whole system.
 Check out the :ref:`manual-configuration`.

@@ -15,8 +15,8 @@ there is set of command which can be send to Falcon
 
 - to manage the general app :
 
-============= ===============================================================================
-command       action
+================================== ===============================================================================
+command                            action
 ================================== ===============================================================================
 quit                               quit the app
 kill                               stop processing and quit (kill)
@@ -45,5 +45,17 @@ graph update [yaml Node]   update a particular processor state/definition
 Receive log messages
 --------------------
 
+You can receive log message through the Falcon client or by designing your own ZMQ client communication. 
+The zmq log format for any levels : 
+
+.. codeblocks: 
+     
+    timestamps + log level + log message
+
+with a specific format for debug level with the additional debugging information from where the message has been raised:
+
+.. codeblocks: 
+     
+    timestamps + log level + [ + file + " L: " + line + ] + log message
 
 
