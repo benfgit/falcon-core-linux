@@ -174,7 +174,7 @@ class OptionList {
 
   template <typename TValue> void add(const Option<TValue> &value) {
     if (has_option(value.name())) {
-      throw std::runtime_error("Option with same name already exists.");
+      throw std::runtime_error("Option with same name "+ value.name() + " already exists.");
     }
     options_.push_back(value);
   }
