@@ -593,8 +593,7 @@ class IProcessor {
   virtual std::string default_output_port() const;
 
  private:   // to be overridden by derived processors, callable internally
-  virtual void Configure(const YAML::Node &node,
-                         const GlobalContext &context) {}
+  virtual void Configure(const GlobalContext &context) {}
   virtual void CreatePorts() = 0;
   virtual void Preprocess(ProcessingContext &context) {}
   virtual void Process(ProcessingContext &context) = 0;

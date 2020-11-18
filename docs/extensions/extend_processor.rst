@@ -10,8 +10,10 @@ Two important inputs are :
 
 Virtual methods from the IProcessor class are available to be override:
 
--   *Configure(const YAML::Node &node, const GlobalContext& context)* : The graph (yaml file) describe the node
-    with some parameters specific to the processor. This method is the time to read it, process it (checking errors) and store it for later.
+-   *Configure( const GlobalContext& context)* : The graph (yaml file) describe the node
+    with some parameters specific to the processor. These options are loaded internally between the creation of the processor
+    and the call of this method. It is the time to do additional configurations based on the options (log in, derive some variables
+    from it ... etc.).
 
 -   *CreatePorts()* : This part make use of the internal available methods from Iprocessor (see the API documentation)
     for creating input port (*create_input_port*), readable sharable state (*create_readable_shared_state*)

@@ -136,7 +136,7 @@ void IProcessor::internal_Configure(const YAML::Node &node,
     advanced_options_.from_yaml(node["advanced"]);
   }
 
-  Configure(node["options"], context);
+  Configure(context);
 }
 
 void IProcessor::internal_CreatePorts() {
