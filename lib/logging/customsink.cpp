@@ -20,6 +20,7 @@
 #include <string>
 
 #include "customsink.hpp"
+#include "../utilities/zmqutil.hpp"
 
 std::string ScreenSink::FormatMessage(g3::LogMessage &msg) {
   if (msg.level() == "DEBUG") {
@@ -71,17 +72,6 @@ std::deque<std::string> ZMQSink::FormatMessage(g3::LogMessage &msg) {
 }
 
 void ZMQSink::ReceiveLogMessage(g3::LogMessageMover message) {
-  std::deque<std::string> msg = FormatMessage(message.get());
-
-  int nparts = (int)msg.size();
-
-  for (int k = 0; k < nparts; k++) {
-    zmq::message_t pub_message(msg[k].size());
-    memcpy(pub_message.data(), msg[k].data(), msg[k].size());
-    if (k + 1 == nparts) {
-      publisher->send(pub_message);
-    } else {
-      publisher->send(pub_message, ZMQ_SNDMORE);
-    }
-  }
+    zmq_frames msg = FormatMessage(message.get());
+    s_send_multi(*publisher, msg);
 }
