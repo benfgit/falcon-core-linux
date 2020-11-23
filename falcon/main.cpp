@@ -126,9 +126,16 @@ int main(int argc, char** argv) {
 
   // initialize logging before creating additional loggers
   g3::initializeLogging(worker.get());
+  g3::only_change_at_initialization::addLogLevel(STATE);
+  g3::only_change_at_initialization::addLogLevel(UPDATE);
+  g3::only_change_at_initialization::addLogLevel(ERROR);
 
   // enable DEBUG logging
-  g3::log_levels::set(DEBUG, config.debug_enabled());
+  if(config.debug_enabled()){
+      g3::log_levels::enable(DEBUG);
+  }else{
+      g3::log_levels::disable(DEBUG);
+  }
 
   // screen logger
   if (config.logging_screen_enabled()) {
@@ -212,5 +219,6 @@ int main(int argc, char** argv) {
   commandhandler.start();
 
   LOG(INFO) << "Falcon shutting down normally.";
+  g3::internal::shutDownLogging();
   return EXIT_SUCCESS;
 }
