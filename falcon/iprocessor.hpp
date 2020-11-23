@@ -389,27 +389,6 @@ class IProcessor {
   }
 
   /**
-   * Create a static state.
-   *
-   * The initial state value is taken from the processor option with the same
-   * name. If no option with the same name exists, then an exception is thrown.
-   *
-   * @overload
-   */
-  template <typename T>
-  StaticState<T> *create_static_state(std::string state, bool shared = true,
-                                      Permission external = Permission::WRITE,
-                                      std::string description = "") {
-    if (shared) {
-      return ((StaticState<T> *)create_readable_shared_state<T>(
-          state, Permission::READ, external, description));
-    } else {
-      return ((StaticState<T> *)create_readable_shared_state<T>(
-          state, Permission::NONE, external, description));
-    }
-  }
-
-  /**
    * Create a producer state on the processor.
    *
    * A producer state can be written by the owning processor. If `cooperative`
@@ -444,28 +423,6 @@ class IProcessor {
   }
 
   /**
-   * Create a producer state.
-   *
-   * The initial state value is taken from the processor option with the same
-   * name. If no option with the same name exists, then an exception is thrown.
-   *
-   * @overload
-   */
-  template <typename T>
-  ProducerState<T> *
-  create_producer_state(std::string state, bool cooperative = false,
-                        Permission external = Permission::READ,
-                        std::string description = "") {
-    if (cooperative) {
-      return ((ProducerState<T> *)create_writable_shared_state<T>(
-          state, Permission::WRITE, external, description));
-    } else {
-      return ((ProducerState<T> *)create_writable_shared_state<T>(
-          state, Permission::NONE, external, description));
-    }
-  }
-
-  /**
    * Create a broadcaster state on the processor.
    *
    * A broadcaster state can be written by the owning processor and can only
@@ -492,22 +449,6 @@ class IProcessor {
         state, default_value, Permission::READ, external, description));
   }
 
-  /**
-   * Create a broadcaster state.
-   *
-   * The initial state value is taken from the processor option with the same
-   * name. If no option with the same name exists, then an exception is thrown.
-   *
-   * @overload
-   */
-  template <typename T>
-  BroadcasterState<T> *
-  create_broadcaster_state(std::string state,
-                           Permission external = Permission::NONE,
-                           std::string description = "") {
-    return ((BroadcasterState<T> *)create_writable_shared_state<T>(
-        state, Permission::READ, external, description));
-  }
 
   /**
    * Create a follower state on the processor.
@@ -537,22 +478,6 @@ class IProcessor {
         state, default_value, Permission::WRITE, external, description));
   }
 
-  /**
-   * Create a follower state.
-   *
-   * The initial state value is taken from the processor option with the same
-   * name. If no option with the same name exists, then an exception is thrown.
-   *
-   * @overload
-   */
-  template <typename T>
-  FollowerState<T> *
-  create_follower_state(std::string state,
-                        Permission external = Permission::NONE,
-                        std::string description = "") {
-    return ((FollowerState<T> *)create_readable_shared_state<T>(
-        state, Permission::WRITE, external, description));
-  }
 
   /**
    * Create a readable shared state on the processor.
@@ -590,35 +515,6 @@ class IProcessor {
     return ((ReadableState<T> *)shared_states_[state].get());
   }
 
-  /**
-   * Create a readable state.
-   *
-   * The initial state value is taken from the processor option with the same
-   * name. If no option with the same name exists, then an exception is thrown.
-   *
-   * @overload
-   */
-  template <typename T>
-  ReadableState<T> *create_readable_shared_state(
-      std::string state, Permission peers = Permission::WRITE,
-      Permission external = Permission::NONE, std::string description = "") {
-    T default_value;
-    if (!options_.has_option(state)) {
-      throw ProcessorInternalError(
-          "Could not set state value from option: no option named " + state);
-    } else {
-      try {
-        default_value =
-            dynamic_cast<options::Option<T> &>(options_[state]).get_value();
-      } catch (std::runtime_error &e) {
-        throw ProcessorInternalError("Could not set state value from option: " +
-                                     std::string(e.what()));
-      }
-    }
-
-    return create_readable_shared_state<T>(state, default_value, peers,
-                                           external, description);
-  }
 
   /**
    * Create a writable shared state on the processor.
@@ -655,37 +551,6 @@ class IProcessor {
     return ((WritableState<T> *)shared_states_[state].get());
   }
 
-  /**
-   * Create a writable state.
-   *
-   * The initial state value is taken from the processor option with the same
-   * name. If no option with the same name exists, then an exception is thrown.
-   *
-   * @overload
-   */
-  template <typename T>
-  WritableState<T> *create_writable_shared_state(
-      std::string state, Permission peers = Permission::READ,
-      Permission external = Permission::NONE, std::string description = "") {
-    T default_value;
-
-    state = convert_name(state);
-    if (!options_.has_option(state)) {
-      throw ProcessorInternalError(
-          "Could not set state value from option: no option named " + state);
-    } else {
-      try {
-        default_value =
-            dynamic_cast<options::Option<T> &>(options_[state]).get_value();
-      } catch (std::runtime_error &e) {
-        throw ProcessorInternalError("Could not set state value from option: " +
-                                     std::string(e.what()));
-      }
-    }
-
-    return create_writable_shared_state<T>(state, default_value, peers,
-                                           external, description);
-  }
 
   /**
    * Retrieve a pointer to a state.
