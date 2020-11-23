@@ -144,7 +144,7 @@ int main(int argc, char** argv) {
     // wait so that any existing subscriber has a change to connect before we send out first messages
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     LOG(INFO) << "Enabled logging to cloud on port "
-              << std::to_string(config.logging_cloud_port());
+              << config.logging_cloud_port();
   }
 
   LOG(INFO) << "Logging initialized. Log file saved to " << logpath;
@@ -205,7 +205,7 @@ int main(int argc, char** argv) {
   commandhandler.addSource(zc);
 
   LOG(INFO) << "Enabled keyboard commands.";
-  LOG(INFO) << "Enabled cloud commands on port 5555.";
+  LOG(INFO) << "Enabled cloud commands on port " << config.network_port() ;
 
   LOG(INFO) << "Falcon started successfully.";
   // start handling commands

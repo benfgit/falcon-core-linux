@@ -129,7 +129,9 @@ bool KeyboardCommands::sendreply(const std::deque<std::string> &command,
 
 ZMQCommands::ZMQCommands(zmq::context_t &context, int port) {
   socket = new zmq::socket_t(context, ZMQ_REP);
-  socket->bind("tcp://*:5555");
+  char buffer[15];
+  snprintf(buffer, 14, "tcp://*:%d", port);
+  socket->bind(buffer);
 }
 
 ZMQCommands::~ZMQCommands() { delete socket; }
