@@ -154,6 +154,7 @@ void OptionList::from_yaml(const YAML::Node &node,
     throw std::runtime_error("Expecting YAML map.");
   }
 
+
   YAML::Node x;
 
   // loop through options
