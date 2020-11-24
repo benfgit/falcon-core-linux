@@ -191,7 +191,6 @@ target_link_libraries(falcon ${WHOLELIBS})
 
 
 install(TARGETS falcon RUNTIME DESTINATION bin)
-
 if (COMPILE_EXTENSIONS)
 
     foreach (FALCON_PATH ${REAL_FALCON_PATHS})
@@ -212,9 +211,4 @@ if (COMPILE_EXTENSIONS)
     # install in the installation folder
     install(DIRECTORY ${BUILD_RESOURCES_PATH}/resources
             DESTINATION ${RESOURCES_PATH})
-
-
 endif ()
-
-
-
