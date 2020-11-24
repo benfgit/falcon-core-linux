@@ -33,41 +33,52 @@
 class ZMQSink {
 public:
 
-   ZMQSink(zmq::context_t& context, int port);
-   virtual ~ZMQSink();
+    ZMQSink(zmq::context_t &context, int port);
 
-   /**
-    * Format the log message :
-    *   all level : timestamp + level + message
-    *   debug level : add file and line where the message have been emitted
-    *   fatal level message are not send
-    *
-    * @param msg message format delivered by g3log lib
-    * @return the new message format as a list of string
-    */
-   std::deque<std::string> FormatMessage(g3::LogMessage &msg);
+    virtual ~ZMQSink();
 
-   /**
-    * Format the message + send through the network
-    * @param msg message format delivered by g3log lib
-    */
-   void ReceiveLogMessage(g3::LogMessageMover message);
+    /**
+     * Format the log message :
+     *   all level : timestamp + level + message
+     *   debug level : add file and line where the message have been emitted
+     *   fatal level message are not send
+     *
+     * @param msg message format delivered by g3log lib
+     * @return the new message format as a list of string
+     */
+    std::deque<std::string> FormatMessage(g3::LogMessage &msg);
+
+    /**
+     * Format the message + send through the network
+     * @param msg message format delivered by g3log lib
+     */
+    void ReceiveLogMessage(g3::LogMessageMover message);
 
 private:
 
-   zmq::socket_t *publisher;
+    zmq::socket_t *publisher;
 
-   ZMQSink& operator=(const ZMQSink&) = delete;
-   ZMQSink(const ZMQSink& other) = delete;
+    ZMQSink &operator=(const ZMQSink &) = delete;
+
+    ZMQSink(const ZMQSink &other) = delete;
 
 };
 
 class ScreenSink {
 public:
-   ScreenSink() {};
-   virtual ~ScreenSink() {};
+    ScreenSink() {};
 
-   /**
+    virtual ~ScreenSink() {};
+
+    // Linux xterm color
+    // http://stackoverflow.com/questions/2616906/how-do-i-output-coloured-text-to-a-linux-terminal
+    enum FG_Color {
+        YELLOW = 33, RED = 31, GREEN = 32, WHITE = 97
+    };
+
+    FG_Color GetColor(const LEVELS level) const;
+
+    /**
     * Format the log message :
     *   all level : timestamp + level + message
     *   debug level : add file and line where the message have been emitted
@@ -78,17 +89,19 @@ public:
     * @param msg message format delivered by g3log lib
     * @return the new message format as a string
     */
-   std::string FormatMessage(g3::LogMessage &msg);
-   /**
-    * Format the message + display on the screen
-    * @param msg message format delivered by g3log lib
-    */
-   void ReceiveLogMessage(g3::LogMessageMover message);
+    std::string FormatMessage(const LEVELS level, g3::LogMessage &msg);
+
+    /**
+     * Format the message + display on the screen
+     * @param msg message format delivered by g3log lib
+     */
+    void ReceiveLogMessage(g3::LogMessageMover message);
 
 private:
 
-   ScreenSink& operator=(const ScreenSink&) = delete;
-   ScreenSink(const ScreenSink& other) = delete;
+    ScreenSink &operator=(const ScreenSink &) = delete;
+
+    ScreenSink(const ScreenSink &other) = delete;
 
 };
 

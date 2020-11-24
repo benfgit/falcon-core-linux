@@ -21,15 +21,15 @@
 
 #include "customsink.hpp"
 
-std::string ScreenSink::FormatMessage(g3::LogMessage &msg) {
-  if (msg.level() == "DEBUG") {
-    std::string out;
-    out.append("\n" + msg.timestamp() + "\t" + msg.level() + " [" + msg.file() +
-               " L: " + msg.line() + "]\t");
-    out.append(msg.message());
-    return out;
+std::string ScreenSink::FormatMessage(const LEVELS level, g3::LogMessage &msg) {
+  if (level.value == DEBUG.value or level.value >= WARNING.value) {
+      std::string out;
+      out.append("\n" + msg.timestamp() + "\t" + msg.level() + " [" + msg.file() +
+                 " L: " + msg.line() + "]\t");
+      out.append(msg.message());
+      return out;
   } else if (msg.wasFatal()) {
-    return "";
+    return msg.message();
   } else {
     std::string out;
     out.append("\n" + msg.timestamp() + "\t" + msg.level() + "\t" +
@@ -38,8 +38,19 @@ std::string ScreenSink::FormatMessage(g3::LogMessage &msg) {
   }
 }
 
+ScreenSink::FG_Color ScreenSink::GetColor(const LEVELS level) const {
+    if (level.value == WARNING.value) { return YELLOW; }
+    if (level.value == DEBUG.value) { return GREEN; }
+    if (level.value >= WARNING.value) { return RED; }
+
+    return WHITE;
+}
+
+
 void ScreenSink::ReceiveLogMessage(g3::LogMessageMover message) {
-  std::cout << FormatMessage(message.get()) << std::flush;
+    ScreenSink::FG_Color color;
+    color = GetColor(message.get()._level);
+    std::cout << "\033[" << color << "m" << FormatMessage(message.get()._level, message.get()) << "\033[m" << std::flush;
 }
 
 ZMQSink::ZMQSink(zmq::context_t &context, int port) {
