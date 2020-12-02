@@ -37,7 +37,7 @@ FetchContent_Declare(
 		cppzmq
 		GIT_REPOSITORY https://github.com/zeromq/cppzmq.git
 		GIT_SHALLOW	ON
-		GIT_TAG v4.6.0
+		GIT_TAG v4.7.1
 	)
 
 FetchContent_Declare(
