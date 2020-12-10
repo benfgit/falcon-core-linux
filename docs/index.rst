@@ -3,8 +3,43 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. raw:: html
+
+    <style>
+        .row {clear: both}
+        .row h2  {border-bottom: 1px solid gray;}
+
+        .column img {border: 1px solid gray;}
+
+        @media only screen and (min-width: 1000px),
+               only screen and (min-width: 500px) and (max-width: 768px){
+
+            .column {
+                padding-left: 5px;
+                padding-right: 5px;
+                float: left;
+            }
+
+            .column3  {
+                padding-left: 20px;
+                padding-right: 16px;
+                float: left;
+                width: 30%;
+            }
+
+            .column2  {
+                padding-left: 30px;
+                padding-right: 30px;
+                float: left;
+                width: 49%;
+            }
+        }
+
+    </style>
+
+************************
 Documentation for Falcon
-========================
+************************
 
 Falcon is a software for real-time processing of neural signals to enable
 short-latency closed-loop feedback in experiments that try to causally link
@@ -12,9 +47,9 @@ neural activity to behavior. Example use cases are the detection of hippocampal
 ripple oscillations or online decoding and detection of hippocampal replay
 patterns.
 
-
-High level overview
--------------------
+*******************
+High-Level overview
+*******************
 
 At its core, Falcon executes a user-defined data flow graph that consists of
 multiple connected nodes (processors) that perform computations on one or more
@@ -39,81 +74,102 @@ data flow graph). A generic Python control client is shipped with Falcon (see
 
 
 .. image:: images/falcon_environment.png
+  :width: 660
+  :alt: Description of the falcon environment. Communication of the Falcon server with the different acquisition system
+        (Neuralynx, Open-Ephys, datafile, Camera) in input and the output (arduino, digital hardware) while being controlled by a falcon client.
+
+.. rst-class:: clearfix row
 
 
-Installation
-------------
+Work with Falcon
+................
 
-.. toctree::
-   :maxdepth: 2
-   :glob:
+.. rst-class:: clearfix row
 
-   manual/installation
+.. rst-class:: column column3
 
-User guide
-----------
-.. toctree::
-   :maxdepth: 2
+`Install Falcon <installation.html>`_
+-------------------------------------
 
-   manual/usage
-   manual/graphs
-   manual/configuration
-   manual/troubleshoot
+Installation guides for a `user  <manual/binary_installation.html>`_
+or for a `developer <manual/installation.html>`_ of Falcon.
 
+.. rst-class:: column column3
 
-Extending Falcon
-----------------
-.. toctree::
-   :maxdepth: 2
-   :glob:
+`User Guide <user_guide.html>`_
+-------------------------------
 
-   extensions/overview
-   extensions/extend_processor
-   extensions/extend_datatype
-   extensions/tools
+Practical step-by-step to `run Falcon <manual/usage.html>`_,
+`setup a graph <manual/graphs.html>`_ and `configure the server <manual/configuration.html>`_ for the first time.
+
+.. rst-class:: column column3
 
 
-Building custom clients
------------------------
-.. toctree::
-   :maxdepth: 2
-   :glob:
+`Falcon Client  <client.html>`_
+-------------------------------
 
-   ui/interaction
-   ui/create_ui
-   ui/lib_python
+Install and use the `Fklab Falcon Client  <ui/generic_control.html>`_ or `create  <ui/create_ui.html>`_ your own client.
 
-Developer's guide
------------------
-
-.. toctree::
-   :maxdepth: 2
-   :glob:
-
-   internals/overview
-   internals/logging_system
-   internals/command_system
-   internals/config_system
-   internals/thread_management
-   internals/graph_system
-   internals/utilities
+.. rst-class:: clearfix row
 
 
-Falcon control client
----------------------
+Develop Falcon
+..............
 
-.. toctree::
-   :maxdepth: 2
-   :glob:
+.. rst-class:: clearfix row
 
-   ui/generic_control
+.. rst-class:: column column2
+
+`Developer's guide <dev_guide.html>`_
+-------------------------------------
+
+Overview of every components of Falcon-core:
+
+- `command  <internals/command_system.html>`_ and `logging system <internals/logging_system.html>`_
+- `configuration system  <internals/config_system.html>`_
+- `graph system  <internals/graph_system.html>`_ and `thread management  <internals/thread_management.html>`_
+- `utilities  <internals/utilities.html>`_
 
 
+.. rst-class:: column column2
+
+`Extending Falcon  <extending_falcon.html>`_
+--------------------------------------------
+
+Falcon can be extend with new set of processors and datatype. See what you can `add  <extensions/existing_extensions.html>`_
+and how you can `create your own  <extensions/extend_processor.html>`_.
+
+.. rst-class:: clearfix row
 
 Indices and tables
-==================
+..................
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. rst-class:: clearfix row
 
+.. rst-class:: column column3
+
+`Complete table of contents <content_table.html>`_
+
+.. rst-class:: column column3
+
+:ref:`search`
+
+.. rst-class:: column column3
+
+`Reporting bugs or Enhancement proposals <https://bitbucket.org/kloostermannerflab/falcon-core>`_
+
+.. rst-class:: clearfix row
+
+.. _`Kloosterman Lab`: http://kloostermanlab.org
+.. _NERF: http://www.nerf.be
+
+.. toctree::
+    :maxdepth: 1
+    :hidden:
+
+    content_table
+    installation
+    user_guide
+    client
+    dev_guide
+    extending_falcon

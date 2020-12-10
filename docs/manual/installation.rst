@@ -1,41 +1,10 @@
-.. _installation:
 
-Installation using graphical installer
-======================================
+========================
+Installation from source
+========================
 
-You just want to run falcon with a set of selected extensions and you don't want to look at the code ? This part is for you.
-In parallel, we developed a cmake-client python gui to automatically create an installation of Falcon.
-
-
-.. code-block:: console
-
-    conda env create KloostermanLab/falcon
-    conda activate falcon
-    fklab-build --path https://bitbucket.org/kloostermannerflab/falcon-core.git --version alpha
-
-You can read the readme file in the `fklab-cmake-gui <https://bitbucket.org/kloostermannerflab/fklab-cmake-gui/src/master/>`_ repository for more information on how the gui is working.
-
-Information specific to the build of falcon asked in the app :
-
-- repository path: https://bitbucket.org/kloostermannerflab/falcon-core.git (the ssh path is also valable)
-- (last) version : alpha   => See the changelog to see other available versions.
-
-A grid with available extensions will be display. You can add your own extensions if needed but note that falcon-core does
-not contains any extensions. If you want to use the core extensions, you need to have the "falcon-fklab-extension" selected.
-The extensions are stored in this `repository <https://bitbucket.org/kloostermannerflab/falcon-fklab-extensions>`_.
-
-This step is optional and will allow falcon to more finely control CPU core utilization.
-
-.. code-block:: console
-
-    sudo setcap 'cap_sys_nice=pe' `which falcon`
-
-Once, the app has been installed (without errors) you can continue to the section :ref:`usage`.
-
-Manual installation
-===================
-
-The building of the falcon app is based on cmake and fetch_dependency to manage libraries and extensions.
+The building of the falcon app is based on cmake and fetch_dependency to manage libraries and extensions. The plugin
+can be specified by modifying the extensions.txt file at the root of falcon_core.
 
 Download
 --------
@@ -72,23 +41,23 @@ In order to install it type in a terminal:
 
 - **External libraries included in source tree** (just for information, you don't need to do anything normally)
 
-
-- cmdline (header only library)
-- disruptor
+    + cmdline (header only library)
+    + disruptor
+    + yaml-cpp : https://github.com/jbeder/yaml-cpp.git
+    + cppzmq : https://github.com/zeromq/cppzmq.git
+    + g3log : https://github.com/KjellKod/g3log.git
+    + unit : https://github.com/LLNL/units.git
 
 Build instructions
 ------------------
 
 Compiling falcon has only been tested with GNU g++ compiler. You should use version 5 or upper.
-
 The falcon-core repository does not contains any extensions. You will have to add, at least, the core extension to the extensions.txt.
 
-How extensions are found and added to build ?
----------------------------------------------
+*How extensions are found and added to build ?*
 
 Extensions are added through the FetchContent feature of CMake. It allows to link in the Falcon CMake
-the different git repository (or local folder) containing the extension. This extension needs to contain
-a CMake.
+the different git repository (or local folder) containing the extension. This extension needs to contain at least CMake.
 This solution allows to use a specific version of an extension by adding a tag version in the option.
 
 The CmakeList.txt will read the extensions.txt file described below :
@@ -103,18 +72,6 @@ Enable can be 3 different values : 0 (not build)/ 1 (build)/ dev (develop mode)
 The build mode will import the repository in the commit state (when not specified, the commit is the last one on the master head).
 The dev mode will build the repository in its actual local state.
 
-
-Python install
-..............
-
-You can also used the fklab-build tool to build the app in fast mode without using the gui. See :ref:`installation`.
-
-.. code-block::
-
-    fklab-build --gui false
-
-.. note:: Cmake options are available to `configure <https://cmake.org/cmake/help/latest/manual/cmake.1.html>`_ the build.
-It can be added with the argument ``--build_options OPTIONS`` (without -)
 
 Command line build
 ..................

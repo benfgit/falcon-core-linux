@@ -33,19 +33,20 @@ Log level for falcon can be added in the logging/g3loglevels. Other log levels s
 in the extension repository in a similar way.
 
 In Falcon, three destinations ("sinks") for log messages are defined.
-This custom sink are developped in logging/customsink.hpp.
 
-First, log messages are always saved to a log file. The path of this file
-is set using the *logging.path* configuration option
-(see :ref:`manual-configuration`). Second, log messages are displayed in
-the terminal in which Falcon was started (but only if the
-*logging.screen.enabled* configuration option is set to true).
-Finally, log messages are broadcast to clients using a ZMQ publisher network
-socket (if the *logging.cloud.enabled* configuration option is true). The
-network port is configurable (see :ref:`manual-configuration`).
+- log messages are always saved to a log file. The path of this file is set using the *logging.path* configuration option (see :ref:`manual-configuration`).
+- log messages are displayed is the terminal in which Falcon was started (but only if the *logging.screen.enabled* configuration option is set to true).
+- log messages are broadcast to clients using a ZMQ publisher network socket (if the *logging.cloud.enabled* configuration option is true).
+  The network port is configurable (see :ref:`manual-configuration`). The format of these logs is a multipart message with 3 or 4 parts:
 
-Here is an example in Python how to receive log messages broadcast to
-port 5556 on the local computer:
+  + Log level (kind)
+  + datetime
+  + what - actual log message
+  + (optional) where: often for an error, gives the location in the code where the log error occurred.
+
+This custom sink are developed in logging/customsink.hpp.
+
+Here is an example in Python how to receive log messages broadcast to port 5556 on the local computer:
 
 .. code-block:: python
 
@@ -60,6 +61,17 @@ port 5556 on the local computer:
 
     while True:
         message = socket.recv_multipart()
-        print( message )
+        message = [c if isinstance(c, str) else c.decode("utf-8") for c in message]  # Decode the multi-part message
+
+        # Message parsing step
+        event = dict(
+            kind=message[0].lower(),
+            when=datetime.datetime.strptime(message[1], "%Y/%m/%d %H:%M:%S %f"),
+            what=message[2],
+        )
+        if len(message) > 3:
+            event["where"] = message[3]
+
+        print(event)
 
 

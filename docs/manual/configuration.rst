@@ -60,7 +60,7 @@ be saved. You can enable/disable logging to screen and network by setting the
 screen.enabled and cloud.enabled properties to true/false. For logging to the
 cloud, you can additionally set the network *port*.
 
-server_side_storage
+server side storage
 ...................
 
 To refer to paths and resources on the computer that runs Falcon, users can
@@ -75,7 +75,7 @@ option).
 
     During the build of the app, these resources are gathered and copied in the build folder, then in the
     installation folder (if make install). Falcon will automatically generate the resource path.
-    Be careful if it is overrided in the config file, Falcon will lose access to this resource folder.
+    Be careful if it is override in the config file, Falcon will lose access to this resource folder.
 
 Users can also specify custom URIs that point to paths on the computer running
 Falcon. In the *server_side_storage* section of the configuration, the

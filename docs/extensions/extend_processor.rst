@@ -10,19 +10,40 @@ Two important inputs are :
 
 Virtual methods from the IProcessor class are available to be override:
 
+-   *Class constructor* : Add options object to the options processor engine.
+
+    .. code-block:: console
+
+        ExampleProcessor::ExampleProcessor(): IProcessor() {
+            add_option("option 1", options1_, "This option can be modify in the graph file with the keyword: option 1");
+            add_option("option 2", options2_, "This option can be modify in the graph file with the keyword: option 2");
+        }
+
+
 -   *Configure( const GlobalContext& context)* : The graph (yaml file) describe the node
     with some parameters specific to the processor. These options are loaded internally between the creation of the processor
     and the call of this method. It is the time to do additional configurations based on the options (log in, derive some variables
     from it ... etc.).
 
+    .. code-block:: console
+
+        ExampleProcessor::Configure( const GlobalContext& context) {
+            if(options1_() > 3){
+                LOG(INFO) << "The option 1 is under 3" ;
+            }
+
+            useful_var_ = options1_() - options2_();
+        }
+
 -   *CreatePorts()* : This part make use of the internal available methods from Iprocessor (see the API documentation)
     for creating input port (*create_input_port*), readable sharable state (*create_readable_shared_state*)
     and output port (*create_output_port*).
 
+
 -   *CompleteStreamInfo()* set extra information for output datastream and parameters specific to the datatype, check additional conditions as
     for example same numbers of input / output slot if there are related
 
--   *Prepare(GlobalContext& context)* : prepare state of the node aka connecting servor ... etc.
+-   *Prepare(GlobalContext& context)* : prepare state of the node aka connecting server ... etc.
 
 -   *Unprepare(GlobalContext& context)* : undo the prepare method
 
@@ -75,7 +96,8 @@ To do this "doc.yaml" need to be added next to the .cpp with these entrees:
     Output ports: ... same as input ports ...
 
     Options:
-      - name: name
+      - &options1                               #this option is also used as a shared state
+        name: name
         type: double
         default: ...
         description: ...
@@ -119,15 +141,19 @@ To do this "doc.yaml" need to be added next to the .cpp with these entrees:
           external access: read or write or none
           description: ...
 
+        - options: *options1                      #when the shared state was originally an option,
+          external access: read or write or none  #the structure change a little to reuse the yaml option spec
+
 To correctly build the documentation, this file needs to be in yaml format.
 
 Documentation useful for the development
 ----------------------------------------
 
-- graph system
-- logging system
-- build system
+- `logging system <../internals/logging_system.html>`_
+- `graph system <../internals/graph_system.html>`_
 
 Development build
 -----------------
-While populating your extension in the falcon CMake, you can override the git LOCAL location with the dev option in the extensions.txt file.
+
+An extension cannot be build by itself. You will need to rebuild falcon-core while adding your extension local path
+in the extensions.txt in dev mode. It will automatically build falcon-core as well as your extension.
