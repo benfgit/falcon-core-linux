@@ -45,17 +45,15 @@ graph update [yaml Node]   update a particular processor state/definition
 Receive log messages
 --------------------
 
-You can receive log message through the Falcon client or by designing your own ZMQ client communication. 
-The zmq log format for any levels : 
+You can receive log message through the Falcon client or by designing your own ZMQ client communication.
+The zmq log format for any levels :
 
-.. codeblocks: 
-     
+.. codeblocks:
+
     timestamps + log level + log message
 
 with a specific format for debug level with the additional debugging information from where the message has been raised:
 
-.. codeblocks: 
-     
+.. codeblocks:
+
     timestamps + log level + [ + file + " L: " + line + ] + log message
-
-

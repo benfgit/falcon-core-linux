@@ -32,6 +32,7 @@ System overview
    :maxdepth: 2
    :glob:
 
+   internals/processing_graph
    internals/logging_system
    internals/command_system
    internals/config_system
