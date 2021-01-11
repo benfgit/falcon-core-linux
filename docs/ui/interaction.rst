@@ -11,7 +11,8 @@ a network connection.
 Send commands to Falcon
 -----------------------
 
-there is set of command which can be send to Falcon
+there is set of command which can be send through zmq as multipart messages to Falcon. The answer will also be a
+multipart message either with an yaml format or a list of string
 
 - to manage the general app :
 
@@ -26,7 +27,72 @@ resources list                     list all filename in the resources folder (gr
 resources graphs [graph_name.yaml] generate a yaml node with the graph description corresponding
 ================================== ===============================================================================
 
-- to manage the graph : (node the graph prefix for each command)
+Example:
+
+
+.. code-block::
+
+    >>> send_zmq_multipart_message("info")
+
+    Falcon version: beta-2-g9c0fcf1
+    run_environment_root: ~/log/
+    resource_root: ~/opt/falcon-core/share/resources
+    graph_state: NOGRAPH
+    default_test_flag: false
+
+
+.. code-block::
+
+    >>> send_zmq_multipart_message("documentation")
+
+    "processor1:
+        Description: ""
+        Long description: ""
+        Input ports: list
+           - name:
+             type:
+             slots:
+             description:
+        Output ports: list
+           - name:
+             type:
+             slots:
+             description:
+       Options: list
+           - name:
+             type:
+             default:
+             description:
+
+       State:
+          Static or Follower or Broadcaster: list
+          ... specific to each type"
+
+    "processor2:
+    ..."
+
+
+.. code-block::
+
+    >>> send_zmq_multipart_message(["resources", "list"])
+        ["file1", "file2", "file3"...]
+
+
+.. code-block::
+
+    >>> send_zmq_multipart_message(["resources", "graph", "neuralynx/ripple_detection.yaml"])
+        falcon: version: ..
+        graph:
+           processors
+               source: ...
+           connections:
+               - ...
+
+
+
+
+- to manage the graph : (note the graph prefix for each command)
+  No answer from this commands but update on the graph will come from the log messages.
 
 ========================== =============================================================================
 command                    action
@@ -42,18 +108,21 @@ graph retrieve [yaml Node] retrieve a particular processor state/definition
 graph update [yaml Node]   update a particular processor state/definition
 ========================== =============================================================================
 
+
 Receive log messages
 --------------------
 
 You can receive log message through the Falcon client or by designing your own ZMQ client communication.
 The zmq log format for any levels :
 
-.. codeblocks:
+
+.. code-block::
 
     timestamps + log level + log message
 
 with a specific format for debug level with the additional debugging information from where the message has been raised:
 
-.. codeblocks:
+
+.. code-block::
 
     timestamps + log level + [ + file + " L: " + line + ] + log message
