@@ -62,7 +62,7 @@ bool CommandHandler::HandleCommand(std::deque<std::string> &command,
       }
     } else if (command[1] == "graphs") {
       std::string graph_path =
-          global_context_->resolve_path("graphs://" + command[2]);
+          global_context_->resolve_path(command[2]);
       try {
         YAML::Node node;
         node = YAML::LoadFile(graph_path);

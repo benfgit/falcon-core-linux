@@ -155,7 +155,6 @@ void GraphManager::ParseGraph(YAML::Node &node) {
       for (YAML::const_iterator it = options_node.begin();
            it != options_node.end(); ++it) {
         std::string processor_name = it->first.as<std::string>();
-
         if (!node["graph"]["processors"][processor_name]) {
           throw std::runtime_error(
               "Mismatch between the options graph and the template graph.");
@@ -177,9 +176,8 @@ void GraphManager::ParseGraph(YAML::Node &node) {
     }
     graph_.Build(node["graph"]);
   } else if (node["processors"]) {
-    LOG(WARNING) << "The graph definition seems to follow the old format. "
-                    "Consider updating to the new-style graph definition - see "
-                    "... (add later link to the description)";
+    LOG(WARNING) << "The graph definition seems to have the server-side format. "
+                    "Consider to use a user-side format to override options.";
     graph_.Build(node);
   } else {
     throw std::runtime_error("Invalid graph description.");
