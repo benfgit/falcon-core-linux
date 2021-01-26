@@ -58,7 +58,7 @@ bool CommandHandler::HandleCommand(std::deque<std::string> &command,
       std::vector<std::string> list_files = getAllFilesInDir(resource_path);
       for (auto const &file : list_files) {
         std::regex e(resource_path);
-        reply.push_back(std::regex_replace(file, e, "resources://") + "\n");
+        reply.push_back(std::regex_replace(file, e, "resources://"));
       }
     } else if (command[1] == "graphs") {
       std::string graph_path =
