@@ -720,9 +720,12 @@ void ProcessorGraph::Retrieve(YAML::Node &node) {
 
 void ProcessorGraph::Apply(YAML::Node &node) {
   // YAML
-  // processor:
-  //     method:
-  //         parameter: value
+  // falcon: 
+  //   version: 1.0
+  // graph: 
+  //      processor:
+  //       method:
+  //          parameter: value
 
   if (!node.IsMap()) {
     throw InvalidProcessorError("No processors found in method definition.");
@@ -763,29 +766,29 @@ std::string ProcessorGraph::ExportYAML() {
   std::string s = "";
   YAML::Node node;
   YAML::Emitter out;
-
+  node["falcon"]["version"] = 1.0;
   if (state_ != GraphState::NOGRAPH) {
     for (auto &it : this->processors_) {
-      node["processors"][it.first] = it.second.second->ExportYAML();
-      node["processors"][it.first]["class"] = it.second.first;
+      node["graph"]["processors"][it.first] = it.second.second->ExportYAML();
+      node["graph"]["processors"][it.first]["class"] = it.second.first;
 
       if (yaml_["processors"][it.first]["options"]) {
-        node["processors"][it.first]["options"] =
+        node["graph"]["processors"][it.first]["options"] =
             yaml_["processors"][it.first]["options"];
       }
 
       if (yaml_["processors"][it.first]["advanced"]) {
-        node["processors"][it.first]["advanced"] =
+        node["graph"]["processors"][it.first]["advanced"] =
             yaml_["processors"][it.first]["advanced"];
       }
     }
 
     for (auto &it : this->connections_) {
-      node["connections"].push_back(it.first.string() + "=" +
+      node["graph"]["connections"].push_back(it.first.string() + "=" +
                                     it.second.string());
     }
 
-    node["states"] = shared_state_map_.ExportYAML();
+    node["graph"]["states"] = shared_state_map_.ExportYAML();
 
     out << node;
     s = out.c_str();
