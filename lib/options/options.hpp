@@ -173,10 +173,17 @@ class OptionList {
   }
 
   template <typename TValue> void add(const Option<TValue> &value) {
-    if (has_option(value.name())) {
-      throw std::runtime_error("Option with same name "+ value.name() + " already exists.");
-    }
-    options_.push_back(value);
+     bool exist;
+    try{
+        exist = has_option(value.name());
+     } catch (const std::runtime_error& error) {
+          options_.push_back(value);
+          exist = false;
+     }
+
+     if(exist){
+          throw std::runtime_error("Option with same name "+ value.name() + " already exists.");
+     }
   }
 
   OptionBase &operator[](std::string key);
@@ -187,10 +194,10 @@ class OptionList {
 
   std::vector<std::string> required_options() const;
 
-  bool has_option(std::string name) const;
+  bool has_option(std::string name);
 
   void from_yaml(const YAML::Node &node,
-                 const option_error_handler &handler = {});
+                 const option_error_handler &handler = {},  bool check=true);
 
   YAML::Node to_yaml(const option_error_handler &handler = {}) const;
 
@@ -199,6 +206,14 @@ class OptionList {
 
   void save_yaml(std::string filename,
                  const option_error_handler &handler = {}) const;
+
+  std::string list_options(){
+      std::string name;
+      for (auto &option : options_) {
+          name += option.name() + ", ";
+      }
+      return name;
+  };
 
  protected:
   std::list<OptionBase> options_;

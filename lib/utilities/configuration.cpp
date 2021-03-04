@@ -33,7 +33,7 @@ void Configuration::load(std::string filename) {
   try {
     YAML::Node node;
     node = YAML::LoadFile(p.string());
-    options_.from_yaml(node);
+    options_.from_yaml(node, {}, false);
     std::cout << "Default configuration loaded from " << p.string()
               << std::endl;
   } catch (YAML::BadFile
