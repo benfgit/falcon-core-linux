@@ -96,7 +96,7 @@ void GraphManager::HandleCommand(std::string command,
     YAML::Emitter out;
     out << docs;
     reply.push_back(std::string(out.c_str()));
-  }else if (command == "yaml") {
+  } else if (command == "yaml") {
     reply.push_back(graph_.ExportYAML());
   } else {
     throw std::runtime_error("Unknown graph command \"" + command + "\".");
