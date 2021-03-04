@@ -236,7 +236,12 @@ class ReadableState : public StateCloneable<IState, ReadableState<T>> {
   }
 
   std::string get_string(bool cache = true) override {
-    return std::to_string(get(cache));
+    bool test = true;
+    auto value = get(cache);
+    if (std::is_same_v<decltype(value), decltype(test)>){
+        return value ? "true" : "false";
+    }
+    return std::to_string(value);
   }
 
  protected:   // for friends only
