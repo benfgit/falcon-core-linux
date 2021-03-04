@@ -91,21 +91,12 @@ void GraphManager::HandleCommand(std::string command,
       out << node;
       reply.push_back(std::string(out.c_str()));
     }
-  } else if (command == "fulldocumentation") {
-    YAML::Node docs = graph_.GetProcessorDocumentation(true);
-    YAML::Emitter out;
-    out << docs;
-    reply.push_back(std::string(out.c_str()));
   } else if (command == "documentation") {
-    YAML::Node docs = graph_.GetProcessorDocumentation(false);
-    if (!docs.IsMap()) {
-      reply.push_back("ERR");
-    }
+    YAML::Node docs = graph_.GetProcessorDocumentation();
     YAML::Emitter out;
     out << docs;
     reply.push_back(std::string(out.c_str()));
-
-  } else if (command == "yaml") {
+  }else if (command == "yaml") {
     reply.push_back(graph_.ExportYAML());
   } else {
     throw std::runtime_error("Unknown graph command \"" + command + "\".");

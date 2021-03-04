@@ -240,20 +240,9 @@ YAML::Node LoadProcessorDoc(std::string processor) {
   }
 }
 
-YAML::Node ProcessorGraph::GetProcessorDocumentation(bool fulldoc) {
-  YAML::Node docs;
+YAML::Node ProcessorGraph::GetProcessorDocumentation() {
+   return documentation_;
 
-  if (fulldoc) {
-    return documentation_;
-  }
-
-  if (state_string() != "NOGRAPH") {
-    for (auto &imap : processors()) {
-      docs[imap.second.first] = documentation_[imap.second.first];
-    }
-    return docs;
-  }
-  return YAML::Load("No running graph.");
 }
 
 std::string ProcessorGraph::state_string() const {

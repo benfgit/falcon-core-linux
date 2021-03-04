@@ -86,6 +86,8 @@ bool KeyboardCommands::getcommand(std::deque<std::string> &command) {
     // parse command
     if (c == 'q' || c == 'Q') {
       command.push_back("quit");
+    }else if (c == 'd' || c == 'D') {
+        command.push_back("documentation");
     } else if (c == 'i' || c == 'I') {
       command.push_back("info");
     } else if (c == 'r' || c == 'R') {

@@ -115,7 +115,7 @@ class ProcessorGraph {
    * Give the documentation of either all registered processor or only
    * processors used in the running graph
    */
-  YAML::Node GetProcessorDocumentation(bool fulldoc);
+  YAML::Node GetProcessorDocumentation();
 
   /**
    * Build the graph
