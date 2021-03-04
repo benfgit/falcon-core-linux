@@ -72,19 +72,18 @@ std::vector<std::string> expandProcessorName(std::string s) {
   }
   std::string name = match[1].str();
   // remove trimming spaces
-
   name = std::regex_replace(name, std::regex("^ +| +$"), std::string(""));
   name = std::regex_replace(name, std::regex("[ _]"), "-");
-
   // parse part identifiers
   std::vector<int> identifiers;
 
-  if (!match[3].matched) {
+  if (!match[2].matched) {
     result.push_back(name);
   } else {
-    std::string piece = match[3].str();
+    std::string piece = match[2].str();
     // remove trimming spaces
     piece = std::regex_replace(piece, std::regex("^ +| +$"), std::string(""));
+
     if (piece[0] == '(') {
       // match ID range vector
       // remove brackets and spaces
@@ -408,6 +407,7 @@ void ProcessorGraph::Build(const YAML::Node &node) {
         CreateConnection(it.first, it.second);
         LOG(DEBUG) << "Established connection " << it.first.string(true) << "->"
                    << it.second.string(true);
+        
       }
       LOG(INFO) << "All connections have been established.";
     }

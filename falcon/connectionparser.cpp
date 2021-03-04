@@ -122,7 +122,7 @@ ConnectionRule parseConnectionRule(std::string rulestring) {
 
       // parse part identifiers
       std::vector<int> identifiers;
-      if (!match[4].matched) {
+      if (!match[3].matched) {
         // match all or default
         if (specifier == SLOT) {
           identifiers.push_back(-1);
@@ -130,7 +130,7 @@ ConnectionRule parseConnectionRule(std::string rulestring) {
           identifiers.push_back(MATCH_NONE);
         }
       } else {
-        std::string piece = match[4].str();
+        std::string piece = match[3].str();
 
         if (piece[0] == '(') {
           // match ID range vector
@@ -224,6 +224,7 @@ std::vector<SlotAddress> expandSingleConnectionRule(SingleConnectionRule rule) {
     idx = std::get<0>(rule[i]);
     index[i] = idx;
     names[i] = std::get<1>(rule[i]);
+
   }
 
   for (auto a : std::get<2>(rule[0])) {
@@ -233,7 +234,9 @@ std::vector<SlotAddress> expandSingleConnectionRule(SingleConnectionRule rule) {
         tmp[1] = b;
         tmp[2] = c;
 
+
         for (int d = 0; d < 3; d++) {
+
           if (index[d] == 0) {   // processor
             if (tmp[d] == MATCH_NONE) {
               processor = names[d];
