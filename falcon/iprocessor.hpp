@@ -173,7 +173,6 @@ class IProcessor {
   template <typename TValue>
   void add_option(std::string name, TValue &value, std::string description = "",
                   bool required = false) {
-      convert_name(name);
     options_.add(name, value, description, required);
   }
 

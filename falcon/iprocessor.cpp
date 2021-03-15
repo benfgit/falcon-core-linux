@@ -25,7 +25,7 @@
 #include "utilities/general.hpp"
 
 void convert_name(std::string &s) {
-  if (std::regex_match(s, std::regex("^\\w(?:(?:[ -][\\w])|\\w|/)*$"))) {
+  if (std::regex_match(s, std::regex("^\\w(?:(?:[ -][\\w])|\\w)*$"))) {
     s = std::regex_replace(s, std::regex("[ _]"), "-");
   } else {
     throw ProcessorInternalError(s + " is not a valid name.");

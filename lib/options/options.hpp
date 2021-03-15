@@ -169,11 +169,13 @@ class OptionList {
   template <typename TValue>
   void add(std::string name, TValue &value, std::string description = "",
            bool required = false) {
+    name = std::regex_replace(name, std::regex("[ _]"), "-");
     add(Option<TValue>(name, value, description, required));
   }
 
   template <typename TValue> void add(const Option<TValue> &value) {
      bool exist;
+
     try{
         exist = has_option(value.name());
      } catch (const std::runtime_error& error) {
