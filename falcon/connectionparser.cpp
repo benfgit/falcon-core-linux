@@ -82,18 +82,18 @@ ConnectionRule parseConnectionRule(std::string rulestring) {
                                  connection_part + ".");
       }
       // parse part specifier
-      if (!match[1].matched) {
+      if (!match[TYPE_SPECIFIER].matched) {
         // get next available specifier
         specifier = available_specifiers.front();
 
         available_specifiers.pop_front();
       } else {
         // check if specifier is available
-        std::string piece = match[1].str();
+        std::string type_spec = match[TYPE_SPECIFIER].str();
 
-        if (piece == "f") {
+        if (type_spec == "f") {
           specifier = PROCESSOR;
-        } else if (piece == "p") {
+        } else if (type_spec == "p") {
           specifier = PORT;
         } else {
           specifier = SLOT;
@@ -111,18 +111,18 @@ ConnectionRule parseConnectionRule(std::string rulestring) {
 
       // parse part name
 
-      if (!match[2].matched && specifier != SLOT) {
+      if (!match[NAME_GROUP].matched && specifier != SLOT) {
         throw std::runtime_error("Error parsing connection rule. "
                                  "Invalid processor or port name: " +
                                  connection_part + ".");
       }
 
-      std::string name = match[2].str();
+      std::string name = match[NAME_GROUP].str();
       name = std::regex_replace(name, std::regex("[ _]"), "-");
 
       // parse part identifiers
       std::vector<int> identifiers;
-      if (!match[3].matched) {
+      if (!match[RANGE_GROUP].matched) {
         // match all or default
         if (specifier == SLOT) {
           identifiers.push_back(-1);
@@ -130,30 +130,30 @@ ConnectionRule parseConnectionRule(std::string rulestring) {
           identifiers.push_back(MATCH_NONE);
         }
       } else {
-        std::string piece = match[3].str();
+        std::string range = match[RANGE_GROUP].str();
 
-        if (piece[0] == '(') {
+        if (range[0] == '(') {
           // match ID range vector
           // remove brackets and spaces
-          piece.erase(std::remove_if(piece.begin(), piece.end(),
+          range.erase(std::remove_if(range.begin(), range.end(),
                                      [](char x) {
                                        return (x == '(' || x == ')' ||
                                                std::isspace(x));
                                      }),
-                      piece.end());
+                                     range.end());
 
           // split on comma
-          auto id_pieces = split(piece, ',');
+          auto id_range = split(range, ',');
 
           std::regex re_range("(\\d+)(?:\\-(\\d+))?");
           std::smatch match_range;
 
           // match start and end id of ranges
-          for (const auto &q : id_pieces) {
+          for (const auto &q : id_range) {
             if (std::regex_match(q, match_range, re_range)) {
-              startid = stoi(match_range[1].str());
-              if (match_range[2].matched) {
-                endid = stoi(match_range[2].str());
+              startid = stoi(match_range[FIRST_RANGE_ID].str());
+              if (match_range[END_RANGE_ID].matched) {
+                endid = stoi(match_range[END_RANGE_ID].str());
               } else {
                 endid = startid;
               }
@@ -169,11 +169,11 @@ ConnectionRule parseConnectionRule(std::string rulestring) {
         } else {
           // try to convert to int
           try {
-            identifiers.push_back(stoi(piece));
+            identifiers.push_back(stoi(range));
           } catch (std::invalid_argument &e) {
             throw std::runtime_error("Error parsing connection rule. "
                                      "Cannot parse range: " +
-                                     piece + ".");
+                                     range + ".");
           }
         }
       }
