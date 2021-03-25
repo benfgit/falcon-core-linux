@@ -51,6 +51,13 @@ std::string graph_state_string(GraphState state) {
 }
 
 std::vector<std::string> expandProcessorName(std::string s) {
+
+  static const int name_group = 1;
+  static const int range_group = 2;
+  static const int first_range_id = 1;
+  static const int end_range_id = 2;
+
+
   std::vector<std::string> result;
   int startid, endid;
 
@@ -66,21 +73,21 @@ std::vector<std::string> expandProcessorName(std::string s) {
   }
 
   // get base name
-  if (!match[graph::NAME_GROUP].matched) {
+  if (!match[name_group].matched) {
     throw std::runtime_error("Invalid processor name (no base name): \"" + s +
                              "\"");
   }
-  std::string name = match[graph::NAME_GROUP].str();
+  std::string name = match[name_group].str();
   // remove trimming spaces
   name = std::regex_replace(name, std::regex("^ +| +$"), std::string(""));
   name = std::regex_replace(name, std::regex("[ _]"), "-");
   // parse part identifiers
   std::vector<int> identifiers;
 
-  if (!match[graph::RANGE_GROUP].matched) {
+  if (!match[range_group].matched) {
     result.push_back(name);
   } else {
-    std::string range = match[graph::RANGE_GROUP].str(); //Example: (1-2)
+    std::string range = match[range_group].str(); //Example: (1-2)
     // remove trimming spaces
     range = std::regex_replace(range, std::regex("^ +| +$"), std::string(""));
 
@@ -103,9 +110,9 @@ std::vector<std::string> expandProcessorName(std::string s) {
       // match start and end id of ranges
       for (const auto &q : id_range) {
         if (std::regex_match(q, match_range, re_range)) {
-          startid = stoi(match_range[graph::FIRST_RANGE_ID].str());
-          if (match_range[graph::END_RANGE_ID].matched) {
-            endid = stoi(match_range[graph::END_RANGE_ID].str());
+          startid = stoi(match_range[first_range_id].str());
+          if (match_range[end_range_id].matched) {
+            endid = stoi(match_range[end_range_id].str());
           } else {
             endid = startid;
           }

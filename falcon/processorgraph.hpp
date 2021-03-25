@@ -51,11 +51,6 @@ YAML::Node LoadProcessorDoc(std::string processor);
 
 namespace graph {
 
-const int NAME_GROUP = 1;
-const int RANGE_GROUP = 2;
-const int FIRST_RANGE_ID = 1;
-const int END_RANGE_ID = 2;
-
 enum class GraphState {
   NOGRAPH,
   CONSTRUCTING,

@@ -33,6 +33,12 @@ ConnectionRule parseConnectionRule(std::string rulestring) {
   // name is any character in [a-zA-Z_]
   // id is either: number or list of ranges (e.g. [1, 4-8, 10])
 
+  static const int type_specifier = 1;
+  static const int name_group = 2;
+  static const int range_group = 3;
+  static const int first_range_id = 1;
+  static const int end_range_id = 2;
+
   ConnectionRule rule;
   SingleConnectionRule single_rules[2];
 
@@ -82,14 +88,14 @@ ConnectionRule parseConnectionRule(std::string rulestring) {
                                  connection_part + ".");
       }
       // parse part specifier
-      if (!match[TYPE_SPECIFIER].matched) {
+      if (!match[type_specifier].matched) {
         // get next available specifier
         specifier = available_specifiers.front();
 
         available_specifiers.pop_front();
       } else {
         // check if specifier is available
-        std::string type_spec = match[TYPE_SPECIFIER].str();
+        std::string type_spec = match[type_specifier].str();
 
         if (type_spec == "f") {
           specifier = PROCESSOR;
@@ -111,18 +117,18 @@ ConnectionRule parseConnectionRule(std::string rulestring) {
 
       // parse part name
 
-      if (!match[NAME_GROUP].matched && specifier != SLOT) {
+      if (!match[name_group].matched && specifier != SLOT) {
         throw std::runtime_error("Error parsing connection rule. "
                                  "Invalid processor or port name: " +
                                  connection_part + ".");
       }
 
-      std::string name = match[NAME_GROUP].str();
+      std::string name = match[name_group].str();
       name = std::regex_replace(name, std::regex("[ _]"), "-");
 
       // parse part identifiers
       std::vector<int> identifiers;
-      if (!match[RANGE_GROUP].matched) {
+      if (!match[range_group].matched) {
         // match all or default
         if (specifier == SLOT) {
           identifiers.push_back(-1);
@@ -130,7 +136,7 @@ ConnectionRule parseConnectionRule(std::string rulestring) {
           identifiers.push_back(MATCH_NONE);
         }
       } else {
-        std::string range = match[RANGE_GROUP].str();
+        std::string range = match[range_group].str();
 
         if (range[0] == '(') {
           // match ID range vector
@@ -151,9 +157,9 @@ ConnectionRule parseConnectionRule(std::string rulestring) {
           // match start and end id of ranges
           for (const auto &q : id_range) {
             if (std::regex_match(q, match_range, re_range)) {
-              startid = stoi(match_range[FIRST_RANGE_ID].str());
-              if (match_range[END_RANGE_ID].matched) {
-                endid = stoi(match_range[END_RANGE_ID].str());
+              startid = stoi(match_range[first_range_id].str());
+              if (match_range[end_range_id].matched) {
+                endid = stoi(match_range[end_range_id].str());
               } else {
                 endid = startid;
               }

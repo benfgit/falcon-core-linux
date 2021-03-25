@@ -32,12 +32,6 @@
 
 typedef std::vector<std::pair<SlotAddress, SlotAddress>> StreamConnections;
 
-const int TYPE_SPECIFIER = 1;
-const int NAME_GROUP = 2;
-const int RANGE_GROUP = 3;
-const int FIRST_RANGE_ID = 1;
-const int END_RANGE_ID = 2;
-
 enum NodePart { PROCESSOR = 0, PORT, SLOT };
 
 typedef std::tuple<NodePart, std::string, std::vector<int>> ConnectionPart;
