@@ -174,16 +174,9 @@ class OptionList {
   }
 
   template <typename TValue> void add(const Option<TValue> &value) {
-     bool exist;
-
-    try{
-        exist = has_option(value.name());
-     } catch (const std::runtime_error& error) {
+    if(!has_option(value.name())){
           options_.push_back(value);
-          exist = false;
-     }
-
-     if(exist){
+     }else{
           throw std::runtime_error("Option with same name "+ value.name() + " already exists.");
      }
   }
@@ -196,7 +189,7 @@ class OptionList {
 
   std::vector<std::string> required_options() const;
 
-  bool has_option(std::string name);
+  bool has_option(std::string name) const noexcept;
 
   void from_yaml(const YAML::Node &node,
                  const option_error_handler &handler = {},  bool check=true);
