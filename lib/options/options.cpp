@@ -19,7 +19,6 @@
 
 
 #include <vector>
-
 #include "options.hpp"
 
 using namespace options;
@@ -143,20 +142,33 @@ std::vector<std::string> OptionList::required_options() const {
   return opts;
 }
 
-bool OptionList::has_option(std::string name) const {
+bool OptionList::has_option(std::string name) const noexcept{
+  name = std::regex_replace(name, std::regex("[ _]"), "-");
   return std::any_of(options_.begin(), options_.end(),
                      [name](const OptionBase &x) { return x.name() == name; });
 }
 
 void OptionList::from_yaml(const YAML::Node &node,
-                           const option_error_handler &handler) {
+                           const option_error_handler &handler, bool check){
   if (!node.IsMap()) {
     throw std::runtime_error("Expecting YAML map.");
   }
 
+  if(check){
+      for (YAML::const_iterator it = node.begin(); it != node.end(); ++it) {
+          std::string basename = it->first.as<std::string>();
+          bool exist = has_option(basename);
+          if(it->second.IsMap() and !exist){
+                  for (YAML::const_iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2) {
+                      if(!has_option(basename + "/" + it2->first.as<std::string>()))
+                         throw std::runtime_error("This is not a valid option: "+ basename + "/" + it2->first.as<std::string>()+ ".\n Possible values are: "+ list_options());
+                  }
+          }else if (!exist)
+             throw std::runtime_error("This is not a valid option: "+ basename+ ".\n Possible values are: "+ list_options());
+       }
+  }
 
   YAML::Node x;
-
   // loop through options
   for (auto &option : options_) {
     // check if available in YAML node

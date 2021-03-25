@@ -121,19 +121,23 @@ void IProcessor::CompleteStreamInfo() {
 void IProcessor::internal_Configure(const YAML::Node &node,
                                     const GlobalContext &context) {
   YAML::Node empty_node(YAML::NodeType::Map);
+  try {
+      if (!node["options"]) {
+        // to trigger check of required options
+        options_.from_yaml(empty_node);
+      } else {
+        options_.from_yaml(node["options"]);
+      }
 
-  if (!node["options"]) {
-    // to trigger check of required options
-    options_.from_yaml(empty_node);
-  } else {
-    options_.from_yaml(node["options"]);
-  }
+      if (!node["advanced"]) {
+        // to trigger check of required options
+        advanced_options_.from_yaml(empty_node);
+      } else {
+        advanced_options_.from_yaml(node["advanced"]);
+      }
+  } catch (const std::runtime_error& error) {
+      throw std::runtime_error(name() +": " + error.what());
 
-  if (!node["advanced"]) {
-    // to trigger check of required options
-    advanced_options_.from_yaml(empty_node);
-  } else {
-    advanced_options_.from_yaml(node["advanced"]);
   }
 
   Configure(context);
