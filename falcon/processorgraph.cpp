@@ -51,6 +51,13 @@ std::string graph_state_string(GraphState state) {
 }
 
 std::vector<std::string> expandProcessorName(std::string s) {
+
+  static const int name_group = 1;
+  static const int range_group = 2;
+  static const int first_range_id = 1;
+  static const int end_range_id = 2;
+
+
   std::vector<std::string> result;
   int startid, endid;
 
@@ -66,47 +73,46 @@ std::vector<std::string> expandProcessorName(std::string s) {
   }
 
   // get base name
-  if (!match[1].matched) {
+  if (!match[name_group].matched) {
     throw std::runtime_error("Invalid processor name (no base name): \"" + s +
                              "\"");
   }
-  std::string name = match[1].str();
+  std::string name = match[name_group].str();
   // remove trimming spaces
-
   name = std::regex_replace(name, std::regex("^ +| +$"), std::string(""));
   name = std::regex_replace(name, std::regex("[ _]"), "-");
-
   // parse part identifiers
   std::vector<int> identifiers;
 
-  if (!match[3].matched) {
+  if (!match[range_group].matched) {
     result.push_back(name);
   } else {
-    std::string piece = match[3].str();
+    std::string range = match[range_group].str(); //Example: (1-2)
     // remove trimming spaces
-    piece = std::regex_replace(piece, std::regex("^ +| +$"), std::string(""));
-    if (piece[0] == '(') {
+    range = std::regex_replace(range, std::regex("^ +| +$"), std::string(""));
+
+    if (range[0] == '(') {
       // match ID range vector
       // remove brackets and spaces
-      piece.erase(std::remove_if(piece.begin(), piece.end(),
+      range.erase(std::remove_if(range.begin(), range.end(),
                                  [](char x) {
                                    return (x == '(' || x == ')' ||
                                            std::isspace(x));
                                  }),
-                  piece.end());
+                                 range.end());
 
       // split on comma
-      auto id_pieces = split(piece, ',');
+      auto id_range = split(range, ',');
 
       std::regex re_range("(\\d+)(?:\\-(\\d+))?");
       std::smatch match_range;
 
       // match start and end id of ranges
-      for (const auto &q : id_pieces) {
+      for (const auto &q : id_range) {
         if (std::regex_match(q, match_range, re_range)) {
-          startid = stoi(match_range[1].str());
-          if (match_range[2].matched) {
-            endid = stoi(match_range[2].str());
+          startid = stoi(match_range[first_range_id].str());
+          if (match_range[end_range_id].matched) {
+            endid = stoi(match_range[end_range_id].str());
           } else {
             endid = startid;
           }
@@ -121,7 +127,7 @@ std::vector<std::string> expandProcessorName(std::string s) {
     } else {
       // try to convert to int
       try {
-        result.push_back(name + std::to_string(stoi(piece)));
+        result.push_back(name + std::to_string(stoi(range)));
       } catch (std::invalid_argument &e) {
         throw std::runtime_error(
             "Invalid processor name (invalid identifiers): \"" + s + "\"");
@@ -408,6 +414,7 @@ void ProcessorGraph::Build(const YAML::Node &node) {
         CreateConnection(it.first, it.second);
         LOG(DEBUG) << "Established connection " << it.first.string(true) << "->"
                    << it.second.string(true);
+        
       }
       LOG(INFO) << "All connections have been established.";
     }
