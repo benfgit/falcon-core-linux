@@ -28,6 +28,7 @@ bool options::get_nested_yaml_node(const YAML::Node &root,
                                    YAML::Node &out) {
   out.reset(root);
   for (auto &p : path) {
+
     if (out[p]) {
       out.reset(out[p]);
     } else {
@@ -143,7 +144,7 @@ std::vector<std::string> OptionList::required_options() const {
 }
 
 bool OptionList::has_option(std::string name) const noexcept{
-  name = std::regex_replace(name, std::regex("[ _]"), "-");
+  //name = std::regex_replace(name, std::regex("[ _]"), "-");
   return std::any_of(options_.begin(), options_.end(),
                      [name](const OptionBase &x) { return x.name() == name; });
 }
@@ -153,6 +154,7 @@ void OptionList::from_yaml(const YAML::Node &node,
   if (!node.IsMap()) {
     throw std::runtime_error("Expecting YAML map.");
   }
+
 
   if(check){
       for (YAML::const_iterator it = node.begin(); it != node.end(); ++it) {

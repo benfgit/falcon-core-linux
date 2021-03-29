@@ -169,7 +169,7 @@ class OptionList {
   template <typename TValue>
   void add(std::string name, TValue &value, std::string description = "",
            bool required = false) {
-    name = std::regex_replace(name, std::regex("[ _]"), "-");
+    //name = std::regex_replace(name, std::regex("[ _]"), "-");
     add(Option<TValue>(name, value, description, required));
   }
 
