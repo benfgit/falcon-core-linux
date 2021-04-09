@@ -42,7 +42,7 @@ ConnectionRule parseConnectionRule(std::string rulestring) {
   ConnectionRule rule;
   SingleConnectionRule single_rules[2];
 
-  std::string expr("^(?:(f|p|s)\\:)?([a-zA-Z]+(?:[ -_][a-zA-Z]+)*)[ "
+  std::string expr("^(?:(f|p|s)\\:)?([a-zA-Z]*(?:[ -_][a-zA-Z]+)*)[ "
                    "]*((?:\\d+)|(?:\\([\\d,\\-]+\\)))?$");
   std::regex re(expr);
   std::smatch match;
@@ -88,11 +88,14 @@ ConnectionRule parseConnectionRule(std::string rulestring) {
                                  connection_part + ".");
       }
       // parse part specifier
+
       if (!match[type_specifier].matched) {
+
         // get next available specifier
         specifier = available_specifiers.front();
 
         available_specifiers.pop_front();
+
       } else {
         // check if specifier is available
         std::string type_spec = match[type_specifier].str();
@@ -183,6 +186,7 @@ ConnectionRule parseConnectionRule(std::string rulestring) {
           }
         }
       }
+
       // construct ConnectionPart and add to SingleConnectionRule
       single_rules[current_rule_part][current_connection_part] =
           std::make_tuple(specifier, name, identifiers);
