@@ -1,7 +1,11 @@
 cmake_minimum_required (VERSION 3.11)
 ENABLE_LANGUAGE(CXX)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -Wunused -std=c++17 -pthread -D_GLIBCXX_USE_NANOSLEEP")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -Wall -Wunused -std=c++17 -pthread -D_GLIBCXX_USE_NANOSLEEP")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -Wunused -std=c++17 -pthread -D_GLIBCXX_USE_NANOSLEEP")
+endif()
 
 set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
 
@@ -53,6 +57,10 @@ FetchContent_Declare(
 	GIT_SHALLOW ON
 	GIT_TAG 1.3.3
 )
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR})
+endif()
 
 set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "disable yaml tests")
 message(STATUS "Populating yaml-cpp...")

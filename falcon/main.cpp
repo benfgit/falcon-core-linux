@@ -67,6 +67,7 @@ int main(int argc, char** argv) {
   if (parser.exist("version")) {
     std::cout << "Falcon " << GIT_REVISION << std::endl;
     std::cout << "Last build: " << BUILD_TIMESTAMP << std::endl;
+    std::cout << "Configuration: " << BUILD_TYPE << std::endl;
     std::cout << "Extensions: " << std::endl;
 
     std::vector<std::string> extensions =  split(EXTENSIONS_BUILD, ';');
