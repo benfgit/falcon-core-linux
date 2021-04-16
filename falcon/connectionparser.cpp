@@ -127,7 +127,6 @@ ConnectionRule parseConnectionRule(std::string rulestring) {
       }
 
       std::string name = match[name_group].str();
-      name = std::regex_replace(name, std::regex("[ _]"), "-");
 
       // parse part identifiers
       std::vector<int> identifiers;
@@ -187,6 +186,10 @@ ConnectionRule parseConnectionRule(std::string rulestring) {
         }
       }
 
+      if(specifier == PORT){
+          name = std::regex_replace(name, std::regex("[ _]"), "-");
+
+      }
       // construct ConnectionPart and add to SingleConnectionRule
       single_rules[current_rule_part][current_connection_part] =
           std::make_tuple(specifier, name, identifiers);

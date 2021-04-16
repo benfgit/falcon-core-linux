@@ -77,10 +77,12 @@ std::vector<std::string> expandProcessorName(std::string s) {
     throw std::runtime_error("Invalid processor name (no base name): \"" + s +
                              "\"");
   }
+
   std::string name = match[name_group].str();
+  LOG(INFO) << name;
   // remove trimming spaces
   name = std::regex_replace(name, std::regex("^ +| +$"), std::string(""));
-  name = std::regex_replace(name, std::regex("[ _]"), "-");
+  //name = std::regex_replace(name, std::regex("[ _]"), "-");
   // parse part identifiers
   std::vector<int> identifiers;
 
@@ -760,7 +762,6 @@ std::string ProcessorGraph::ExportYAML() {
     for (auto &it : this->processors_) {
       node["graph"]["processors"][it.first] = it.second.second->ExportYAML();
       node["graph"]["processors"][it.first]["class"] = it.second.first;
-
       if (yaml_["processors"][it.first]["options"]) {
         node["graph"]["processors"][it.first]["options"] =
             yaml_["processors"][it.first]["options"];
