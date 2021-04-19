@@ -68,7 +68,8 @@ bool CommandHandler::DelegateResourcesCommand(std::deque<std::string> &command,
         std::string graph_path =
                 global_context_->resolve_path(command[1]);
         YAML::Node node;
-        node = YAML::LoadFile(graph_path);
+        node["falcon"]["version"] = "1.0.0";
+        node["graph"] = YAML::LoadFile(graph_path);
         YAML::Emitter out;
         out << node;
         reply.push_back(std::string(out.c_str()));
