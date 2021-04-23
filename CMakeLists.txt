@@ -33,7 +33,7 @@ include(FetchContent)
 FetchContent_Declare(
     flatbuffers
     GIT_REPOSITORY "https://github.com/google/flatbuffers"
-    GIT_TAG        "master"
+    GIT_TAG        v1.12.0
 )
 
 

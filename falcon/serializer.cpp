@@ -73,7 +73,6 @@ bool Serialization::FlatBufferSerializer::Serialize(std::ostream &stream,
   if (format_ == Serialization::Format::NONE) {
     return true;
   }
-  LOG(DEBUG) << "Main serialization.";
   data->SerializeFlatBuffer(stream, packetid, streamid);
   return true;
 }
