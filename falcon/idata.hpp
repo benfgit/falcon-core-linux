@@ -108,6 +108,10 @@ class Data {
   virtual void SerializeYAML(YAML::Node &node,
                              Serialization::Format format) const;
 
+  virtual void SerializeFlatBuffer(std::ostream &stream,
+                              uint16_t streamid,
+                              uint64_t packetid) const {};
+
   virtual void YAMLDescription(YAML::Node &node,
                                Serialization::Format format) const;
 

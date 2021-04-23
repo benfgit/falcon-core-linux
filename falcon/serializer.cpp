@@ -66,6 +66,18 @@ bool Serialization::BinarySerializer::Serialize(std::ostream &stream,
   return true;
 }
 
+bool Serialization::FlatBufferSerializer::Serialize(std::ostream &stream,
+                                                typename AnyType::Data *data,
+                                                uint16_t streamid,
+                                                uint64_t packetid) const {
+  if (format_ == Serialization::Format::NONE) {
+    return true;
+  }
+  LOG(DEBUG) << "Main serialization.";
+  data->SerializeFlatBuffer(stream, packetid, streamid);
+  return true;
+}
+
 bool Serialization::YAMLSerializer::Serialize(std::ostream &stream,
                                               typename AnyType::Data *data,
                                               uint16_t streamid,
@@ -108,6 +120,9 @@ Serializer *serializer(Serialization::Encoding enc, Serialization::Format fmt) {
   }
   if (enc == Serialization::Encoding::YAML) {
     return new Serialization::YAMLSerializer(fmt);
+  }
+  if (enc == Serialization::Encoding::FLATBUFFER) {
+    return new Serialization::FlatBufferSerializer(fmt);
   }
   throw std::runtime_error("Unknown serializer.");
 }
