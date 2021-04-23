@@ -28,8 +28,17 @@ string(TIMESTAMP _time_stamp)
 # to read on the use of fetch content :
 # https://android.googlesource.com/platform/external/cmake/+/refs/heads/upstream-release/Modules/FetchContent.cmake
 ############################
-
 include(FetchContent)
+
+FetchContent_Declare(
+    flatbuffers
+    GIT_REPOSITORY "https://github.com/google/flatbuffers"
+    GIT_TAG        "master"
+)
+
+
+
+
 FetchContent_Declare(
 		yaml-cpp
 		GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
@@ -58,9 +67,19 @@ FetchContent_Declare(
 	GIT_TAG 1.3.3
 )
 
+
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR})
 endif()
+
+set(FLATBUFFERS_BUILD_TESTS  OFF)
+set(FLATBUFFERS_BUILD_FLATC OFF)
+set(FLATBUFFERS_BUILD_FLATHASH OFF)
+
+FetchContent_MakeAvailable(flatbuffers)
+include_directories(BEFORE SYSTEM "${flatbuffers_SOURCE_DIR}/include")
+target_link_libraries(${FLATBUFFERS} flatbuffers)
+
 
 set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "disable yaml tests")
 message(STATUS "Populating yaml-cpp...")

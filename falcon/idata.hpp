@@ -33,6 +33,7 @@
 #include "serialization.hpp"
 #include "yaml-cpp/yaml.h"
 
+
 // Factory for DATATYPE::Data items with support for post-construction
 // initialization
 template <typename DATATYPE>
