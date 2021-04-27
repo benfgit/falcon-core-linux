@@ -16,11 +16,18 @@ project(falcon)
 
 set(PLATFORM_LINK_LIBRARIES rt dl)
 
+MESSAGE("${CMAKE_BUILD_TYPE}")
+
 add_definitions(-DG2_DYNAMIC_LOGGING)
 
-#
-Set(RESOURCES_PATH ${CMAKE_INSTALL_PREFIX}/share CACHE STRING "")
+
 Set(BUILD_RESOURCES_PATH ${rootproject_BINARY_DIR})
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    Set(RESOURCES_PATH ${rootproject_BINARY_DIR} CACHE STRING "")
+else()
+    Set(RESOURCES_PATH ${CMAKE_INSTALL_PREFIX}/share CACHE STRING "")
+endif()
+
 mark_as_advanced(RESOURCES_PATH)
 configure_file(configuration.hpp.in configuration.hpp)
 
@@ -189,26 +196,26 @@ target_link_libraries(falcon yaml-cpp zmq ${PLATFORM_LINK_LIBRARIES})
 SET(WHOLELIBS -Wl,--whole-archive g3logger logging units-static utilities options disruptor ${DATATYPE_LIBS} ${PROCESSOR_LIBS} -Wl,--no-whole-archive)
 target_link_libraries(falcon ${WHOLELIBS})
 
-
-install(TARGETS falcon RUNTIME DESTINATION bin)
+install(TARGETS falcon CONFIGURATIONS Release RUNTIME DESTINATION bin)
 if (COMPILE_EXTENSIONS)
 
-    foreach (FALCON_PATH ${REAL_FALCON_PATHS})
-        FILE(GLOB RESOURCES RELATIVE ${FALCON_PATH}/resources ${FALCON_PATH}/resources/*)
-        ADD_CUSTOM_COMMAND(TARGET falcon
-                POST_BUILD
-                COMMAND mkdir -p ${BUILD_RESOURCES_PATH}/resources/${RESOURCE}
-                )
-        foreach (RESOURCE ${RESOURCES})
+        foreach (FALCON_PATH ${REAL_FALCON_PATHS})
+            FILE(GLOB RESOURCES RELATIVE ${FALCON_PATH}/resources ${FALCON_PATH}/resources/*)
             ADD_CUSTOM_COMMAND(TARGET falcon
                     POST_BUILD
-                    COMMAND cp -r ${FALCON_PATH}/resources/${RESOURCE} ${BUILD_RESOURCES_PATH}/resources/${RESOURCE}/
+                    COMMAND mkdir -p ${BUILD_RESOURCES_PATH}/resources/${RESOURCE}
                     )
+            foreach (RESOURCE ${RESOURCES})
+                ADD_CUSTOM_COMMAND(TARGET falcon
+                        POST_BUILD
+                        COMMAND cp -r ${FALCON_PATH}/resources/${RESOURCE} ${BUILD_RESOURCES_PATH}/resources/${RESOURCE}/
+                        )
 
+            endforeach ()
         endforeach ()
-    endforeach ()
 
-    # install in the installation folder
-    install(DIRECTORY ${BUILD_RESOURCES_PATH}/resources
-            DESTINATION ${RESOURCES_PATH})
-endif ()
+        # install in the installation folder
+        install(DIRECTORY ${BUILD_RESOURCES_PATH}/resources
+                CONFIGURATIONS Release 
+                DESTINATION ${RESOURCES_PATH})
+endif()
