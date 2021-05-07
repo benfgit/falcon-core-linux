@@ -12,6 +12,13 @@ MACRO(SUBDIRLIST result curdir)
     SET(${result} ${dirlist})
 ENDMACRO()
 
+function(add_fbs_header name)
+  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${name}.h
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${name}.fbs
+    COMMAND flatc ${CMAKE_CURRENT_SOURCE_DIR}/${name}.fbs -o ${CMAKE_CURRENT_BINARY_DIR}/${name}.h
+    )
+endfunction(add_fbs_header name)
+
 project(falcon)
 
 set(PLATFORM_LINK_LIBRARIES rt dl)
@@ -19,7 +26,6 @@ set(PLATFORM_LINK_LIBRARIES rt dl)
 MESSAGE("${CMAKE_BUILD_TYPE}")
 
 add_definitions(-DG2_DYNAMIC_LOGGING)
-
 
 Set(BUILD_RESOURCES_PATH ${rootproject_BINARY_DIR})
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -30,6 +36,8 @@ endif()
 
 mark_as_advanced(RESOURCES_PATH)
 configure_file(configuration.hpp.in configuration.hpp)
+
+add_fbs_header("datatype") 
 
 
 # list of source files

@@ -32,7 +32,8 @@
 #include "utilities/time.hpp"
 #include "serialization.hpp"
 #include "yaml-cpp/yaml.h"
-
+#include "datatype.h"
+#include "flatbuffers/flatbuffers.h"
 
 // Factory for DATATYPE::Data items with support for post-construction
 // initialization
@@ -109,15 +110,15 @@ class Data {
   virtual void SerializeYAML(YAML::Node &node,
                              Serialization::Format format) const;
 
-  virtual void SerializeFlatBuffer(std::ostream &stream,
-                              uint16_t streamid,
-                              uint64_t packetid) const {};
+  virtual void SerializeFlatBuffer(flatbuffers::FlatBufferBuilder *builder,
+                                   std::vector<flatbuffers::Offset<Channel>> *data_channel
+                                   ) const {};
 
   virtual void YAMLDescription(YAML::Node &node,
                                Serialization::Format format) const;
 
- protected:
   TimePoint source_timestamp_;
+ protected:
   uint64_t hardware_timestamp_;   // e.g. from Neuralynx
   uint64_t serial_number_;
   bool end_of_stream_ = false;

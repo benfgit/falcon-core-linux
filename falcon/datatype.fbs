@@ -1,0 +1,40 @@
+ 
+table Float32data {
+  data: [float32];
+}
+
+table Float64data {
+  data: [float64];
+}
+
+table Intdata {
+  data: [int32];
+}
+
+table UIntdata {
+  data: [uint32];
+}
+
+table UInt64data {
+  data: [uint64];
+}
+
+table Stringdata {
+  data: [string];
+}
+
+union Samples {Float64data, Float32data, Intdata, UIntdata, UInt64data, Stringdata }
+
+table Channel {
+  samples: Samples;
+  label: string; // name of the channel
+  nsamples: uint32;
+}
+table RootMsg {
+  timestamp: uint64; //source_timestamps
+  processor: string; // processor name
+  packetid: uint32;
+  streamid: uint32;
+  data: [Channel];
+}
+root_type RootMsg;

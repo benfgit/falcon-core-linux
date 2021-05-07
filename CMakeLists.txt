@@ -37,8 +37,6 @@ FetchContent_Declare(
 )
 
 
-
-
 FetchContent_Declare(
 		yaml-cpp
 		GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
@@ -68,17 +66,26 @@ FetchContent_Declare(
 )
 
 
+
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR})
 endif()
 
-set(FLATBUFFERS_BUILD_TESTS  OFF)
-set(FLATBUFFERS_BUILD_FLATC OFF)
-set(FLATBUFFERS_BUILD_FLATHASH OFF)
+set(FLATBUFFERS_BUILD_FLATC ON CACHE INTERNAL "Enable the build of the flatbuffers compiler")
+#set(FLATBUFFERS_INSTALL OFF CACHE BOOL "Enable the installation of targets.")
+set(FLATBUFFERS_BUILD_TESTS OFF CACHE INTERNAL "Enable the installation of targets.")
+set(FLATBUFFERS_BUILD_FLATHASH OFF CACHE INTERNAL "Enable the build of flathash")
+set(FLATBUFFERS_ENABLE_PCH ON CACHE INTERNAL
+       "Enable precompile headers support for 'flatbuffers' and 'flatc'. \"
+        Only work if CMake support 'target_precompile_headers'. \"
+        Only work if CMake supports 'target_precompile_headers'. \"
+        This can speed up compilation time."
+       )
 
 FetchContent_MakeAvailable(flatbuffers)
 include_directories(BEFORE SYSTEM "${flatbuffers_SOURCE_DIR}/include")
 target_link_libraries(${FLATBUFFERS} flatbuffers)
+set(flatc_target "${flatbuffers_BINARY_DIR}/flatc")
 
 
 set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "disable yaml tests")

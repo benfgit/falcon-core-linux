@@ -19,6 +19,7 @@
 
 #include "serializer.hpp"
 #include "idata.hpp"
+#include "datatype.h"
 
 namespace Serialization {
 
@@ -73,7 +74,19 @@ bool Serialization::FlatBufferSerializer::Serialize(std::ostream &stream,
   if (format_ == Serialization::Format::NONE) {
     return true;
   }
-  data->SerializeFlatBuffer(stream, packetid, streamid);
+  auto ts =  static_cast<uint64_t>(
+              std::chrono::duration_cast<std::chrono::microseconds>(
+                  data->source_timestamp_.time_since_epoch())
+                  .count());
+
+  flatbuffers::FlatBufferBuilder builder(1024);
+  std::vector<flatbuffers::Offset<Channel>> channels;
+  data->SerializeFlatBuffer(&builder, &channels);
+
+  auto buffer = CreateRootMsg(builder,ts, builder.CreateString(""), packetid, streamid, builder.CreateVector(channels));
+  builder.Finish(buffer);
+  stream.write(reinterpret_cast<const char*>(builder.GetBufferPointer()), builder.GetSize());
+
   return true;
 }
 
