@@ -21,6 +21,7 @@
 #include "idata.hpp"
 #include "datatype.h"
 
+
 namespace Serialization {
 
 Format Serializer::format() const { return format_; }
@@ -70,7 +71,7 @@ bool Serialization::BinarySerializer::Serialize(std::ostream &stream,
 bool Serialization::FlatBufferSerializer::Serialize(std::ostream &stream,
                                                 typename AnyType::Data *data,
                                                 uint16_t streamid,
-                                                uint64_t packetid) const {
+                                                uint64_t packetid, SlotAddress upstream_address) const {
   if (format_ == Serialization::Format::NONE) {
     return true;
   }
@@ -81,9 +82,12 @@ bool Serialization::FlatBufferSerializer::Serialize(std::ostream &stream,
 
   flatbuffers::FlatBufferBuilder builder(1024);
   std::vector<flatbuffers::Offset<Channel>> channels;
+
+  auto datasource = CreateDataSource(builder, builder.CreateString(upstream_address.processor()),
+                                     builder.CreateString(upstream_address.port()), upstream_address.slot());
   data->SerializeFlatBuffer(&builder, &channels);
 
-  auto buffer = CreateRootMsg(builder,ts, builder.CreateString(""), packetid, streamid, builder.CreateVector(channels));
+  auto buffer = CreateRootMsg(builder,ts, packetid, datasource, builder.CreateVector(channels));
   builder.Finish(buffer);
   stream.write(reinterpret_cast<const char*>(builder.GetBufferPointer()), builder.GetSize());
 

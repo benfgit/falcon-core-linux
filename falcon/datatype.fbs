@@ -1,40 +1,86 @@
- 
-table Float32data {
-  data: [float32];
+// Float64 
+
+table Float64Value {
+  value: float64;
+  time: uint64;
 }
 
-table Float64data {
-  data: [float64];
+table Float64Series {
+  array: [float64];
+  shape: [uint64];
+  time: [uint64];
 }
 
-table Intdata {
-  data: [int32];
+// Float32
+table Float32Value {
+  value: float32;
+  time: uint64;
 }
 
-table UIntdata {
-  data: [uint32];
+table Float32Series {
+  array: [float32];
+  shape: [uint64];
+  time: [uint64];
 }
 
-table UInt64data {
-  data: [uint64];
+// Int
+
+table IntValue {
+  value: int32;
+  time: uint64;
 }
 
-table Stringdata {
-  data: [string];
+table IntSeries {
+  array: [int32];
+  shape: [uint64];
+  time: [uint64];
 }
 
-union Samples {Float64data, Float32data, Intdata, UIntdata, UInt64data, Stringdata }
+// Unsigned int 
+
+table UIntValue {
+  value: uint32;
+  time: uint64;
+}
+
+table UIntSeries {
+  array: [uint32];
+  shape: [uint64];
+  time: [uint64];
+}
+
+// String 
+
+table StringValue {
+  value: string;
+  time: uint64;
+}
+
+table StringSeries {
+  array: [string];
+  shape: [uint64];
+  time: [uint64];
+}
+
+union DataType {Float64Value, Float64Series, Float32Value, Float32Series, IntValue, IntSeries, UIntValue, UIntSeries, StringValue, StringSeries}
+
+table DataSource {
+  processor: string;
+  port: string;
+  slot: uint8;
+}
 
 table Channel {
-  samples: Samples;
+  data: DataType;
   label: string; // name of the channel
-  nsamples: uint32;
+  extra: [ubyte] (flexbuffer); // for extra data without schema
 }
+
 table RootMsg {
-  timestamp: uint64; //source_timestamps
-  processor: string; // processor name
+  timestamp: float64; //source timestamp
   packetid: uint32;
-  streamid: uint32;
-  data: [Channel];
+  source: DataSource;
+  channels: [Channel];
 }
+
 root_type RootMsg;

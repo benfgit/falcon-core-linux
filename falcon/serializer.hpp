@@ -28,6 +28,7 @@
 
 #include "idata.hpp"
 #include "serialization.hpp"
+#include "connections.hpp"
 
 namespace Serialization {
 
@@ -40,6 +41,8 @@ class Serializer {
   virtual bool Serialize(std::ostream &stream, typename AnyType::Data *data,
                          uint16_t streamid, uint64_t packetid) const = 0;
 
+  virtual bool Serialize(std::ostream &stream, typename AnyType::Data *data,
+                         uint16_t streamid, uint64_t packetid, SlotAddress upstream_address) const = 0;
   Format format() const;
   void set_format(Format fmt);
 
@@ -58,25 +61,33 @@ class BinarySerializer : public Serializer {
  public:
   BinarySerializer(Format fmt = Format::FULL)
       : Serializer(fmt, "Compact binary format", "bin") {}
+
   bool Serialize(std::ostream &stream, typename AnyType::Data *data,
                  uint16_t streamid, uint64_t packetid) const;
+  bool Serialize(std::ostream &stream, typename AnyType::Data *data,
+                 uint16_t streamid, uint64_t packetid, SlotAddress upstream_address) const{};
 };
 
 class FlatBufferSerializer : public Serializer {
  public:
   FlatBufferSerializer(Format fmt = Format::FULL)
       : Serializer(fmt, "Compact binary format", "bin") {}
+
   bool Serialize(std::ostream &stream, typename AnyType::Data *data,
-                 uint16_t streamid, uint64_t packetid) const;
+                 uint16_t streamid, uint64_t packetid) const{};
+
+  bool Serialize(std::ostream &stream, typename AnyType::Data *data,
+                 uint16_t streamid, uint64_t packetid, SlotAddress upstream_address) const;
 };
 
 class YAMLSerializer : public Serializer {
  public:
   YAMLSerializer(Format fmt = Format::FULL)
       : Serializer(fmt, "Human readable YAML format", "yaml") {}
-
   bool Serialize(std::ostream &stream, typename AnyType::Data *data,
                  uint16_t streamid, uint64_t packetid) const;
+  bool Serialize(std::ostream &stream, typename AnyType::Data *data,
+                 uint16_t streamid, uint64_t packetid, SlotAddress upstream_address) const{};
 };
 
 Serializer *serializer_from_string(std::string s,
