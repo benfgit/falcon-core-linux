@@ -12,13 +12,6 @@ MACRO(SUBDIRLIST result curdir)
     SET(${result} ${dirlist})
 ENDMACRO()
 
-function(add_fbs_header name)
-  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${name}.h
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${name}.fbs
-    COMMAND flatc ${CMAKE_CURRENT_SOURCE_DIR}/${name}.fbs -o ${CMAKE_CURRENT_BINARY_DIR}/${name}.h
-    )
-endfunction(add_fbs_header name)
-
 project(falcon)
 
 set(PLATFORM_LINK_LIBRARIES rt dl)
@@ -37,15 +30,25 @@ endif()
 mark_as_advanced(RESOURCES_PATH)
 configure_file(configuration.hpp.in configuration.hpp)
 
-add_fbs_header("datatype") 
-
-
-# list of source files
-file(GLOB sources *.cpp)
 include_directories("../resources")
 include_directories("../lib")
 include_directories(".")
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+# list of source files
+file(GLOB sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+
+set(_processor_doc_path ${CMAKE_CURRENT_BINARY_DIR}/processors/)
+configure_file(buildconstant.hpp.in buildconstant.hpp @ONLY)
+# falcon executable
+
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/datatype_generated.h
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/datatype.fbs
+    COMMAND flatc --cpp ${CMAKE_CURRENT_SOURCE_DIR}/datatype.fbs
+)
+
+add_custom_target(datatypebuffer DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/datatype_generated.h)
+add_executable(falcon ${sources})
 
 set(DATATYPE_LIBS)
 set(PROCESSOR_LIBS)
@@ -123,6 +126,7 @@ if (COMPILE_EXTENSIONS)
                         MESSAGE("Adding data type: ${DATATYPE}")
                         add_subdirectory(${FALCON_PATH}/datatypes/${DATATYPE} ${CMAKE_CURRENT_BINARY_DIR}/datatypes/${DATATYPE})
                         if (TARGET ${DATATYPE})
+                            add_dependencies(${DATATYPE} datatypebuffer)
                             LIST(APPEND DATATYPE_LIBS ${DATATYPE})
                         endif ()
                     endif ()
@@ -158,6 +162,7 @@ if (COMPILE_EXTENSIONS)
                         MESSAGE("Adding processor: ${PROCESSOR}")
                         add_subdirectory(${FALCON_PATH}/processors/${PROCESSOR} ${CMAKE_CURRENT_BINARY_DIR}/processors/${PROCESSOR})
                         if (TARGET ${PROCESSOR})
+                            add_dependencies(${PROCESSOR} datatypebuffer)
                             LIST(APPEND PROCESSOR_LIBS ${PROCESSOR})
                         endif ()
                         if (EXISTS "${FALCON_PATH}/processors/${PROCESSOR}/doc.yaml")
@@ -188,11 +193,7 @@ if (COMPILE_EXTENSIONS)
 
 endif ()
 
-set(_processor_doc_path ${CMAKE_CURRENT_BINARY_DIR}/processors/)
-configure_file(buildconstant.hpp.in buildconstant.hpp @ONLY)
-# falcon executable
 
-add_executable(falcon ${sources})
 
 target_link_libraries(falcon yaml-cpp zmq flatbuffers ${PLATFORM_LINK_LIBRARIES})
 

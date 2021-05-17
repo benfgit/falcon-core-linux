@@ -33,7 +33,7 @@ include(FetchContent)
 FetchContent_Declare(
     flatbuffers
     GIT_REPOSITORY "https://github.com/google/flatbuffers"
-    GIT_TAG        v1.12.0
+    GIT_TAG        v2.0.0
 )
 
 
@@ -72,10 +72,9 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif()
 
 set(FLATBUFFERS_BUILD_FLATC ON CACHE INTERNAL "Enable the build of the flatbuffers compiler")
-#set(FLATBUFFERS_INSTALL OFF CACHE BOOL "Enable the installation of targets.")
-set(FLATBUFFERS_BUILD_TESTS OFF CACHE INTERNAL "Enable the installation of targets.")
+set(FLATBUFFERS_BUILD_TESTS OFF CACHE INTERNAL "Enable tests from flatbuffers lib.")
 set(FLATBUFFERS_BUILD_FLATHASH OFF CACHE INTERNAL "Enable the build of flathash")
-set(FLATBUFFERS_ENABLE_PCH ON CACHE INTERNAL
+set(FLATBUFFERS_ENABLE_PCH OFF CACHE INTERNAL
        "Enable precompile headers support for 'flatbuffers' and 'flatc'. \"
         Only work if CMake support 'target_precompile_headers'. \"
         Only work if CMake supports 'target_precompile_headers'. \"
@@ -83,9 +82,10 @@ set(FLATBUFFERS_ENABLE_PCH ON CACHE INTERNAL
        )
 
 FetchContent_MakeAvailable(flatbuffers)
+
 include_directories(BEFORE SYSTEM "${flatbuffers_SOURCE_DIR}/include")
-target_link_libraries(${FLATBUFFERS} flatbuffers)
-set(flatc_target "${flatbuffers_BINARY_DIR}/flatc")
+#target_link_libraries(${FLATBUFFERS} flatbuffers)
+#set(flatc_target "${flatbuffers_BINARY_DIR}/flatc")
 
 
 set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "disable yaml tests")

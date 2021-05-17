@@ -32,7 +32,7 @@
 #include "utilities/time.hpp"
 #include "serialization.hpp"
 #include "yaml-cpp/yaml.h"
-#include "datatype.h"
+#include "datatype_generated.h"
 #include "flatbuffers/flatbuffers.h"
 
 // Factory for DATATYPE::Data items with support for post-construction

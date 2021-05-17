@@ -29,6 +29,7 @@
 #include "idata.hpp"
 #include "serialization.hpp"
 #include "connections.hpp"
+#include "datatype_generated.h"
 
 namespace Serialization {
 

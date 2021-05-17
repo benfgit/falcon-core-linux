@@ -19,8 +19,6 @@
 
 #include "serializer.hpp"
 #include "idata.hpp"
-#include "datatype.h"
-
 
 namespace Serialization {
 
