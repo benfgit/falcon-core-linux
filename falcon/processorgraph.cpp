@@ -79,7 +79,7 @@ std::vector<std::string> expandProcessorName(std::string s) {
   }
 
   std::string name = match[name_group].str();
-  LOG(INFO) << name;
+
   // remove trimming spaces
   name = std::regex_replace(name, std::regex("^ +| +$"), std::string(""));
   //name = std::regex_replace(name, std::regex("[ _]"), "-");
