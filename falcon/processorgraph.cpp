@@ -759,18 +759,25 @@ std::string ProcessorGraph::ExportYAML() {
   YAML::Emitter out;
   node["falcon"]["version"] = 1.0;
   if (state_ != GraphState::NOGRAPH) {
-    for (auto &it : this->processors_) {
-      node["graph"]["processors"][it.first] = it.second.second->ExportYAML();
-      node["graph"]["processors"][it.first]["class"] = it.second.first;
-      if (yaml_["processors"][it.first]["options"]) {
-        node["graph"]["processors"][it.first]["options"] =
-            yaml_["processors"][it.first]["options"];
-      }
+      for (YAML::const_iterator it = yaml_["processors"].begin(); it != yaml_["processors"].end(); ++it) {
+         std::vector<std::string> processor_list = expandProcessorName(it->first.as<std::string>());
 
-      if (yaml_["processors"][it.first]["advanced"]) {
-        node["graph"]["processors"][it.first]["advanced"] =
-            yaml_["processors"][it.first]["advanced"];
-      }
+         for(auto &name : processor_list ){
+
+              node["graph"]["processors"][name] = this->processors_[name].second->ExportYAML();
+              node["graph"]["processors"][name]["class"] = this->processors_[name].first;
+
+              if (yaml_["processors"][it->first]["options"]) {
+                node["graph"]["processors"][name]["options"] =
+                    yaml_["processors"][it->first]["options"];
+              }
+
+              if (yaml_["processors"][it->first]["advanced"]) {
+                node["graph"]["processors"][name]["advanced"] =
+                    yaml_["processors"][it->first]["advanced"];
+              }
+         }
+
     }
 
     for (auto &it : this->connections_) {
