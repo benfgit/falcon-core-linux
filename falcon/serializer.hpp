@@ -28,7 +28,6 @@
 
 #include "idata.hpp"
 #include "serialization.hpp"
-#include "connections.hpp"
 #include "datatype_generated.h"
 
 namespace Serialization {
@@ -40,10 +39,8 @@ class Serializer {
       : format_(fmt), description_(description), extension_(extension) {}
 
   virtual bool Serialize(std::ostream &stream, typename AnyType::Data *data,
-                         uint16_t streamid, uint64_t packetid) const = 0;
-
-  virtual bool Serialize(std::ostream &stream, typename AnyType::Data *data,
-                         uint16_t streamid, uint64_t packetid, SlotAddress upstream_address) const = 0;
+                         uint16_t streamid, uint64_t packetid,
+                         std::string processor, std::string port, uint8_t slot) const = 0;
   Format format() const;
   void set_format(Format fmt);
 
@@ -64,9 +61,8 @@ class BinarySerializer : public Serializer {
       : Serializer(fmt, "Compact binary format", "bin") {}
 
   bool Serialize(std::ostream &stream, typename AnyType::Data *data,
-                 uint16_t streamid, uint64_t packetid) const;
-  bool Serialize(std::ostream &stream, typename AnyType::Data *data,
-                 uint16_t streamid, uint64_t packetid, SlotAddress upstream_address) const{};
+                 uint16_t streamid, uint64_t packetid,
+                 std::string processor, std::string port, uint8_t slot) const;
 };
 
 class FlatBufferSerializer : public Serializer {
@@ -75,20 +71,18 @@ class FlatBufferSerializer : public Serializer {
       : Serializer(fmt, "Compact binary format", "bin") {}
 
   bool Serialize(std::ostream &stream, typename AnyType::Data *data,
-                 uint16_t streamid, uint64_t packetid) const{};
-
-  bool Serialize(std::ostream &stream, typename AnyType::Data *data,
-                 uint16_t streamid, uint64_t packetid, SlotAddress upstream_address) const;
+                 uint16_t streamid, uint64_t packetid,
+                 std::string processor, std::string port, uint8_t slot) const;
 };
 
 class YAMLSerializer : public Serializer {
  public:
   YAMLSerializer(Format fmt = Format::FULL)
       : Serializer(fmt, "Human readable YAML format", "yaml") {}
+
   bool Serialize(std::ostream &stream, typename AnyType::Data *data,
-                 uint16_t streamid, uint64_t packetid) const;
-  bool Serialize(std::ostream &stream, typename AnyType::Data *data,
-                 uint16_t streamid, uint64_t packetid, SlotAddress upstream_address) const{};
+                 uint16_t streamid, uint64_t packetid,
+                 std::string processor, std::string port, uint8_t slot) const;
 };
 
 Serializer *serializer_from_string(std::string s,

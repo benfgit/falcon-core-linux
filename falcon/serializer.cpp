@@ -51,7 +51,10 @@ YAML::Node Serialization::Serializer::DataDescription(
 bool Serialization::BinarySerializer::Serialize(std::ostream &stream,
                                                 typename AnyType::Data *data,
                                                 uint16_t streamid,
-                                                uint64_t packetid) const {
+                                                uint64_t packetid,
+                                                std::string processor,
+                                                std::string port,
+                                                uint8_t slot) const {
   if (format_ == Serialization::Format::NONE) {
     return true;
   }
@@ -70,7 +73,10 @@ bool Serialization::BinarySerializer::Serialize(std::ostream &stream,
 bool Serialization::FlatBufferSerializer::Serialize(std::ostream &stream,
                                                 typename AnyType::Data *data,
                                                 uint16_t streamid,
-                                                uint64_t packetid, SlotAddress upstream_address) const {
+                                                uint64_t packetid,
+                                                std::string processor,
+                                                std::string port,
+                                                uint8_t slot) const {
   if (format_ == Serialization::Format::NONE) {
     return true;
   }
@@ -78,8 +84,10 @@ bool Serialization::FlatBufferSerializer::Serialize(std::ostream &stream,
   flatbuffers::FlatBufferBuilder builder(1024);
 
 
-  auto datasource = CreateDataSource(builder, builder.CreateString(upstream_address.processor()),
-                                     builder.CreateString(upstream_address.port()), upstream_address.slot(), streamid);
+  auto datasource = CreateDataSource(builder, builder.CreateString(processor),
+                                              builder.CreateString(port),
+                                              slot,
+                                              streamid);
   std::vector<uint8_t> flexbuffer;
   data->SerializeFlatBuffer(&flexbuffer);
 
@@ -93,7 +101,10 @@ bool Serialization::FlatBufferSerializer::Serialize(std::ostream &stream,
 bool Serialization::YAMLSerializer::Serialize(std::ostream &stream,
                                               typename AnyType::Data *data,
                                               uint16_t streamid,
-                                              uint64_t packetid) const {
+                                              uint64_t packetid,
+                                              std::string processor,
+                                              std::string port,
+                                              uint8_t slot) const {
   if (format_ == Serialization::Format::NONE) {
     return true;
   }

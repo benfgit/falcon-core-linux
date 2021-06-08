@@ -34,6 +34,7 @@
 #include "yaml-cpp/yaml.h"
 #include "datatype_generated.h"
 #include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/flexbuffers.h"
 
 // Factory for DATATYPE::Data items with support for post-construction
 // initialization
@@ -110,11 +111,11 @@ class Data {
   virtual void SerializeYAML(YAML::Node &node,
                              Serialization::Format format) const;
 
-  virtual void SerializeFlatBuffer(std::vector<uint8_t>* buffer
-                                   ) const {};
+  virtual void SerializeFlatBuffer(std::vector<uint8_t>* buffer) const {};
 
   virtual void YAMLDescription(YAML::Node &node,
                                Serialization::Format format) const;
+
  protected:
   TimePoint source_timestamp_;
   uint64_t hardware_timestamp_;   // e.g. from Neuralynx

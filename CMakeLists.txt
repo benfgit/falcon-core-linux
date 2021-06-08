@@ -28,6 +28,7 @@ string(TIMESTAMP _time_stamp)
 # to read on the use of fetch content :
 # https://android.googlesource.com/platform/external/cmake/+/refs/heads/upstream-release/Modules/FetchContent.cmake
 ############################
+
 include(FetchContent)
 
 FetchContent_Declare(
@@ -35,7 +36,6 @@ FetchContent_Declare(
     GIT_REPOSITORY "https://github.com/google/flatbuffers"
     GIT_TAG        v2.0.0
 )
-
 
 FetchContent_Declare(
 		yaml-cpp
@@ -64,8 +64,6 @@ FetchContent_Declare(
 	GIT_SHALLOW ON
 	GIT_TAG 1.3.3
 )
-
-
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_BINARY_DIR})

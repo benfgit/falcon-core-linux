@@ -31,8 +31,9 @@ endif()
 mark_as_advanced(RESOURCES_PATH)
 configure_file(configuration.hpp.in configuration.hpp)
 
+
 # list of source files
-file(GLOB sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
+file(GLOB sources *.cpp)
 include_directories("../resources")
 include_directories("../lib")
 include_directories(".")
@@ -44,7 +45,6 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/datatype_generated.h
 )
 
 add_custom_target(datatypebuffer DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/datatype_generated.h)
-
 
 set(DATATYPE_LIBS)
 set(PROCESSOR_LIBS)
@@ -188,7 +188,6 @@ if (COMPILE_EXTENSIONS)
     endforeach ()
 
 endif ()
-
 
 set(_processor_doc_path ${CMAKE_CURRENT_BINARY_DIR}/processors/)
 configure_file(buildconstant.hpp.in buildconstant.hpp @ONLY)
