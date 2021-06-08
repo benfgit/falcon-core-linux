@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 
 #include "serializer.hpp"
+#include "buildconstant.hpp"
 #include "idata.hpp"
 
 namespace Serialization {
@@ -73,19 +74,16 @@ bool Serialization::FlatBufferSerializer::Serialize(std::ostream &stream,
   if (format_ == Serialization::Format::NONE) {
     return true;
   }
-  auto ts =  static_cast<uint64_t>(
-              std::chrono::duration_cast<std::chrono::microseconds>(
-                  data->source_timestamp_.time_since_epoch())
-                  .count());
 
   flatbuffers::FlatBufferBuilder builder(1024);
-  std::vector<flatbuffers::Offset<Channel>> channels;
+
 
   auto datasource = CreateDataSource(builder, builder.CreateString(upstream_address.processor()),
-                                     builder.CreateString(upstream_address.port()), upstream_address.slot());
-  data->SerializeFlatBuffer(&builder, &channels);
+                                     builder.CreateString(upstream_address.port()), upstream_address.slot(), streamid);
+  std::vector<uint8_t> flexbuffer;
+  data->SerializeFlatBuffer(&flexbuffer);
 
-  auto buffer = CreateRootMsg(builder,ts, packetid, datasource, builder.CreateVector(channels));
+  auto buffer = CreateRootMsg(builder,builder.CreateString(GIT_REVISION), packetid, datasource, builder.CreateVector(flexbuffer));
   builder.Finish(buffer);
   stream.write(reinterpret_cast<const char*>(builder.GetBufferPointer()), builder.GetSize());
 

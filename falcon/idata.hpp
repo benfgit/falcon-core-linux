@@ -110,15 +110,13 @@ class Data {
   virtual void SerializeYAML(YAML::Node &node,
                              Serialization::Format format) const;
 
-  virtual void SerializeFlatBuffer(flatbuffers::FlatBufferBuilder *builder,
-                                   std::vector<flatbuffers::Offset<Channel>> *data_channel
+  virtual void SerializeFlatBuffer(std::vector<uint8_t>* buffer
                                    ) const {};
 
   virtual void YAMLDescription(YAML::Node &node,
                                Serialization::Format format) const;
-
-  TimePoint source_timestamp_;
  protected:
+  TimePoint source_timestamp_;
   uint64_t hardware_timestamp_;   // e.g. from Neuralynx
   uint64_t serial_number_;
   bool end_of_stream_ = false;
