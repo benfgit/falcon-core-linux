@@ -84,8 +84,6 @@ set(FLATBUFFERS_ENABLE_PCH OFF CACHE INTERNAL
 FetchContent_MakeAvailable(flatbuffers)
 
 include_directories(BEFORE SYSTEM "${flatbuffers_SOURCE_DIR}/include")
-#target_link_libraries(${FLATBUFFERS} flatbuffers)
-#set(flatc_target "${flatbuffers_BINARY_DIR}/flatc")
 
 
 set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "disable yaml tests")

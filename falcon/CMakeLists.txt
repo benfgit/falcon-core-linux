@@ -20,6 +20,7 @@ MESSAGE("${CMAKE_BUILD_TYPE}")
 
 add_definitions(-DG2_DYNAMIC_LOGGING)
 
+
 Set(BUILD_RESOURCES_PATH ${rootproject_BINARY_DIR})
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     Set(RESOURCES_PATH ${rootproject_BINARY_DIR} CACHE STRING "")
@@ -30,17 +31,12 @@ endif()
 mark_as_advanced(RESOURCES_PATH)
 configure_file(configuration.hpp.in configuration.hpp)
 
+# list of source files
+file(GLOB sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 include_directories("../resources")
 include_directories("../lib")
 include_directories(".")
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
-# list of source files
-file(GLOB sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
-
-set(_processor_doc_path ${CMAKE_CURRENT_BINARY_DIR}/processors/)
-configure_file(buildconstant.hpp.in buildconstant.hpp @ONLY)
-# falcon executable
 
 add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/datatype_generated.h
     DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/datatype.fbs
@@ -48,7 +44,7 @@ add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/datatype_generated.h
 )
 
 add_custom_target(datatypebuffer DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/datatype_generated.h)
-add_executable(falcon ${sources})
+
 
 set(DATATYPE_LIBS)
 set(PROCESSOR_LIBS)
@@ -194,6 +190,11 @@ if (COMPILE_EXTENSIONS)
 endif ()
 
 
+set(_processor_doc_path ${CMAKE_CURRENT_BINARY_DIR}/processors/)
+configure_file(buildconstant.hpp.in buildconstant.hpp @ONLY)
+# falcon executable
+
+add_executable(falcon ${sources})
 
 target_link_libraries(falcon yaml-cpp zmq flatbuffers ${PLATFORM_LINK_LIBRARIES})
 
