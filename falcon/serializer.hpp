@@ -40,7 +40,7 @@ class Serializer {
 
   virtual bool Serialize(std::ostream &stream, typename AnyType::Data *data,
                          uint16_t streamid, uint64_t packetid,
-                         std::string processor, std::string port, uint8_t slot) const = 0;
+                         std::string processor, std::string port, uint8_t slot) = 0;
   Format format() const;
   void set_format(Format fmt);
 
@@ -62,17 +62,21 @@ class BinarySerializer : public Serializer {
 
   bool Serialize(std::ostream &stream, typename AnyType::Data *data,
                  uint16_t streamid, uint64_t packetid,
-                 std::string processor, std::string port, uint8_t slot) const;
+                 std::string processor, std::string port, uint8_t slot);
 };
 
 class FlatBufferSerializer : public Serializer {
  public:
   FlatBufferSerializer(Format fmt = Format::FULL)
-      : Serializer(fmt, "Flatbuffer format", "bin") {}
+      : Serializer(fmt, "Flatbuffer format", "bin"), builder(1024) {}
 
   bool Serialize(std::ostream &stream, typename AnyType::Data *data,
                  uint16_t streamid, uint64_t packetid,
-                 std::string processor, std::string port, uint8_t slot) const;
+                 std::string processor, std::string port, uint8_t slot);
+
+ private:
+  flatbuffers::FlatBufferBuilder builder;
+  flexbuffers::Builder fbb;
 };
 
 class YAMLSerializer : public Serializer {
@@ -82,7 +86,7 @@ class YAMLSerializer : public Serializer {
 
   bool Serialize(std::ostream &stream, typename AnyType::Data *data,
                  uint16_t streamid, uint64_t packetid,
-                 std::string processor, std::string port, uint8_t slot) const;
+                 std::string processor, std::string port, uint8_t slot);
 };
 
 Serializer *serializer_from_string(std::string s,

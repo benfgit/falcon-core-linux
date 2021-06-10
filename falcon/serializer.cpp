@@ -54,7 +54,7 @@ bool Serialization::BinarySerializer::Serialize(std::ostream &stream,
                                                 uint64_t packetid,
                                                 std::string processor,
                                                 std::string port,
-                                                uint8_t slot) const {
+                                                uint8_t slot){
   if (format_ == Serialization::Format::NONE) {
     return true;
   }
@@ -76,12 +76,11 @@ bool Serialization::FlatBufferSerializer::Serialize(std::ostream &stream,
                                                 uint64_t packetid,
                                                 std::string processor,
                                                 std::string port,
-                                                uint8_t slot) const{
+                                                uint8_t slot){
   if (format_ == Serialization::Format::NONE) {
     return true;
   }
-  flatbuffers::FlatBufferBuilder builder(1024);
-  flexbuffers::Builder fbb;
+
 
   auto datasource = CreateDataSource(builder, builder.CreateString(processor),
                                               builder.CreateString(port),
@@ -97,6 +96,8 @@ bool Serialization::FlatBufferSerializer::Serialize(std::ostream &stream,
   builder.Finish(buffer);
   stream.write(reinterpret_cast<const char*>(builder.GetBufferPointer()), builder.GetSize());
 
+  fbb.Clear();
+  builder.Clear();
   return true;
 }
 
@@ -106,7 +107,7 @@ bool Serialization::YAMLSerializer::Serialize(std::ostream &stream,
                                               uint64_t packetid,
                                               std::string processor,
                                               std::string port,
-                                              uint8_t slot) const {
+                                              uint8_t slot){
   if (format_ == Serialization::Format::NONE) {
     return true;
   }
