@@ -76,22 +76,24 @@ bool Serialization::FlatBufferSerializer::Serialize(std::ostream &stream,
                                                 uint64_t packetid,
                                                 std::string processor,
                                                 std::string port,
-                                                uint8_t slot) const {
+                                                uint8_t slot) const{
   if (format_ == Serialization::Format::NONE) {
     return true;
   }
-
   flatbuffers::FlatBufferBuilder builder(1024);
-
+  flexbuffers::Builder fbb;
 
   auto datasource = CreateDataSource(builder, builder.CreateString(processor),
                                               builder.CreateString(port),
                                               slot,
                                               streamid);
-  std::vector<uint8_t> flexbuffer;
-  data->SerializeFlatBuffer(&flexbuffer);
+  auto startMap = fbb.StartMap();
 
-  auto buffer = CreateRootMsg(builder,builder.CreateString(GIT_REVISION), packetid, datasource, builder.CreateVector(flexbuffer));
+  data->SerializeFlatBuffer(&fbb);
+  fbb.EndMap(startMap);
+  fbb.Finish();
+
+  auto buffer = CreateRootMsg(builder,builder.CreateString(GIT_REVISION), packetid, datasource, builder.CreateVector(fbb.GetBuffer()));
   builder.Finish(buffer);
   stream.write(reinterpret_cast<const char*>(builder.GetBufferPointer()), builder.GetSize());
 

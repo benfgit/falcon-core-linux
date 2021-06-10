@@ -58,7 +58,7 @@ class Serializer {
 class BinarySerializer : public Serializer {
  public:
   BinarySerializer(Format fmt = Format::FULL)
-      : Serializer(fmt, "Compact binary format", "bin") {}
+      : Serializer(fmt, "Compact binary format", "bin"){}
 
   bool Serialize(std::ostream &stream, typename AnyType::Data *data,
                  uint16_t streamid, uint64_t packetid,
@@ -68,7 +68,7 @@ class BinarySerializer : public Serializer {
 class FlatBufferSerializer : public Serializer {
  public:
   FlatBufferSerializer(Format fmt = Format::FULL)
-      : Serializer(fmt, "Compact binary format", "bin") {}
+      : Serializer(fmt, "Flatbuffer format", "bin") {}
 
   bool Serialize(std::ostream &stream, typename AnyType::Data *data,
                  uint16_t streamid, uint64_t packetid,
