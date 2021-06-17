@@ -28,6 +28,8 @@
 #include <typeinfo>
 #include <string>
 #include <vector>
+#include <iostream>
+
 
 #include "logging/log.hpp"
 #include "yaml-cpp/yaml.h"
@@ -267,12 +269,17 @@ class ReadableState : public StateCloneable<IState, ReadableState<T>> {
   bool set_string(const std::string &value, bool cache = true) override {
     std::stringstream ss(value);
     T result;
-    if (ss >> result) {
+    if ((std::is_same_v<T, bool> and ss >> std::boolalpha >> result)
+        or  ss >> result)
+    {
+      std::cout << result;
+
       set(result, cache);
       return true;
     }
     return false;
   }
+
 
   void reset() { set(default_); }
 
