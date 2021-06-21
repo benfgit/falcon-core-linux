@@ -167,8 +167,8 @@ template <typename DATATYPE> void PortOut<DATATYPE>::NewSlot(int n) {
   SlotAddress address(this->address_, 0);
   for (int k = 0; k < n; k++) {
     address.set_slot(this->slots_.size());
-    this->slots_.push_back(std::unique_ptr<SlotOut<DATATYPE>>(
-        new SlotOut<DATATYPE>(this, address, parameters_)));
+    auto slot = std::make_unique<SlotOut<DATATYPE>>(this, address, parameters_);
+    slots_.push_back(std::move(slot));
   }
 }
 
@@ -478,9 +478,9 @@ template <typename DATATYPE> void PortIn<DATATYPE>::NewSlot(int n) {
   SlotAddress address(this->address_, 0);
   for (int k = 0; k < n; k++) {
     address.set_slot(slots_.size());
-    slots_.push_back(std::move(std::unique_ptr<SlotIn<DATATYPE>>(
-        new SlotIn<DATATYPE>(this, address, capabilities_, policy().time_out(),
-                             policy().cache_enabled()))));
+    auto slot = std::make_unique<SlotIn<DATATYPE>>(this, address, capabilities_, policy().time_out(),
+                             policy().cache_enabled());
+    slots_.push_back(std::move(slot));
   }
 }
 

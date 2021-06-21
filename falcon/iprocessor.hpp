@@ -68,7 +68,7 @@ class IProcessor {
     add_advanced_option("buffer_sizes", requested_buffer_sizes_);
   }
 
-  ~IProcessor() { internal_Stop(); }
+  virtual ~IProcessor() { internal_Stop(); }
 
   /**
    * Get processor's name.

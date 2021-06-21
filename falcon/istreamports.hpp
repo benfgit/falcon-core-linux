@@ -45,6 +45,9 @@ class ISlotOut {
  public:
   ISlotOut(IPortOut *parent, const SlotAddress &address)
       : ring_batch_(1), buffer_size_(-1), parent_(parent), address_(address) {}
+
+  virtual ~ISlotOut(){}
+
   const SlotAddress &address() const { return address_; }
   IPortOut *parent() { return parent_; }
   bool connected() const { return downstream_slots_.size() > 0; }
@@ -89,6 +92,8 @@ class IPortOut {
  public:
   IPortOut(IProcessor *parent, const PortAddress &address, PortOutPolicy policy)
       : parent_(parent), address_(address), policy_(policy) {}
+
+  virtual ~IPortOut(){}
   const PortAddress &address() const { return address_; }
   const PortOutPolicy &policy() const { return policy_; }
   IProcessor *parent() { return parent_; }
@@ -130,6 +135,9 @@ class ISlotIn {
           bool cache = false)
       : time_out_(time_out), cache_enabled_(cache), parent_(parent),
         address_(address) {}
+
+  virtual ~ISlotIn(){}
+
   const SlotAddress &address() const { return address_; }
   IPortIn *parent() { return parent_; }
 
@@ -186,6 +194,9 @@ class IPortIn {
  public:
   IPortIn(IProcessor *parent, const PortAddress &address, PortInPolicy policy)
       : parent_(parent), address_(address), policy_(policy) {}
+
+  virtual ~IPortIn(){}
+
   const PortAddress &address() const { return address_; }
   const PortInPolicy &policy() const { return policy_; }
   IProcessor *parent() { return parent_; }
@@ -212,5 +223,6 @@ class IPortIn {
  private:
   std::string name_;
   PortInPolicy policy_;
+
 };
 
