@@ -68,15 +68,15 @@ class BinarySerializer : public Serializer {
 class FlatBufferSerializer : public Serializer {
  public:
   FlatBufferSerializer(Format fmt = Format::FULL)
-      : Serializer(fmt, "Flatbuffer format", "bin"), builder(1024) {}
+      : Serializer(fmt, "Flatbuffer format", "bin"), builder_(1024) {}
 
   bool Serialize(std::ostream &stream, typename AnyType::Data *data,
                  uint16_t streamid, uint64_t packetid,
                  std::string processor, std::string port, uint8_t slot);
 
  private:
-  flatbuffers::FlatBufferBuilder builder;
-  flexbuffers::Builder fbb;
+  flatbuffers::FlatBufferBuilder builder_;
+  flexbuffers::Builder flex_builder_;
 };
 
 class YAMLSerializer : public Serializer {

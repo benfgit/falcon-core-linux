@@ -114,7 +114,7 @@ class Data {
   virtual void YAMLDescription(YAML::Node &node,
                                Serialization::Format format) const;
 
-  virtual void SerializeFlatBuffer(flexbuffers::Builder* fbb);
+  virtual void SerializeFlatBuffer(flexbuffers::Builder& flex_builder);
 
 
  protected:

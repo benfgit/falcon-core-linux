@@ -86,13 +86,13 @@ void Data::YAMLDescription(YAML::Node &node,
   }
 }
 
-void Data::SerializeFlatBuffer(flexbuffers::Builder* fbb){
+void Data::SerializeFlatBuffer(flexbuffers::Builder& flex_builder){
     auto ts =  static_cast<uint64_t>(
                 std::chrono::duration_cast<std::chrono::microseconds>(
                     source_timestamp().time_since_epoch())
                     .count());
-    fbb->UInt("source_ts", ts);
-    fbb->UInt("hardware_ts", hardware_timestamp());
-    fbb->UInt("serial_number", serial_number_);
+    flex_builder.UInt("source_ts", ts);
+    flex_builder.UInt("hardware_ts", hardware_timestamp());
+    flex_builder.UInt("serial_number", serial_number_);
 }
 

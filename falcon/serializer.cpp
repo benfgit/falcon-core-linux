@@ -82,22 +82,23 @@ bool Serialization::FlatBufferSerializer::Serialize(std::ostream &stream,
   }
 
 
-  auto datasource = CreateDataSource(builder, builder.CreateString(processor),
-                                              builder.CreateString(port),
+  auto datasource = CreateDataSource(builder_, builder_.CreateString(processor),
+                                              builder_.CreateString(port),
                                               slot,
                                               streamid);
-  auto startMap = fbb.StartMap();
+  auto startMap = flex_builder_.StartMap();
 
-  data->SerializeFlatBuffer(&fbb);
-  fbb.EndMap(startMap);
-  fbb.Finish();
+  data->SerializeFlatBuffer(flex_builder_);
+  flex_builder_.EndMap(startMap);
+  flex_builder_.Finish();
 
-  auto buffer = CreateRootMsg(builder,builder.CreateString(GIT_REVISION), packetid, datasource, builder.CreateVector(fbb.GetBuffer()));
-  builder.Finish(buffer);
-  stream.write(reinterpret_cast<const char*>(builder.GetBufferPointer()), builder.GetSize());
+  auto buffer = CreateRootMsg(builder_,builder_.CreateString(GIT_REVISION), packetid, datasource,
+                              builder_.CreateVector(flex_builder_.GetBuffer()));
+  builder_.Finish(buffer);
+  stream.write(reinterpret_cast<const char*>(builder_.GetBufferPointer()), builder_.GetSize());
 
-  fbb.Clear();
-  builder.Clear();
+  flex_builder_.Clear();
+  builder_.Clear();
   return true;
 }
 
