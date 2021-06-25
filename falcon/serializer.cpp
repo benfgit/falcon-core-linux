@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------
 
 #include "serializer.hpp"
+#include "buildconstant.hpp"
 #include "idata.hpp"
 
 namespace Serialization {
@@ -50,7 +51,10 @@ YAML::Node Serialization::Serializer::DataDescription(
 bool Serialization::BinarySerializer::Serialize(std::ostream &stream,
                                                 typename AnyType::Data *data,
                                                 uint16_t streamid,
-                                                uint64_t packetid) const {
+                                                uint64_t packetid,
+                                                std::string processor,
+                                                std::string port,
+                                                uint8_t slot){
   if (format_ == Serialization::Format::NONE) {
     return true;
   }
@@ -66,10 +70,45 @@ bool Serialization::BinarySerializer::Serialize(std::ostream &stream,
   return true;
 }
 
+bool Serialization::FlatBufferSerializer::Serialize(std::ostream &stream,
+                                                typename AnyType::Data *data,
+                                                uint16_t streamid,
+                                                uint64_t packetid,
+                                                std::string processor,
+                                                std::string port,
+                                                uint8_t slot){
+  if (format_ == Serialization::Format::NONE) {
+    return true;
+  }
+
+
+  auto datasource = CreateDataSource(builder_, builder_.CreateString(processor),
+                                              builder_.CreateString(port),
+                                              slot,
+                                              streamid);
+  auto startMap = flex_builder_.StartMap();
+
+  data->SerializeFlatBuffer(flex_builder_);
+  flex_builder_.EndMap(startMap);
+  flex_builder_.Finish();
+
+  auto buffer = CreateRootMsg(builder_,builder_.CreateString(GIT_REVISION), packetid, datasource,
+                              builder_.CreateVector(flex_builder_.GetBuffer()));
+  builder_.Finish(buffer);
+  stream.write(reinterpret_cast<const char*>(builder_.GetBufferPointer()), builder_.GetSize());
+
+  flex_builder_.Clear();
+  builder_.Clear();
+  return true;
+}
+
 bool Serialization::YAMLSerializer::Serialize(std::ostream &stream,
                                               typename AnyType::Data *data,
                                               uint16_t streamid,
-                                              uint64_t packetid) const {
+                                              uint64_t packetid,
+                                              std::string processor,
+                                              std::string port,
+                                              uint8_t slot){
   if (format_ == Serialization::Format::NONE) {
     return true;
   }
@@ -108,6 +147,9 @@ Serializer *serializer(Serialization::Encoding enc, Serialization::Format fmt) {
   }
   if (enc == Serialization::Encoding::YAML) {
     return new Serialization::YAMLSerializer(fmt);
+  }
+  if (enc == Serialization::Encoding::FLATBUFFER) {
+    return new Serialization::FlatBufferSerializer(fmt);
   }
   throw std::runtime_error("Unknown serializer.");
 }

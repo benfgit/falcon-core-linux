@@ -85,3 +85,14 @@ void Data::YAMLDescription(YAML::Node &node,
     node.push_back("serial_number uint64 (1)");
   }
 }
+
+void Data::SerializeFlatBuffer(flexbuffers::Builder& flex_builder){
+    auto ts =  static_cast<uint64_t>(
+                std::chrono::duration_cast<std::chrono::microseconds>(
+                    source_timestamp().time_since_epoch())
+                    .count());
+    flex_builder.UInt("source_ts", ts);
+    flex_builder.UInt("hardware_ts", hardware_timestamp());
+    flex_builder.UInt("serial_number", serial_number_);
+}
+
