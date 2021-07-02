@@ -39,6 +39,13 @@ include_directories("../lib")
 include_directories(".")
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/datatype_generated.h
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/datatype.fbs
+    COMMAND flatc --cpp ${CMAKE_CURRENT_SOURCE_DIR}/datatype.fbs
+)
+
+add_custom_target(datatypebuffer DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/datatype_generated.h)
+
 set(DATATYPE_LIBS)
 set(PROCESSOR_LIBS)
 set(PROCESSOR_DOC)
@@ -115,6 +122,7 @@ if (COMPILE_EXTENSIONS)
                         MESSAGE("Adding data type: ${DATATYPE}")
                         add_subdirectory(${FALCON_PATH}/datatypes/${DATATYPE} ${CMAKE_CURRENT_BINARY_DIR}/datatypes/${DATATYPE})
                         if (TARGET ${DATATYPE})
+                            add_dependencies(${DATATYPE} datatypebuffer)
                             LIST(APPEND DATATYPE_LIBS ${DATATYPE})
                         endif ()
                     endif ()
@@ -150,6 +158,7 @@ if (COMPILE_EXTENSIONS)
                         MESSAGE("Adding processor: ${PROCESSOR}")
                         add_subdirectory(${FALCON_PATH}/processors/${PROCESSOR} ${CMAKE_CURRENT_BINARY_DIR}/processors/${PROCESSOR})
                         if (TARGET ${PROCESSOR})
+                            add_dependencies(${PROCESSOR} datatypebuffer)
                             LIST(APPEND PROCESSOR_LIBS ${PROCESSOR})
                         endif ()
                         if (EXISTS "${FALCON_PATH}/processors/${PROCESSOR}/doc.yaml")
@@ -186,7 +195,7 @@ configure_file(buildconstant.hpp.in buildconstant.hpp @ONLY)
 
 add_executable(falcon ${sources})
 
-target_link_libraries(falcon yaml-cpp zmq ${PLATFORM_LINK_LIBRARIES})
+target_link_libraries(falcon yaml-cpp zmq flatbuffers ${PLATFORM_LINK_LIBRARIES})
 
 
 # here we have to use --whole-archive linker option, otherwise the data type and processor libs are not

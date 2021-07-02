@@ -60,6 +60,16 @@ class CommandHandler {
                             std::deque<std::string> &reply);
 
   /**
+   * Manage sub-command for the resources command
+   *
+   * @param sub-command keyword
+   * @param reply  buffer for the answer from the graph socket
+   * @return always false - no resources command can terminate the main thread
+   */
+  bool DelegateResourcesCommand(std::deque<std::string> &command,
+                            std::deque<std::string> &reply);
+
+  /**
    * Once start is launched the main thread is busy only listening, processing
    * and replying to messages coming from listed sources
    */

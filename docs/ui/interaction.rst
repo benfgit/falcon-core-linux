@@ -23,7 +23,7 @@ quit                               quit the app
 kill                               stop processing and quit (kill)
 info                               generate basic information answer as falcon version and state
 documentation                      generate yaml documentation with a node for each processor registered in Falcon
-resources list                     list all filename in the resources folder (graphs, filters ... etc.)
+resources list [resources_type]    list all files in the resources type folder (graphs, filters ... etc.)
 resources graphs [graph_name.yaml] generate a yaml node with the graph description corresponding
 ================================== ===============================================================================
 

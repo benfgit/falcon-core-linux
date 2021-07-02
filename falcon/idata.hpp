@@ -32,6 +32,9 @@
 #include "utilities/time.hpp"
 #include "serialization.hpp"
 #include "yaml-cpp/yaml.h"
+#include "datatype_generated.h"
+#include "flatbuffers/flatbuffers.h"
+#include "flatbuffers/flexbuffers.h"
 
 // Factory for DATATYPE::Data items with support for post-construction
 // initialization
@@ -111,11 +114,15 @@ class Data {
   virtual void YAMLDescription(YAML::Node &node,
                                Serialization::Format format) const;
 
+  virtual void SerializeFlatBuffer(flexbuffers::Builder& flex_builder);
+
+
  protected:
   TimePoint source_timestamp_;
   uint64_t hardware_timestamp_;   // e.g. from Neuralynx
   uint64_t serial_number_;
   bool end_of_stream_ = false;
+
 };
 
 }   // namespace nsAnyType

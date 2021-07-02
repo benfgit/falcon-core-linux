@@ -501,7 +501,6 @@ class IProcessor {
   ReadableState<T> *create_readable_shared_state(
       std::string state, T default_value, Permission peers = Permission::WRITE,
       Permission external = Permission::NONE, std::string description = "") {
-    convert_name(state);
     if (shared_states_.count(state) == 1) {
       throw ProcessorInternalError("Shared state \"" + state +
                                        "\" is invalid or already exists.",
@@ -538,7 +537,6 @@ class IProcessor {
   WritableState<T> *create_writable_shared_state(
       std::string state, T default_value, Permission peers = Permission::READ,
       Permission external = Permission::NONE, std::string description = "") {
-    convert_name(state);
     if (shared_states_.count(state) == 1) {
       throw ProcessorInternalError("Shared state \"" + state +
                                        "\" is invalid or already exists.",
@@ -558,7 +556,6 @@ class IProcessor {
    * @param state The name of the state.
    */
   std::shared_ptr<IState> shared_state(std::string state) {
-    convert_name(state);
     if (this->shared_states_.count(state) == 0) {
       throw ProcessorInternalError(
           "Shared state \"" + state + "\" does not exist.", name());
@@ -569,7 +566,6 @@ class IProcessor {
   template <class T>
   void expose_method(std::string methodname,
                      YAML::Node (T::*method)(const YAML::Node &)) {
-    convert_name(methodname);
     if (exposed_methods_.count(methodname) == 1) {
       throw ProcessorInternalError("Exposed method \"" + methodname +
                                        "\" is invalid or already exists.",

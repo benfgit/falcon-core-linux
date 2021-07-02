@@ -64,7 +64,8 @@ std::string encoding_to_string(Encoding enc) {
     break;
   switch (enc) {
     MATCH(BINARY)
-    MATCH(YAML);
+    MATCH(YAML)
+    MATCH(FLATBUFFER);
   }
 #undef MATCH
   return s;
@@ -77,7 +78,8 @@ Encoding string_to_encoding(std::string s) {
     return Serialization::Encoding::p;                                         \
   }
   MATCH(BINARY)
-  MATCH(YAML);
+  MATCH(YAML)
+  MATCH(FLATBUFFER);
   throw std::runtime_error("Invalid Serialization::Encoding value.");
 #undef MATCH
 }
