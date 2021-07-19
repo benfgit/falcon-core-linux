@@ -12,7 +12,9 @@ In parallel, we developed a cmake-client python gui to automatically create an i
 
     conda env create KloostermanLab/falcon
     conda activate falcon
-    fklab-build --path https://bitbucket.org/kloostermannerflab/falcon-core.git --version alpha
+    fklab-build --gui false --path https://bitbucket.org/kloostermannerflab/falcon-core.git \
+            --version 1.3.0-alpha  \
+            --build_options DCMAKE_INSTALL_PREFIX="$HOME/opt1/falcon-core"
 
 You can read the readme file in the `fklab-cmake-gui <https://bitbucket.org/kloostermannerflab/fklab-cmake-gui>`_
 repository for more information on how the gui is working.
@@ -20,7 +22,7 @@ repository for more information on how the gui is working.
 Information specific to the build of falcon asked in the app :
 
 - repository path: https://bitbucket.org/kloostermannerflab/falcon-core.git (the ssh path is also possible)
-- (last) version : beta   => See the changelog to see other available versions.
+- (last) version : 1.3.0-alpha   => See the changelog to see other available versions.
 
 A grid with available extensions will be display. You can add your own extensions if needed but note that falcon-core does
 not contains any extensions.
