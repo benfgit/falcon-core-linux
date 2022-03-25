@@ -38,6 +38,54 @@ bool CommandHandler::DelegateGraphCommand(std::deque<std::string> &command,
   return false;
 }
 
+bool CommandHandler::DelegateResourcesCommand(std::deque<std::string> &command,
+                                   std::deque<std::string> &reply) {
+
+    std::string resources_type;
+
+    if (command[0] == "list") {
+
+      if(command.size() == 2)
+           resources_type = command[1]+"://";
+      else
+          resources_type = "resources://";
+
+      try{
+        std::string resource_path = global_context_->resolve_path(resources_type);
+        std::vector<std::string> list_files = getAllFilesInDir(resource_path);
+        for (auto const &file : list_files) {
+          reply.push_back(std::regex_replace(file,  std::regex(resource_path), resources_type));
+        }
+
+      } catch (YAML::BadFile &e) {
+        reply.push_back("ERR");
+        reply.push_back("Unknown resources type requested \"" + resources_type + "\".");
+        return false;
+      }
+
+    } else if (command[0] == "graphs") {
+      try {
+        std::string graph_path =
+                global_context_->resolve_path(command[1]);
+        YAML::Node node;
+        node["falcon"]["version"] = "1.0.0";
+        node["graph"] = YAML::LoadFile(graph_path);
+        YAML::Emitter out;
+        out << node;
+        reply.push_back(std::string(out.c_str()));
+      } catch (YAML::BadFile &e) {
+        reply.push_back("ERR");
+        reply.push_back("Invalid graph file");
+      }
+    }
+    else{
+        // error
+        reply.push_back("ERR");
+        reply.push_back("Unknown resources command \"" + command[0] + "\".");
+    }
+    return false;
+}
+
 bool CommandHandler::HandleCommand(std::deque<std::string> &command,
                                    std::deque<std::string> &reply) {
   bool finished = false;
@@ -53,29 +101,10 @@ bool CommandHandler::HandleCommand(std::deque<std::string> &command,
     command.pop_front();
     finished = DelegateGraphCommand(command, reply);
   } else if (command[0] == "resources") {
-    if (command[1] == "list") {
-      std::string resource_path = global_context_->resolve_path("resources://");
-      std::vector<std::string> list_files = getAllFilesInDir(resource_path);
-      for (auto const &file : list_files) {
-        std::regex e(resource_path);
-        reply.push_back(std::regex_replace(file, e, "resources://"));
-      }
-    } else if (command[1] == "graphs") {
-      std::string graph_path =
-          global_context_->resolve_path(command[2]);
-      try {
-        YAML::Node node;
-        node = YAML::LoadFile(graph_path);
-        YAML::Emitter out;
-        out << node;
-        reply.push_back(std::string(out.c_str()));
-      } catch (YAML::BadFile &e) {
-        reply.push_back("ERR");
-        reply.push_back("Invalid graph file");
-      }
-    }
+    command.pop_front();
+    finished = DelegateResourcesCommand(command, reply);
   } else if (command[0] == "documentation") {
-    local_command.push_back("fulldocumentation");
+    local_command.push_back("documentation");
     finished = DelegateGraphCommand(local_command, reply);
   } else if (command[0] == "test") {
     if (command.size() > 1) {
@@ -135,6 +164,7 @@ bool CommandHandler::HandleCommand(std::deque<std::string> &command,
   }
   return finished;
 }
+
 
 void CommandHandler::start() {
   if (sources_.size() == 0) {

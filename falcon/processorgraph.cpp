@@ -77,10 +77,12 @@ std::vector<std::string> expandProcessorName(std::string s) {
     throw std::runtime_error("Invalid processor name (no base name): \"" + s +
                              "\"");
   }
+
   std::string name = match[name_group].str();
+
   // remove trimming spaces
   name = std::regex_replace(name, std::regex("^ +| +$"), std::string(""));
-  name = std::regex_replace(name, std::regex("[ _]"), "-");
+  //name = std::regex_replace(name, std::regex("[ _]"), "-");
   // parse part identifiers
   std::vector<int> identifiers;
 
@@ -240,20 +242,9 @@ YAML::Node LoadProcessorDoc(std::string processor) {
   }
 }
 
-YAML::Node ProcessorGraph::GetProcessorDocumentation(bool fulldoc) {
-  YAML::Node docs;
+YAML::Node ProcessorGraph::GetProcessorDocumentation() {
+   return documentation_;
 
-  if (fulldoc) {
-    return documentation_;
-  }
-
-  if (state_string() != "NOGRAPH") {
-    for (auto &imap : processors()) {
-      docs[imap.second.first] = documentation_[imap.second.first];
-    }
-    return docs;
-  }
-  return YAML::Load("No running graph.");
 }
 
 std::string ProcessorGraph::state_string() const {
@@ -720,9 +711,12 @@ void ProcessorGraph::Retrieve(YAML::Node &node) {
 
 void ProcessorGraph::Apply(YAML::Node &node) {
   // YAML
-  // processor:
-  //     method:
-  //         parameter: value
+  // falcon: 
+  //   version: 1.0
+  // graph: 
+  //      processor:
+  //       method:
+  //          parameter: value
 
   if (!node.IsMap()) {
     throw InvalidProcessorError("No processors found in method definition.");
@@ -763,29 +757,35 @@ std::string ProcessorGraph::ExportYAML() {
   std::string s = "";
   YAML::Node node;
   YAML::Emitter out;
-
+  node["falcon"]["version"] = 1.0;
   if (state_ != GraphState::NOGRAPH) {
-    for (auto &it : this->processors_) {
-      node["processors"][it.first] = it.second.second->ExportYAML();
-      node["processors"][it.first]["class"] = it.second.first;
+      for (YAML::const_iterator it = yaml_["processors"].begin(); it != yaml_["processors"].end(); ++it) {
+         std::vector<std::string> processor_list = expandProcessorName(it->first.as<std::string>());
 
-      if (yaml_["processors"][it.first]["options"]) {
-        node["processors"][it.first]["options"] =
-            yaml_["processors"][it.first]["options"];
-      }
+         for(auto &name : processor_list ){
 
-      if (yaml_["processors"][it.first]["advanced"]) {
-        node["processors"][it.first]["advanced"] =
-            yaml_["processors"][it.first]["advanced"];
-      }
+              node["graph"]["processors"][name] = this->processors_[name].second->ExportYAML();
+              node["graph"]["processors"][name]["class"] = this->processors_[name].first;
+
+              if (yaml_["processors"][it->first]["options"]) {
+                node["graph"]["processors"][name]["options"] =
+                    yaml_["processors"][it->first]["options"];
+              }
+
+              if (yaml_["processors"][it->first]["advanced"]) {
+                node["graph"]["processors"][name]["advanced"] =
+                    yaml_["processors"][it->first]["advanced"];
+              }
+         }
+
     }
 
     for (auto &it : this->connections_) {
-      node["connections"].push_back(it.first.string() + "=" +
+      node["graph"]["connections"].push_back(it.first.string() + "=" +
                                     it.second.string());
     }
 
-    node["states"] = shared_state_map_.ExportYAML();
+    node["graph"]["states"] = shared_state_map_.ExportYAML();
 
     out << node;
     s = out.c_str();

@@ -35,7 +35,7 @@ enum class Format { NONE = -1, FULL, COMPACT, HEADERONLY, STREAMHEADER };
 std::string format_to_string(Format fmt);
 Format string_to_format(std::string s);
 
-enum class Encoding { BINARY = 0, YAML };
+enum class Encoding { BINARY = 0, YAML, FLATBUFFER };
 
 std::string encoding_to_string(Encoding fmt);
 Encoding string_to_encoding(std::string s);

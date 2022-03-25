@@ -1,0 +1,17 @@
+
+table DataSource {
+  processor: string;
+  port: string;
+  slot: uint8;
+  streamid: uint16;
+}
+
+
+table RootMsg {
+  version: string;
+  packetid: uint32;
+  source: DataSource;
+  data: [ubyte] (flexbuffer);
+}
+
+root_type RootMsg;
