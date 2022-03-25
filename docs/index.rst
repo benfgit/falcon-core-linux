@@ -142,7 +142,7 @@ Falcon can be extended with new set of processors and datatype. See how you can 
    :widths: auto
 
    =============================================================== ==================================================================================== ============
-                             Name                                                            Repository                                                     Public
+              Name (readthedoc documentation)                                               Repository                                                     Public
    =============================================================== ==================================================================================== ============
    `fklab <https://falcon-fklab-extensions.readthedocs.io>`_       `source code <https://bitbucket.org/kloostermannerflab/falcon-fklab-extensions>`_    True
    `behavior <https://falcon-behavior-extensions.readthedocs.io>`_ `source code <https://bitbucket.org/kloostermannerflab/falcon-behavior-extensions>`_ False
