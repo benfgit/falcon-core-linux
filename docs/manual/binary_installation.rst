@@ -11,8 +11,9 @@ In parallel, we developed a cmake-client python gui to automatically create an i
 .. code-block:: console
 
     conda config --append channels KloostermanLab
-    conda env create KloostermanLab/falcon
+    conda env create -n falcon cmake>=3.11
     conda activate falcon
+    conda install pyyaml pyqt=5 pkgconfig appdirs fklab-cmake-gui pyzmq zeromq
     fklab-build --gui false --path https://bitbucket.org/kloostermannerflab/falcon-core.git \
             --version 1.3.0  \
             --build_options DCMAKE_INSTALL_PREFIX="$HOME/opt/falcon-core"
