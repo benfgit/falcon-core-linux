@@ -10,6 +10,7 @@ In parallel, we developed a cmake-client python gui to automatically create an i
 
 .. code-block:: console
 
+    conda config --append channels KloostermanLab
     conda env create KloostermanLab/falcon
     conda activate falcon
     fklab-build --gui false --path https://bitbucket.org/kloostermannerflab/falcon-core.git \
