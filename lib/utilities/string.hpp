@@ -29,6 +29,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <cstdint>
 
 bool path_exists(const std::string &name);
 

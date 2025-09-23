@@ -1,6 +1,9 @@
 cmake_minimum_required (VERSION 3.11)
 ENABLE_LANGUAGE(CXX)
 
+# Export compile commands for VS Code IntelliSense
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g -Wall -Wunused -std=c++17 -pthread -D_GLIBCXX_USE_NANOSLEEP")
 else()
@@ -8,6 +11,7 @@ else()
 endif()
 
 set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS "")
+
 
 project (rootproject)
 
@@ -34,7 +38,7 @@ include(FetchContent)
 FetchContent_Declare(
     flatbuffers
     GIT_REPOSITORY "https://github.com/google/flatbuffers"
-    GIT_TAG        v2.0.0
+    GIT_TAG        v2.0.8
 )
 
 FetchContent_Declare(

@@ -20,6 +20,7 @@
 #pragma once
 #include <string>
 #include "yaml-cpp/yaml.h"
+#include <cstdint>
 
 namespace Serialization {
 
