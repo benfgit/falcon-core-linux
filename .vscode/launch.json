@@ -43,7 +43,6 @@
                 // "ncs_file.yaml"
             ],
             "cwd": "${workspaceFolder}/build/debug",
-            "externalConsole": true,
             "preLaunchTask": "make",
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb",
@@ -53,7 +52,7 @@
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": false
                 }
-            ] 
+            ]
 
         }
     ]
