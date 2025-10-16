@@ -1,0 +1,112 @@
+Description: Detect ripples in a MultiChannelData stream and emits a ripple event in response
+
+Input port:
+  - name: data
+    type: MultiChannelData <double>
+    slots: 1
+    description:
+
+Output port:
+  - name: events
+    type: EventData
+    slots: 1
+    description: A stream of 'ripple' events.
+  - name: statistics
+    type: MultiChannelData <double>
+    slots: 1
+    description:
+
+Options:
+  - &threshold
+    name: threshold dev
+    type: double
+    default: 6.0
+    description: Multiplier (in number of signal standard deviations) to compute the initial threshold.
+  - &smoothtime
+    name: smooth time
+    type: double
+    default: 10.0 seconds
+    description: Integration time for estimating signal statistics. Must be a positive number (sec).
+  - &detectlookuptime
+    name: analysis lockout time
+    type: double
+    default: 30 ms
+    description: refractory period after threshold crossing detection that is not considered for updating of statistics
+      and for detecting events to avoid over-stimulation. Must greater than 0 ms.
+  - &streamevents
+    name: stream events
+    type: bool
+    default: True
+    description: enable/disable ripple event output
+  - &streamstats
+    name: stream statistics
+    type: bool
+    default: True
+    description: Enable streaming of statistics
+  - name: use power
+    type: bool
+    default: True
+    description: Use power of signal for detection.
+  - name: statistics buffer size
+    type: double
+    default: 0.5 sec
+    description: Buffer size (in seconds) for statistics output stream. This value determines
+      the number of samples that will be collected for each data packet streamed
+      out on the statistics output port. must be either equals or greater than 0.
+  - name: statistics downsample factor
+    type: unsigned int
+    default: 1
+    description: Downsample factor of streamed statistics signal
+
+States:
+
+  Producer:
+    - name: threshold
+      type: double
+      default: 0.0
+      cooperative: false
+      external access: read
+      description: Current threshold that needs to be crossed
+    - name: mean
+      type: double
+      default: 0.0
+      cooperative: false
+      external access: read
+      description: Current signal mean. Same unit as input signal.
+    - name: deviation
+      type: double
+      default: 0.0
+      cooperative: false
+      external access: read
+      description: Current signal deviation. Same unit as input signal.
+
+  Broadcaster:
+    - name: ripple
+      type: bool
+      default: false
+      external access: read
+      description:
+
+  Follower:
+    - name: detection enabled
+      type: bool
+      default: true
+      external access: None
+      description: Enable the detection of ripples
+
+  Static:
+    - <<: *threshold
+      external access: write
+      shared: true
+    - <<: *smoothtime
+      external access: write
+      shared: true
+    - <<: *detectlookuptime
+      external access: write
+      shared: true
+    - <<: *streamevents
+      external access: write
+      shared: true
+    - <<: *streamstats
+      external access: write
+      shared: true

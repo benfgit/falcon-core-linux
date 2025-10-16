@@ -1,0 +1,46 @@
+Description: Detect a threshold crossing on any of the channels in the incoming multi-channel datastream and emits an event in response.
+
+Input port:
+  - name: data
+    type: MultiChannelData <double>
+    slots: 1
+    description:
+
+Output port:
+  - name: events
+    type: EventData
+    slots: 1
+    description: A stream of events.
+
+Options:
+  - &threshold
+    name: threshold
+    type: double
+    default: 0.0
+    description: Threshold (in data units) that needs to be crossed.
+  - name: event
+    type: string
+    default: "threshold_crossing"
+    description: The event to emit when the input signal crosses the threshold.
+  - &postdetectblock
+    name: post detect block
+    type: unsigned int
+    default: 2
+    description: refractory period after threshold crossing detection (in number of samples )
+  - &upslope
+    name: upslope
+    type: bool;
+    default: True
+    description: Either detect upward (true) or downward (false) threshold crossings.
+
+States:
+  Static:
+    - <<: *threshold
+      shared: true
+      external access: write
+    - <<: *postdetectblock
+      shared: true
+      external access: write
+    - <<: *upslope
+      shared: true
+      external access: write

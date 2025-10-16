@@ -5,3 +5,7 @@ _build/
 
 docs/_doxygen/*
 docs/api/*
+
+extensions/*
+!extensions/default
+!extensions/template

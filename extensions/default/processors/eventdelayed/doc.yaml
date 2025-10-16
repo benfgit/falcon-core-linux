@@ -1,0 +1,102 @@
+Description: The processor will convert incoming events into a detection event and a stimulation event with optional delay.
+
+Long description : This processor will convert each incoming event into two events; a detection event that is sent out immediately, and a stimulation event that is sent out with an optional delay. Incoming events are ignored if they arrive within a configurable lock-out time window after a previous event. Stimulation events are either sent out immediately (“on-time”), with a (random) delay or may be disabled.
+
+Input port:
+  - name: events
+    type: EventData
+    slots: 1
+    description:
+
+Output port:
+  - name: events
+    type: EventData
+    slots: 1
+    description:
+
+Options:
+  - &disabled
+    name: detection only mode
+    type: bool
+    default: false
+    description: Disabled the processing of incoming events.
+
+  - &delayed
+    name: delayed mode
+    type: bool
+    default: False
+    description: Enable the delay of the event for a time randomly chosen between the delay range
+  - name: delay range
+    type: long int
+    default: "[150, 250] ms"
+    description: if delayed event is true, the delayed time will be pseudo-randomly chosen in this range.
+
+  - name: message/delayed
+    type: string
+    default: "d"
+    description: Message to send on the stimulation port when the event has been delayed.
+  - name: message/ontime
+    type: string
+    default: "o"
+    description: Message to send on the detection port when an event is received
+  - name: message/detection
+    type: string
+    default: "r"
+    description: Message to send on the detection port when an event is received
+
+  - &detection_lockout
+    name: event trigger lockout time/period
+    type: double
+    default: 50 ms
+    description: Lock out time for sending new detection/stimulation after a stimulation.
+
+  - name: event trigger lockout time/stimulation
+    type: bool
+    default: true
+    description: Start stopping for detecting pattern after a stimulation.
+
+  - name: event trigger lockout time/detection
+    type: bool
+    default: false
+    description: Start stopping for detecting pattern after a detection.
+
+  - &analysis_lockout
+    name: analysis lockout time/period
+    type: double
+    default: 50 ms
+    description: Lock out time for detecting pattern after a stimulation 
+
+  - name: analysis lockout time/start time
+    type: list(double)
+    default: [0]
+    description: when to start stopping detection after a stimulation.
+  - name: enabled saving
+    type: bool
+    default: true
+    description: Enable saving of target events to disk.
+  - name: prefix
+    type: string
+    default: stim_
+    description: add a prefix in the filename (prefix+eventname) where target event are saved
+
+State:
+  Static:
+    - <<: *detection_lockout
+      external access: write
+      shared: true
+    - <<: *analysis_lockout
+      external access: write
+      shared: true
+
+  Follower:
+    - <<: *delayed
+      external access: write
+    - <<: *disabled
+      external access: write
+
+  Broadcaster:
+    - name: analysis enabled
+      type: bool
+      default: true
+      external access: read
+      description: allow to enabled/disabled a state in another processor node (often linked with the ripple detector analysis state).

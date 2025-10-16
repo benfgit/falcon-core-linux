@@ -1,4 +1,0 @@
-enable , extension name , extension path , extension version (optional)
-0 , behavior , https://bitbucket.org/kloostermannerflab/falcon-behavior-extensions, 1.0.0
-1 , core , https://github.com/benfgit/falcon-fklab-extensions, main
-

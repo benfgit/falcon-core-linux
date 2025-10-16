@@ -1,0 +1,21 @@
+Description: Take an EventData stream and sends as a message over serial port the event name.
+
+Input port:
+  - name: events
+    type: EventData
+    slots: 1
+    description:
+
+Options:
+  - name: port address
+    type: string
+    default: "/dev/ttyACM0"
+    description: Address of serial port
+  - name: baud rate
+    type: double
+    default: 9600
+    description: Serial rate exchange
+  - name: event logging
+    type: bool
+    default: true
+    description: Log message (EVENTS level) if true

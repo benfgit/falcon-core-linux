@@ -1,0 +1,17 @@
+Description: Generate target events following an uniform distribution with a certain rate
+
+Output port:
+  - name: events
+    type: EventData
+    slots: 1
+    description:
+
+Options:
+  - name: events
+    type: list of string
+    default: "default_eventsource_event"
+    description: list of events to emit
+  - name: rate
+    type: double
+    default: 1Hz
+    description: (approximate) event rate

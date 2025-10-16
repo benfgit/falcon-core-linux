@@ -1,0 +1,13 @@
+Description: Log target events
+
+Input port:
+  - name: events
+    type: EventData
+    slots: 1
+    description:
+
+Options:
+  - name: target event
+    type: string
+    default: None
+    description: target event to be log
