@@ -80,7 +80,7 @@ constexpr int32_t NLX_STX = 2048;
 constexpr int32_t NLX_RAWPACKETID = 1;
 constexpr uint16_t NLX_DEFAULT_NCHANNELS = 128;
 constexpr uint16_t NLX_MAX_NCHANNELS = 1024;
-constexpr double NLX_SIGNAL_SAMPLING_FREQUENCY = 32000;
+constexpr double NLX_SIGNAL_SAMPLING_FREQUENCY = 32768;
 constexpr unsigned int NLX_DEFAULT_BUFFERSIZE =
     NLX_PACKETBYTESIZE(NLX_DEFAULT_NCHANNELS);
 

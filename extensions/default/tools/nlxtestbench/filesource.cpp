@@ -36,6 +36,8 @@ FileSource::FileSource(std::string file, bool cycle)
                              ". Check if filepath is correct.\n");
   }
 
+  raw_data_file.seekg(16*1024);
+
   // read first three int32 to determine of this is a proper raw nlx file
   // and to determine the number of channels
   std::vector<int32_t> local_buffer{3};
@@ -66,7 +68,7 @@ FileSource::FileSource(std::string file, bool cycle)
 
   // check that file size is multiple of buffer size
   raw_data_file.seekg(0, std::ios::end);
-  uint64_t length = raw_data_file.tellg();
+  uint64_t length = raw_data_file.tellg() - 16*1024;
   raw_data_file.seekg(0, std::ios::beg);
 
   if (length % buffer_size_ != 0) {

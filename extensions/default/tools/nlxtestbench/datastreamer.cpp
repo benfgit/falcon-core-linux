@@ -24,18 +24,43 @@
 
 #include "utilities/time.hpp"
 
-void busysleep_until(TimePoint t) {
-  while (Clock::now() < t) {
+void SetRealtimePriority()
+{
+  sched_param sch_params;
+  sch_params.sched_priority = 99;
+  if (pthread_setschedparam(pthread_self(), SCHED_FIFO, &sch_params))
+  {
+    std::cerr << "Failed to set thread scheduling: " << std::strerror(errno) << '\n';
+  }
+  else
+  {
+    std::cout << "priority set to " << sch_params.sched_priority << std::endl;
+  }
+
+  cpu_set_t cpuset;
+  CPU_ZERO(&cpuset);
+  CPU_SET(3, &cpuset);
+  pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
+}
+
+void busysleep_until(std::chrono::_V2::system_clock::time_point t)
+{
+  while (std::chrono::high_resolution_clock::now() < t)
+  {
   }
 }
 
 DataStreamer::DataStreamer(DataSource *source, double rate, std::string ip,
                            int port, uint64_t npackets)
     : source_(source), rate_(rate), ip_(ip), port_(port),
-      max_packets_(npackets) {
+      max_packets_(npackets)
+{
+
+  SetRealtimePriority();
 
   /*create UDP socket*/
-  if ((udp_socket_ = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+  if ((udp_socket_ = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+  {
     throw std::runtime_error("Unable to create socket.");
   }
 
@@ -44,7 +69,8 @@ DataStreamer::DataStreamer(DataSource *source, double rate, std::string ip,
   server_address_.sin_addr.s_addr = inet_addr(ip_.c_str());
   server_address_.sin_port = htons(port_);
 
-  if (max_packets_ == 0) {
+  if (max_packets_ == 0)
+  {
     max_packets_ = std::numeric_limits<uint64_t>::max();
   }
 
@@ -59,14 +85,16 @@ bool DataStreamer::terminated() const { return terminate_; }
 
 void DataStreamer::Terminate() { terminate_ = true; }
 
-void DataStreamer::Run() {
+void DataStreamer::Run()
+{
+  float adjustment = 0;
 
   uint64_t npackets = 0;
   unsigned int buffer_size;
   ssize_t sent;
 
-  TimePoint start;
-  std::chrono::microseconds period((uint64_t)(1000000. / rate_));
+  std::chrono::_V2::system_clock::time_point start;
+  std::chrono::microseconds period((uint64_t)((1000000. / rate_) - adjustment));
 
   char *buffer;
 
@@ -74,12 +102,34 @@ void DataStreamer::Run() {
             << " Hz: " << source_->string() << std::endl;
 
   auto begin_time = std::chrono::high_resolution_clock::now();
+  auto last_time = begin_time;
+  uint64_t npackets_since_last_time = 0;
 
-  while (!terminated() && npackets < max_packets_) {
+  while (!terminated() && npackets < max_packets_)
+  {
 
-    start = Clock::now();
+    start = std::chrono::high_resolution_clock::now();
 
-    if ((buffer_size = source_->Produce(&buffer)) == 0) {
+    auto elapsed = start - last_time;
+    if (elapsed > std::chrono::seconds{1})
+    {
+      std::cout << rate_ << " : " << npackets_since_last_time<< " : " << adjustment
+                << std::endl;
+      if (npackets_since_last_time < rate_)
+      {
+        adjustment += 0.1;
+      }
+      else
+      {
+        adjustment -= 0.1;
+      }
+      period = std::chrono::microseconds((uint64_t)((1000000. / rate_) - adjustment));
+      last_time = start;
+      npackets_since_last_time = 0;
+    }
+
+    if ((buffer_size = source_->Produce(&buffer)) == 0)
+    {
       break;
     }
 
@@ -87,11 +137,15 @@ void DataStreamer::Run() {
 
     if ((sent = sendto(udp_socket_, (void *)buffer, buffer_size, 0,
                        (struct sockaddr *)&server_address_,
-                       sizeof(server_address_))) != buffer_size) {
-      if (sent < 0) {
+                       sizeof(server_address_))) != buffer_size)
+    {
+      if (sent < 0)
+      {
         std::cout << "Error sending data packet: " << std::strerror(errno)
                   << std::endl;
-      } else {
+      }
+      else
+      {
         std::cout << "Error sending data packet: did not send all data."
                   << std::endl;
       }
@@ -99,6 +153,7 @@ void DataStreamer::Run() {
     }
 
     npackets++;
+    npackets_since_last_time++;
   }
 
   auto end_time = std::chrono::high_resolution_clock::now();
@@ -118,17 +173,22 @@ void DataStreamer::Run() {
   Terminate();
 }
 
-void DataStreamer::Start() {
-  if (!running()) {
+void DataStreamer::Start()
+{
+  if (!running())
+  {
     terminate_ = false;
     thread_ = std::thread(&DataStreamer::Run, this);
     running_ = true;
   }
 }
 
-void DataStreamer::Stop() {
-  if (running()) {
-    if (!terminated()) {
+void DataStreamer::Stop()
+{
+  if (running())
+  {
+    if (!terminated())
+    {
       Terminate();
     }
     thread_.join();
@@ -137,8 +197,10 @@ void DataStreamer::Stop() {
   }
 }
 
-void DataStreamer::set_source(DataSource *source) {
-  if (!running()) {
+void DataStreamer::set_source(DataSource *source)
+{
+  if (!running())
+  {
     source_ = source;
   }
 }

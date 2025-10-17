@@ -39,7 +39,7 @@
             "program": "${workspaceFolder}/build/debug/nlxtestbench",
             "args": [
                 "-c",
-                "nlxtestbench.yaml"
+                "../resources/tools/nlxtestbench.yaml"
                 // "ncs_file.yaml"
             ],
             "cwd": "${workspaceFolder}/build/debug",
