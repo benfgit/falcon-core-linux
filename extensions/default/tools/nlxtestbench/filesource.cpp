@@ -70,7 +70,6 @@ FileSource::FileSource(std::string file, bool cycle)
     // check that file size is multiple of buffer size
     raw_data_file.seekg(0, std::ios::end);
     uint64_t length = raw_data_file.tellg() - 16 * 1024;
-    raw_data_file.seekg(0, std::ios::beg);
 
     if (length % buffer_size_ != 0) {
         throw std::runtime_error(
@@ -78,6 +77,8 @@ FileSource::FileSource(std::string file, bool cycle)
     }
 
     buffer_.resize(buffer_size_);
+
+    raw_data_file.seekg(16 * 1024);
 }
 
 FileSource::~FileSource() { raw_data_file.close(); }
@@ -112,6 +113,27 @@ int64_t FileSource::Produce(char **data) {
                   << std::endl;
         return 0;
     }
+
+    /*
+
+    // Following code validates each packet before sending via UDP
+
+    std::vector<char> check_buffer = buffer_;
+
+    if (check_buffer[0] == 8) {
+        auto *p = reinterpret_cast<uint16_t *>(check_buffer.data());
+        for (unsigned int k = 0; k < 3 * sizeof(uint32_t) / sizeof(uint16_t);
+             k++) {
+                p[k] = ntohs(p[k]);
+            }
+        } else {
+            throw std::runtime_error("Cannot recognize file.");
+        }
+
+        if (check_buffer[4] != 1 ||     nchannels_ != check_buffer[8] - nlx::NLX_NFIELDS_EXTRA) {
+            throw std::runtime_error("Cannot recognize file.");
+        }
+    */
 
     *data = (char *)buffer_.data();
     return buffer_size_;
