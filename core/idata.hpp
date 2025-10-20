@@ -28,32 +28,32 @@
 
 #include "ringbuffer.hpp"
 
-#include "logging/log.hpp"
-#include "utilities/time.hpp"
-#include "serialization.hpp"
-#include "yaml-cpp/yaml.h"
 #include "datatype_generated.h"
 #include "flatbuffers/flatbuffers.h"
 #include "flatbuffers/flexbuffers.h"
+#include "logging/log.hpp"
+#include "serialization.hpp"
+#include "utilities/time.hpp"
+#include "yaml-cpp/yaml.h"
 
 // Factory for DATATYPE::Data items with support for post-construction
 // initialization
 template <typename DATATYPE>
 class DataFactory : public IFactory<typename DATATYPE::Data> {
- public:
-  DataFactory(const typename DATATYPE::Parameters &parameters)
-      : parameters_(parameters) {}
+  public:
+    DataFactory(const typename DATATYPE::Parameters &parameters)
+        : parameters_(parameters) {}
 
-  typename DATATYPE::Data * NewInstance(const int &size) const final {
-    auto items = new typename DATATYPE::Data[size];
-    for (int k = 0; k < size; k++) {
-      items[k].Initialize(parameters_);
+    typename DATATYPE::Data *NewInstance(const int &size) const final {
+        auto items = new typename DATATYPE::Data[size];
+        for (int k = 0; k < size; k++) {
+            items[k].Initialize(parameters_);
+        }
+        return items;
     }
-    return items;
-  }
 
- protected:
-  typename DATATYPE::Parameters parameters_;
+  protected:
+    typename DATATYPE::Parameters parameters_;
 };
 
 namespace nsAnyType {
@@ -61,78 +61,76 @@ namespace nsAnyType {
 struct Parameters {};
 
 class Capabilities {
- public:
-  virtual ~Capabilities() {}
+  public:
+    virtual ~Capabilities() {}
 
-  virtual void VerifyCompatibility(const Capabilities &capabilities) const {}
-  virtual void Validate(const Parameters &parameters) const {}
+    virtual void VerifyCompatibility(const Capabilities &capabilities) const {}
+    virtual void Validate(const Parameters &parameters) const {}
 };
 
 class Data {
- public:
-  Data() : hardware_timestamp_(0), serial_number_(0) {}
-  virtual ~Data() {}
+  public:
+    Data() : hardware_timestamp_(0), serial_number_(0) {}
+    virtual ~Data() {}
 
-  virtual void ClearData() {}
+    virtual void ClearData() {}
 
-  void Initialize(const Parameters &parameters) {}
+    void Initialize(const Parameters &parameters) {}
 
-  bool eos() const;
-  void set_eos(bool value = true);
-  void clear_eos();
+    bool eos() const;
+    void set_eos(bool value = true);
+    void clear_eos();
 
-  void set_serial_number(uint64_t n);
-  uint64_t serial_number() const;
+    void set_serial_number(uint64_t n);
+    uint64_t serial_number() const;
 
-  void set_source_timestamp();
-  void set_source_timestamp(TimePoint t);
+    void set_source_timestamp();
+    void set_source_timestamp(TimePoint t);
 
-  TimePoint source_timestamp() const;
+    TimePoint source_timestamp() const;
 
-  template <typename DURATION = std::chrono::microseconds>
-  DURATION time_passed() const {
-    return std::chrono::duration_cast<DURATION>(Clock::now() -
-                                                source_timestamp_);
-  }
+    template <typename DURATION = std::chrono::microseconds>
+    DURATION time_passed() const {
+        return std::chrono::duration_cast<DURATION>(Clock::now() -
+                                                    source_timestamp_);
+    }
 
-  template <typename DURATION = std::chrono::microseconds>
-  DURATION time_since(TimePoint reference) const {
-    return std::chrono::duration_cast<DURATION>(Clock::now() - reference);
-  }
+    template <typename DURATION = std::chrono::microseconds>
+    DURATION time_since(TimePoint reference) const {
+        return std::chrono::duration_cast<DURATION>(Clock::now() - reference);
+    }
 
-  uint64_t hardware_timestamp() const;
-  void set_hardware_timestamp(uint64_t t);
+    uint64_t hardware_timestamp() const;
+    void set_hardware_timestamp(uint64_t t);
 
-  void CloneTimestamps(const Data &data);
+    void CloneTimestamps(const Data &data);
 
-  virtual void SerializeBinary(std::ostream &stream,
+    virtual void SerializeBinary(std::ostream &stream,
+                                 Serialization::Format format) const;
+
+    virtual void SerializeYAML(YAML::Node &node,
                                Serialization::Format format) const;
 
-  virtual void SerializeYAML(YAML::Node &node,
-                             Serialization::Format format) const;
+    virtual void YAMLDescription(YAML::Node &node,
+                                 Serialization::Format format) const;
 
-  virtual void YAMLDescription(YAML::Node &node,
-                               Serialization::Format format) const;
+    virtual void SerializeFlatBuffer(flexbuffers::Builder &flex_builder);
 
-  virtual void SerializeFlatBuffer(flexbuffers::Builder& flex_builder);
-
-
- protected:
-  TimePoint source_timestamp_;
-  uint64_t hardware_timestamp_;   // e.g. from Neuralynx
-  uint64_t serial_number_;
-  bool end_of_stream_ = false;
-
+  protected:
+    TimePoint source_timestamp_;
+    uint64_t hardware_timestamp_; // e.g. from Neuralynx
+    uint64_t serial_number_;
+    bool end_of_stream_ = false;
 };
 
-}   // namespace nsAnyType
+} // namespace nsAnyType
 
 class AnyType {
- public:
-  static const std::string datatype() { return "any"; }
-  static const std::string dataname() { return "data"; }
+  public:
+    static const std::string datatype() { return "any"; }
+    static const std::string dataname() { return "data"; }
 
-  using Parameters = nsAnyType::Parameters;
-  using Capabilities = nsAnyType::Capabilities;
-  using Data = nsAnyType::Data;
+    using Parameters = nsAnyType::Parameters;
+    using Capabilities = nsAnyType::Capabilities;
+    using Data = nsAnyType::Data;
 };

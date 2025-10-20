@@ -28,9 +28,11 @@ void SetRealtimePriority() {
     sched_param sch_params;
     sch_params.sched_priority = 99;
     if (pthread_setschedparam(pthread_self(), SCHED_FIFO, &sch_params)) {
-        std::cerr << "Failed to set thread scheduling: " << std::strerror(errno) << '\n';
+        std::cerr << "Failed to set thread scheduling: " << std::strerror(errno)
+                  << '\n';
     } else {
-        std::cout << "priority set to " << sch_params.sched_priority << std::endl;
+        std::cout << "priority set to " << sch_params.sched_priority
+                  << std::endl;
     }
 
     cpu_set_t cpuset;
@@ -44,8 +46,10 @@ void busysleep_until(TimePoint t) {
     }
 }
 
-DataStreamer::DataStreamer(DataSource *source, double rate, std::string ip, int port, uint64_t npackets)
-    : source_(source), rate_(rate), ip_(ip), port_(port), max_packets_(npackets) {
+DataStreamer::DataStreamer(DataSource *source, double rate, std::string ip,
+                           int port, uint64_t npackets)
+    : source_(source), rate_(rate), ip_(ip), port_(port),
+      max_packets_(npackets) {
     SetRealtimePriority();
 
     /*create UDP socket*/
@@ -84,7 +88,8 @@ void DataStreamer::Run() {
 
     char *buffer;
 
-    std::cout << "Started streaming at " << std::to_string(rate_) << " Hz: " << source_->string() << std::endl;
+    std::cout << "Started streaming at " << std::to_string(rate_)
+              << " Hz: " << source_->string() << std::endl;
 
     auto begin_time = std::chrono::high_resolution_clock::now();
 
@@ -100,10 +105,13 @@ void DataStreamer::Run() {
 
         const ssize_t bytes_sent =
             sendto(udp_socket_, static_cast<void *>(buffer), produced_size, 0,
-                   reinterpret_cast<struct sockaddr *>(&server_address_), sizeof(server_address_));
+                   reinterpret_cast<struct sockaddr *>(&server_address_),
+                   sizeof(server_address_));
 
         if (bytes_sent != static_cast<ssize_t>(produced_size)) {
-            std::cerr << "Error sending data packet: " << (bytes_sent < 0 ? std::strerror(errno) : "Incomplete send.")
+            std::cerr << "Error sending data packet: "
+                      << (bytes_sent < 0 ? std::strerror(errno)
+                                         : "Incomplete send.")
                       << std::endl;
             break;
         }
@@ -112,12 +120,16 @@ void DataStreamer::Run() {
     }
 
     auto end_time = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - begin_time).count();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(
+                        end_time - begin_time)
+                        .count();
 
     std::cout << "Finished streaming: " << source_->string() << std::endl;
 
-    std::cout << "Number of packets sent = " << npackets << " in " << duration / 1000.
-              << " seconds ( average rate = " << npackets * 1000. / duration << " Hz )" << std::endl
+    std::cout << "Number of packets sent = " << npackets << " in "
+              << duration / 1000.
+              << " seconds ( average rate = " << npackets * 1000. / duration
+              << " Hz )" << std::endl
               << std::endl;
 
     Terminate();

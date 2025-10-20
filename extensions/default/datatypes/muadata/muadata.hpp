@@ -19,66 +19,67 @@
 
 #pragma once
 
-#include <string>
 #include "idata.hpp"
+#include <string>
 
 namespace nsMUAType {
 
 using Base = AnyType;
 
 struct Parameters : Base::Parameters {
-  Parameters(double bin = 0) : Base::Parameters(), bin_size(bin) {}
-  double bin_size;
+    Parameters(double bin = 0) : Base::Parameters(), bin_size(bin) {}
+    double bin_size;
 };
 
 class Capabilities : public Base::Capabilities {
- public:
-  virtual void Validate(const Parameters &parameters) const {
-    if (parameters.bin_size <= 0) {
-      throw std::runtime_error("Bin size cannot be smaller or equal to zero.");
+  public:
+    virtual void Validate(const Parameters &parameters) const {
+        if (parameters.bin_size <= 0) {
+            throw std::runtime_error(
+                "Bin size cannot be smaller or equal to zero.");
+        }
     }
-  }
 };
 
 class Data : public Base::Data {
- public:
-  void Initialize(double bin_size);
-  void Initialize(const Parameters &parameters);
-  void ClearData() override;
-  void set_n_spikes(unsigned int n_spikes);
-  double mua() const;
-  void set_bin_size(double bin_size);
-  double bin_size();
-  unsigned int n_spikes();
+  public:
+    void Initialize(double bin_size);
+    void Initialize(const Parameters &parameters);
+    void ClearData() override;
+    void set_n_spikes(unsigned int n_spikes);
+    double mua() const;
+    void set_bin_size(double bin_size);
+    double bin_size();
+    unsigned int n_spikes();
 
-  void SerializeBinary(std::ostream &stream,
-                       Serialization::Format format =
-                       Serialization::Format::FULL) const final;
+    void SerializeBinary(
+        std::ostream &stream,
+        Serialization::Format format = Serialization::Format::FULL) const final;
 
-  void SerializeYAML(YAML::Node &node,
-                     Serialization::Format format =
-                     Serialization::Format::FULL) const final;
+    void SerializeYAML(
+        YAML::Node &node,
+        Serialization::Format format = Serialization::Format::FULL) const final;
 
-  void YAMLDescription(YAML::Node &node,
-                       Serialization::Format format =
-                       Serialization::Format::FULL) const final;
+    void YAMLDescription(
+        YAML::Node &node,
+        Serialization::Format format = Serialization::Format::FULL) const final;
 
-  void SerializeFlatBuffer(flexbuffers::Builder& flex_builder) final;
+    void SerializeFlatBuffer(flexbuffers::Builder &flex_builder) final;
 
- protected:
-  double bin_size_;  // in ms
-  unsigned int n_spikes_;
+  protected:
+    double bin_size_; // in ms
+    unsigned int n_spikes_;
 };
 
-}  // namespace nsMUAType
+} // namespace nsMUAType
 
 class MUAType {
- public:
-  static const std::string datatype() { return "mua"; }
-  static const std::string dataname() { return "mua"; }
+  public:
+    static const std::string datatype() { return "mua"; }
+    static const std::string dataname() { return "mua"; }
 
-  using Base = nsMUAType::Base;
-  using Parameters = nsMUAType::Parameters;
-  using Capabilities = nsMUAType::Capabilities;
-  using Data = nsMUAType::Data;
+    using Base = nsMUAType::Base;
+    using Parameters = nsMUAType::Parameters;
+    using Capabilities = nsMUAType::Capabilities;
+    using Data = nsMUAType::Data;
 };

@@ -35,84 +35,84 @@ namespace nsEventType {
 using Base = AnyType;
 
 struct Parameters : Base::Parameters {
-  Parameters(std::string event = DEFAULT_EVENT)
-      : Base::Parameters(), default_event(event) {}
+    Parameters(std::string event = DEFAULT_EVENT)
+        : Base::Parameters(), default_event(event) {}
 
-  std::string default_event;
+    std::string default_event;
 };
 
 class Capabilities : public Base::Capabilities {
- public:
-  virtual void Validate(const Parameters &parameters) const {
-    if (parameters.default_event.size() == 0) {
-      throw std::runtime_error("Default event string cannot be empty.");
+  public:
+    virtual void Validate(const Parameters &parameters) const {
+        if (parameters.default_event.size() == 0) {
+            throw std::runtime_error("Default event string cannot be empty.");
+        }
     }
-  }
 };
 
 class Data : public Base::Data {
- public:
-  Data(std::string event = DEFAULT_EVENT);
+  public:
+    Data(std::string event = DEFAULT_EVENT);
 
-  void Initialize(std::string event = DEFAULT_EVENT);
-  void Initialize(const Parameters &parameters) {
-    set_event(parameters.default_event);
-  }
+    void Initialize(std::string event = DEFAULT_EVENT);
+    void Initialize(const Parameters &parameters) {
+        set_event(parameters.default_event);
+    }
 
-  void ClearData() override;
-  std::string event() const;
-  size_t hash() const;
-  size_t size() const;
-  void set_event(std::string event);
-  void set_event(const Data &source);
+    void ClearData() override;
+    std::string event() const;
+    size_t hash() const;
+    size_t size() const;
+    void set_event(std::string event);
+    void set_event(const Data &source);
 
-  friend bool operator==(const Data &e1, const Data &e2);
-  friend bool operator!=(const Data &e1, const Data &e2);
+    friend bool operator==(const Data &e1, const Data &e2);
+    friend bool operator!=(const Data &e1, const Data &e2);
 
-  void SerializeBinary(std::ostream &stream,
+    void SerializeBinary(std::ostream &stream,
+                         Serialization::Format format =
+                             Serialization::Format::FULL) const override;
+    void SerializeYAML(YAML::Node &node,
                        Serialization::Format format =
-                                   Serialization::Format::FULL) const override;
-  void SerializeYAML(YAML::Node &node,
-                     Serialization::Format format =
-                                 Serialization::Format::FULL) const override;
+                           Serialization::Format::FULL) const override;
 
-  void SerializeFlatBuffer(flexbuffers::Builder& fbb) override;
+    void SerializeFlatBuffer(flexbuffers::Builder &fbb) override;
 
-  void YAMLDescription(YAML::Node &node,
-                       Serialization::Format format =
-                                   Serialization::Format::FULL) const override;
+    void YAMLDescription(YAML::Node &node,
+                         Serialization::Format format =
+                             Serialization::Format::FULL) const override;
 
- protected:
-  std::string event_;
-  size_t hash_;
+  protected:
+    std::string event_;
+    size_t hash_;
 
-  static const unsigned int EVENT_STRING_LENGTH = 128;
+    static const unsigned int EVENT_STRING_LENGTH = 128;
 };
 
-}  // namespace nsEventType
+} // namespace nsEventType
 
 class EventType {
- public:
-  static const std::string datatype() { return "event"; }
-  static const std::string dataname() { return "events"; }
+  public:
+    static const std::string datatype() { return "event"; }
+    static const std::string dataname() { return "events"; }
 
-  using Base = nsEventType::Base;
-  using Parameters = nsEventType::Parameters;
-  using Capabilities = nsEventType::Capabilities;
-  using Data = nsEventType::Data;
+    using Base = nsEventType::Base;
+    using Parameters = nsEventType::Parameters;
+    using Capabilities = nsEventType::Capabilities;
+    using Data = nsEventType::Data;
 };
 
 namespace YAML {
 template <> struct convert<EventType::Data> {
-  static Node encode(const EventType::Data &rhs) {
-    Node node;
-    node = rhs.event();
-    return node;
-  }
+    static Node encode(const EventType::Data &rhs) {
+        Node node;
+        node = rhs.event();
+        return node;
+    }
 
-  static bool decode(const Node &node, EventType::Data &rhs) {
-    rhs.set_event(node.as<std::string>());
-    return true;
-  }
+    static bool decode(const Node &node, EventType::Data &rhs) {
+        rhs.set_event(node.as<std::string>());
+        return true;
+    }
 };
-}  // namespace YAML
+} // namespace YAML
