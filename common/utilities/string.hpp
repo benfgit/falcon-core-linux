@@ -24,12 +24,12 @@
 
 #pragma once
 
+#include <cstdint>
 #include <iomanip>
 #include <map>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <cstdint>
 
 bool path_exists(const std::string &name);
 

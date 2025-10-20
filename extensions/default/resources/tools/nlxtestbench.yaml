@@ -1,0 +1,11 @@
+network:
+      ip: 127.0.0.1
+      port: 5000
+stream:
+      rate: 32
+      npackets: 0
+sources:
+      - class: nlx
+        options:
+           file: ../../../signal_transform/data/output/combined.nrdx
+           cycle: false

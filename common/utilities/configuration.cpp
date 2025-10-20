@@ -28,28 +28,30 @@
 #include "filesystem.hpp"
 
 void Configuration::load(std::string filename) {
-  auto p = parse_file(filename);
+    auto config_file_path = parse_file(filename);
 
-  try {
-    YAML::Node node;
-    node = YAML::LoadFile(p.string());
-    options_.from_yaml(node, {}, false);
-    std::cout << "Default configuration loaded from " << p.string()
-              << std::endl;
-  } catch (YAML::BadFile
-               &e) {  // config file does not exist, save default configuration
     try {
-      // create parent path if it doesn't exist
-      parse_directory(p.parent_path().string(), true, true);
-      // save default config
-      save(p.string());
-      std::cout << "Default configuration saved to " << p.string() << "."
-                << std::endl;
-    } catch (std::runtime_error &e) {
-      std::cout << "Warning: could not save configuration file: " << e.what()
-                << std::endl;
+        YAML::Node node;
+        node = YAML::LoadFile(config_file_path.string());
+        options_.from_yaml(node, {}, false);
+        std::cout << "Default configuration loaded from "
+                  << std::filesystem::canonical(config_file_path).string()
+                  << std::endl;
+    } catch (YAML::BadFile
+                 &e) { // config file does not exist, save default configuration
+        try {
+            // create parent path if it doesn't exist
+            parse_directory(config_file_path.parent_path().string(), true,
+                            true);
+            // save default config
+            save(config_file_path.string());
+            std::cout << "Default configuration saved to "
+                      << config_file_path.string() << "." << std::endl;
+        } catch (std::runtime_error &e) {
+            std::cout << "Warning: could not save configuration file: "
+                      << e.what() << std::endl;
+        }
     }
-  }
 }
 
 void Configuration::save(std::string filename) { options_.save_yaml(filename); }
